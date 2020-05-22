@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "cc_dtype.h"
+#include "cc_fmap2d.h"
+#include "cc_pad2d.h"
+#include "cc_tsrmgr.h"
+
+#define PAD_MEMCPY \
+	memcpy((pad->data) + p_ch_mem_size * c +                         \
+	(i + p - poffset) * p_row_mem_size + (p + j - poffset) * dtsize, \
+	inp->data + i_ch_mem_size * c + i * i_row_mem_size + j * dtsize, \
+	dtsize);
+
+cc_tensor_t *cc_pad2d(cc_tensor_t *inp, cc_int32 p,
+		cc_int32 offset, const char *name)
+{
+	cc_tensor_t *pad = NULL;
+	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};
+	cc_int32 soffset = offset ? 1 : 0;
+	cc_int32 poffset = offset > 0 ? 1 : 0;
+	cc_int32 i, j, c, dtsize = cc_dtype_size(*inp->dtype);
+	cc_int32 i_ch_size, i_ch_mem_size, i_row_mem_size,
+		p_ch_size, p_ch_mem_size, p_row_mem_size;
+	i_ch_size = inp->shape[CC_CNN2D_SHAPE_W] *
+			inp->shape[CC_CNN2D_SHAPE_H];
+	i_ch_mem_size  = i_ch_size * dtsize;
+	i_row_mem_size = inp->shape[CC_CNN2D_SHAPE_W] * dtsize;
+#ifdef AUTO_TSRMGR
+	pad = cc_tsrmgr_get(name);
+#endif
+	if (!pad) {
+		shape[CC_CNN2D_SHAPE_C] = inp->shape[CC_CNN2D_SHAPE_C];
+		shape[CC_CNN2D_SHAPE_H] =
+			inp->shape[CC_CNN2D_SHAPE_H] + p + p - soffset;
+		shape[CC_CNN2D_SHAPE_W] = 
+			inp->shape[CC_CNN2D_SHAPE_W] + p + p - soffset;
+		pad = cc_create_tensor(shape, *inp->dtype, name);
+	}
+	p_ch_size = pad->shape[CC_CNN2D_SHAPE_W] *
+			pad->shape[CC_CNN2D_SHAPE_H];
+	p_ch_mem_size  = p_ch_size * dtsize;
+	p_row_mem_size = pad->shape[CC_CNN2D_SHAPE_W] * dtsize;
+	for (c = 0; c < inp->shape[CC_CNN2D_SHAPE_C]; ++c) {
+		for (i = 0; i < inp->shape[CC_CNN2D_SHAPE_H]; ++i) {
+			for (j = 0; j < inp->shape[CC_CNN2D_SHAPE_W]; ++j)
+				PAD_MEMCPY;
+		}
+	}
+	return pad;
+}
