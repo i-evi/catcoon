@@ -156,6 +156,6 @@ cc_int32 oup_x, cc_int32 oup_y, cc_int32 sx, cc_int32 sy, void *filter, cc_int32
 
 在 Catcoon 开发过程中，实现了一些通用的功能后，应该给出一些基于这些功能的具有代表性的网络作为参考。
 
-`demo/lenet.c` 是一个修改于 LeNet 的网络，与 LeNet 有共同的技术特征，包括卷积，池化，全连接，Relu、Softmax 激活函数。*训练和运行参考[https://github.com/i-evi/catcoon-pytorch-model/lenet](https://github.com/i-evi/catcoon-pytorch-model/lenet)
+`demo/lenet.c` 是一个修改于 LeNet 的网络，与 LeNet 有共同的技术特征，包括卷积，池化，全连接，Relu、Softmax 激活函数。*训练和运行参考[catcoon-pytorch-model/lenet](https://github.com/i-evi/catcoon-pytorch-model/tree/master/lenet)
 
 *Catcoon 是前向传播的，所以模型的训练通过其他深度学习框架实现。Catcoon 不负责训练网络，它只是提供一个轻量级的框架，让你的网络能够快速简单的部署在各种平台上，并为一些特殊的专用计算平台移植提供方便。
