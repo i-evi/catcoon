@@ -415,3 +415,82 @@ void cc_cpu_fully_connected(void *inp, void *oup,
 			UNSUPPORTED_DTYPE_LOG(dt);
 	}
 }
+
+#define CC_CPU_BATCH_NORM_IMPLEMENTATION(dt) \
+void cc_cpu_batch_norm_ ## dt(cc_ ## dt *inp,                     \
+	cc_int32 len, cc_ ## dt *bnpara)                          \
+{                                                                 \
+	cc_ ## dt gamma = *(bnpara + CC_BN_OFFSET_GAMMA),         \
+		beta    = *(bnpara + CC_BN_OFFSET_BETA),          \
+		mean    = *(bnpara + CC_BN_OFFSET_MEAN),          \
+		var     = *(bnpara + CC_BN_OFFSET_VAR),           \
+		epsilon = *(bnpara + CC_BN_OFFSET_EPSILON);       \
+	cc_ ## dt frac  = (cc_ ## dt)sqrt((double)var + epsilon); \
+	cc_int32 i;                                               \
+	for (i = 0; i < len; ++i) {                               \
+		*(inp + i) = (gamma *                             \
+				(*(inp + i) - mean) / frac)       \
+			+ beta;                                   \
+	}                                                         \
+	return;                                                   \
+}
+
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (uint8)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (uint16)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (uint32)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (uint64)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (int8)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (int16)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (int32)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (int64)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (float32)
+CC_CPU_BATCH_NORM_IMPLEMENTATION  (float64)
+
+void cc_cpu_batch_norm(void *inp, cc_int32 len, void *bnpara, cc_dtype dt)
+{
+	switch (dt) {
+		case CC_UINT8:
+			cc_cpu_batch_norm_uint8(
+				(cc_uint8*)inp, len, (cc_uint8*)bnpara);
+			break;
+		case CC_UINT16:
+			cc_cpu_batch_norm_uint16(
+				(cc_uint16*)inp, len, (cc_uint16*)bnpara);
+			break;
+		case CC_UINT32:
+			cc_cpu_batch_norm_uint32(
+				(cc_uint32*)inp, len, (cc_uint32*)bnpara);
+			break;
+		case CC_UINT64:
+			cc_cpu_batch_norm_uint64(
+				(cc_uint64*)inp, len, (cc_uint64*)bnpara);
+			break;
+		case CC_INT8:
+			cc_cpu_batch_norm_int8(
+				(cc_int8*)inp, len, (cc_int8*)bnpara);
+			break;
+		case CC_INT16:
+			cc_cpu_batch_norm_int16(
+				(cc_int16*)inp, len, (cc_int16*)bnpara);
+			break;
+		case CC_INT32:
+			cc_cpu_batch_norm_int32(
+				(cc_int32*)inp, len, (cc_int32*)bnpara);
+			break;
+		case CC_INT64:
+			cc_cpu_batch_norm_int64(
+				(cc_int64*)inp, len, (cc_int64*)bnpara);
+			break;
+		case CC_FLOAT32:
+			cc_cpu_batch_norm_float32(
+				(cc_float32*)inp, len, (cc_float32*)bnpara);
+			break;
+		case CC_FLOAT64:
+			cc_cpu_batch_norm_float64(
+				(cc_float64*)inp, len, (cc_float64*)bnpara);
+			break;
+		default:
+			utlog_format(UTLOG_ERR,
+				"cc_cpufn: unsupported dtype %x\n", dt);
+	}
+}

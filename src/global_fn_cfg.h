@@ -32,6 +32,8 @@ void (*_conv2d)(void *inp, void *oup,
 void (*_fully_connected)(void *inp, void *oup, void *w, void *b,
 	cc_int32 iw, cc_int32 ow, cc_dtype dt) = cc_cpu_fully_connected;
 
+void (*_batch_norm)(void *inp, cc_int32 len,
+	void *bnpara, cc_dtype dt) = cc_cpu_batch_norm;
 
 #ifdef __cplusplus
 	}

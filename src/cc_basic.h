@@ -25,12 +25,6 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 	char op, void *data, const char *name);
 
-cc_tensor_t *cc_relu (cc_tensor_t *tensor, const char *name);
-cc_tensor_t *cc_relu6(cc_tensor_t *tensor, const char *name);
-
-cc_tensor_t *cc_softmax(cc_tensor_t *tensor, const char *name);
-
-
 #ifdef __cplusplus
 	}
 #endif
