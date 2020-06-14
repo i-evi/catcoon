@@ -217,3 +217,71 @@ void cc_tsrmgr_list(void)
 		"cc_tsrmgr: handling %d tensor(s)\n", global_counter);
 	_cc_tsrmgr_list_traversal(global_tsrmgr_table->root);
 }
+
+list_t *cc_tsrmgr_pack()
+{
+	list_t *pack;
+	cc_uint8 *dptr;
+	cc_int32 len, off;
+	cc_tensor_t *csr;
+	cc_int32 i, idc = 0;
+	rbt_iterator *it = new_rbt_iterator(global_tsrmgr_table);
+	cc_assert_ptr(pack = list_new_dynamic(global_counter));
+	while (rbt_iterator_has_next(it)) {
+		csr = (cc_tensor_t*)
+			((struct pair*)rbt_iterator_next(it))->dat;
+		len = strlen(csr->name) + csr->container->length + 1;
+		cc_assert_ptr(dptr = (cc_uint8*)list_alloc(pack, idc, len));
+		strcpy((char*)dptr, csr->name);
+		off = strlen(csr->name) + 1;
+		for (i = 0; i < csr->container->counter; ++i) {
+			/* Ref: util_list.h */
+			len = *(DynLenFlag*)
+				csr->container->index[i] + sizeof(DynLenFlag);
+			memcpy(dptr + off, csr->container->index[i], len);
+			off += len;
+		}
+		idc++;
+	}
+	free_rbt_iterator(it);
+	return pack;
+}
+
+void cc_tsrmgr_unpack(list_t *tls)
+{
+	const char *name;
+	cc_tensor_t *t;
+	list_t *container;
+	cc_uint8 *dptr, *rptr;
+	cc_int32 i, j, off, len;
+	for (i = 0; i < tls->counter; ++i) {
+		cc_assert_ptr(
+			container = list_new_dynamic(CC_TENSOR_ITEMS));
+		rptr = (cc_uint8*)list_get_record(tls, i);
+		name = (const char*)rptr;
+		cc_assert_zero(list_set_name(container, name));
+		off = strlen(name) + 1;
+		for (j = 0; j < CC_TENSOR_ITEMS; ++j) {
+			/* Ref: util_list.h */
+			len = *(DynLenFlag*)(rptr + off);
+			dptr = rptr + off + sizeof(DynLenFlag);
+			cc_assert_zero(
+				list_set_record(container, j, dptr, len));
+			off += (len + sizeof(DynLenFlag));
+		}
+		cc_tsrmgr_del(name);
+		cc_assert_alloc(
+			t = (cc_tensor_t*)malloc(sizeof(cc_tensor_t)));
+		t->container = container;
+		t->name = container->name;
+		t->data = (cc_uint8*)
+			list_get_record(t->container, CC_TENSOR_DATA);
+		cc_assert_ptr(
+			t->dtype = (cc_dtype*)
+				list_get_record(container, CC_TENSOR_DTYPE));
+		cc_assert_ptr(
+			t->shape = (cc_int32*)
+				list_get_record(container, CC_TENSOR_SHAPE));
+		cc_tsrmgr_reg(t);
+	}
+}

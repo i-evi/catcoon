@@ -587,7 +587,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 		if (!_is_little_endian())                             \
 			_memrev(list->index[sc], sizeof(DynLenFlag)); \
 		PREFIX##fwrite(list->index[sc], sizeof(DynLenFlag) +  \
-			(DynLenFlag)*list->index[sc], 1, fp);         \
+			*(DynLenFlag*)list->index[sc], 1, fp);        \
 		if (!_is_little_endian()) {                           \
 			_memrev(list->index[sc], sizeof(DynLenFlag)); \
 			_memrev(&sc, sizeof(uint));                   \

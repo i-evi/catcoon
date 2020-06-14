@@ -32,10 +32,10 @@ endif
 
 LINK += -lm
 INC  += -I ./src/
-ALL_O = catcoon.o cc_tensor.o cc_dtype.o cc_image.o cc_array.o cc_tsrmgr.o \
-	cc_basic.o cc_fmap2d.o cc_pad2d.o cc_conv2d.o cc_pool2d.o cc_cpufn.o \
-	cc_fullycon.o global_fn_cfg.o util_rbt.o util_list.o util_log.o \
-	util_image.o
+ALL_O = catcoon.o cc_tensor.o cc_dtype.o cc_tsrmgr.o cc_fmap2d.o cc_pool2d.o \
+	cc_array.o cc_basic.o cc_actfn.o cc_fullycon.o cc_pad2d.o cc_cpufn.o \
+	cc_conv2d.o cc_normfn.o cc_image.o util_rbt.o util_list.o util_log.o \
+	util_image.o global_fn_cfg.o 
 
 APP_NAMES = simple lenet
 
@@ -61,6 +61,7 @@ all: $(APPS)
 global_fn_cfg.o : $(patsubst %, ./src/%, global_fn_cfg.h global_fn_cfg.c)
 
 catcoon.o     : $(patsubst %, ./src/%, catcoon.h catcoon.c)
+cc_actfn.o    : $(patsubst %, ./src/%, cc_actfn.h cc_actfn.c)
 cc_array.o    : $(patsubst %, ./src/%, cc_array.h cc_array.c)
 cc_basic.o    : $(patsubst %, ./src/%, cc_basic.h cc_basic.c)
 cc_conv2d.o   : $(patsubst %, ./src/%, cc_conv2d.h cc_conv2d.c)
@@ -69,6 +70,7 @@ cc_dtype.o    : $(patsubst %, ./src/%, cc_dtype.h cc_dtype.c)
 cc_fmap2d.o   : $(patsubst %, ./src/%, cc_fmap2d.h cc_fmap2d.c)
 cc_fullycon.o : $(patsubst %, ./src/%, cc_fullycon.h cc_fullycon.c)
 cc_image.o    : $(patsubst %, ./src/%, cc_image.h cc_image.c)
+cc_normfn.o   : $(patsubst %, ./src/%, cc_normfn.h cc_normfn.c)
 cc_pad2d.o    : $(patsubst %, ./src/%, cc_pad2d.h cc_pad2d.c)
 cc_pool2d.o   : $(patsubst %, ./src/%, cc_pool2d.h cc_pool2d.c)
 cc_tsrmgr.o   : $(patsubst %, ./src/%, cc_tsrmgr.h cc_tsrmgr.c)

@@ -156,8 +156,8 @@ void *list_get_dynamic_record(list_t *list, uint id);
 
 uint list_get_record_len(list_t *list, uint id);
 /* #define list_get_static_record_len */
-#define list_get_dynamic_record_len(record) \
-	(DynLenFlag)*(record - sizeof(DynLenFlag))
+#define list_get_dynamic_record_len(r) \
+	(*((DynLenFlag*)((unsigned char*)r - sizeof(DynLenFlag))))
 
 ls_status_t list_del_record(list_t *list, uint id);
 ls_status_t list_del_static_record(list_t *list, uint id);

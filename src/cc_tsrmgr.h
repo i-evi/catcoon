@@ -20,6 +20,13 @@ cc_tensor_t *cc_tsrmgr_get(const char *name);
 
 void cc_tsrmgr_list(void);
 
+/*
+ * To pack a tensor's container:
+ * name | dtype | shape | data 
+ */
+list_t *cc_tsrmgr_pack();
+void cc_tsrmgr_unpack(list_t *tls);
+
 /* AUTO_TSRMGR */
 #define cc_tsrmgr_auto_reg(tensor) \
 	if (!cc_tsrmgr_status())   \
