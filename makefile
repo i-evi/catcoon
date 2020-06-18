@@ -3,7 +3,7 @@ cc = gcc
 # Debug flag, cc_assert
 DFLAG += -DENABLE_CC_ASSERT
 # AddressSanitizer for gcc/clang
-DFLAG += # -g -fsanitize=address -fno-omit-frame-pointer
+DFLAG += -g -fsanitize=address -fno-omit-frame-pointer
 
 CFLAG += # -std=c89
 CFLAG += -Wall # -Wpedantic
@@ -37,7 +37,7 @@ ALL_O = catcoon.o cc_tensor.o cc_dtype.o cc_tsrmgr.o cc_fmap2d.o cc_pool2d.o \
 	cc_conv2d.o cc_normfn.o cc_image.o util_rbt.o util_list.o util_log.o \
 	util_image.o global_fn_cfg.o 
 
-APP_NAMES = simple lenet
+APP_NAMES = simple lenet lenet_pack lenet_unpack
 
 ifeq ($(OS),Windows_NT)
 	RM = del

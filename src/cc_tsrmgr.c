@@ -221,11 +221,15 @@ void cc_tsrmgr_list(void)
 list_t *cc_tsrmgr_pack()
 {
 	list_t *pack;
-	cc_uint8 *dptr;
-	cc_int32 len, off;
 	cc_tensor_t *csr;
-	cc_int32 i, idc = 0;
-	rbt_iterator *it = new_rbt_iterator(global_tsrmgr_table);
+	cc_uint8 *dptr;
+	cc_int32 len, off, i, idc = 0;
+	rbt_iterator *it;
+	if (!global_tsrmgr_table) {
+		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
+		return NULL;
+	}
+	cc_assert_ptr(it = new_rbt_iterator(global_tsrmgr_table));
 	cc_assert_ptr(pack = list_new_dynamic(global_counter));
 	while (rbt_iterator_has_next(it)) {
 		csr = (cc_tensor_t*)
@@ -254,6 +258,8 @@ void cc_tsrmgr_unpack(list_t *tls)
 	list_t *container;
 	cc_uint8 *dptr, *rptr;
 	cc_int32 i, j, off, len;
+	if (!cc_tsrmgr_status())
+		cc_tsrmgr_init();
 	for (i = 0; i < tls->counter; ++i) {
 		cc_assert_ptr(
 			container = list_new_dynamic(CC_TENSOR_ITEMS));
@@ -284,4 +290,20 @@ void cc_tsrmgr_unpack(list_t *tls)
 				list_get_record(container, CC_TENSOR_SHAPE));
 		cc_tsrmgr_reg(t);
 	}
+}
+
+void cc_tsrmgr_export(const char *filename)
+{
+	list_t *pack;
+	cc_assert_ptr(pack = cc_tsrmgr_pack());
+	cc_assert_zero(list_export(pack, filename, NULL));
+	list_del(pack);
+}
+
+void cc_tsrmgr_import(const char *filename)
+{
+	list_t *pack;
+	cc_assert_ptr(pack = list_import(filename));
+	cc_tsrmgr_unpack(pack);
+	list_del(pack);
 }

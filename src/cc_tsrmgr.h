@@ -12,6 +12,7 @@ void cc_tsrmgr_clear(void);
 
 void cc_tsrmgr_reg(cc_tensor_t *tensor);
 void cc_tsrmgr_del(const char *name);
+void cc_tsrmgr_update(cc_tensor_t *tensor);
 void cc_tsrmgr_replace(cc_tensor_t *tensor);
 
 int cc_tsrmgr_status(void);
@@ -26,6 +27,9 @@ void cc_tsrmgr_list(void);
  */
 list_t *cc_tsrmgr_pack();
 void cc_tsrmgr_unpack(list_t *tls);
+
+void cc_tsrmgr_export(const char *filename);
+void cc_tsrmgr_import(const char *filename);
 
 /* AUTO_TSRMGR */
 #define cc_tsrmgr_auto_reg(tensor) \
