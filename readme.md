@@ -37,7 +37,7 @@ Catcoon 使用 tensor 进行计算。神经网络的计算过程中，经常产�
 
 ```c
 typedef struct {
-    list_t *container;
+	list_t *container;
 	const char     *name;
 	unsigned char  *data;
 	const cc_int32 *shape;

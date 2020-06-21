@@ -19,11 +19,24 @@ int cc_tsrcmp_by_shape(cc_tensor_t *a, cc_tensor_t *b);
 
 void cc_print_tensor(cc_tensor_t *tensor);
 
+void cc_set_tensor(cc_tensor_t *tensor, void *v);
+
 cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 		cc_dtype dtype, const char *name);
 
 cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 	char op, void *data, const char *name);
+
+/*
+ * Element wise operations
+ * a = op(a, b) if name not set(NULL)
+ * c = op(a, b) if set name for c
+ */
+cc_tensor_t *cc_tensor_ewop(cc_tensor_t *a,
+	cc_tensor_t *b, char op, const char *name);
+
+cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
+	void *min, void *max, const char *name);
 
 #ifdef __cplusplus
 	}

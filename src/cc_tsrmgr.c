@@ -223,7 +223,8 @@ list_t *cc_tsrmgr_pack()
 	list_t *pack;
 	cc_tensor_t *csr;
 	cc_uint8 *dptr;
-	cc_int32 len, off, i, idc = 0;
+	cc_int32 len, off;
+	cc_uint32 i, idc = 0;
 	rbt_iterator *it;
 	if (!global_tsrmgr_table) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
@@ -257,7 +258,8 @@ void cc_tsrmgr_unpack(list_t *tls)
 	cc_tensor_t *t;
 	list_t *container;
 	cc_uint8 *dptr, *rptr;
-	cc_int32 i, j, off, len;
+	cc_int32 j, off, len;
+	cc_uint32 i;
 	if (!cc_tsrmgr_status())
 		cc_tsrmgr_init();
 	for (i = 0; i < tls->counter; ++i) {

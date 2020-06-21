@@ -6,26 +6,40 @@
 #include "cc_dtype.h"
 #include "cc_array.h"
 
-#define ELEM_OPS_ON_ARRAY(op, elem, arr, arrlen, dtype) \
+#define ARRAY_SC_OPS(op, arr, elem, arrlen, dtype) \
 	for (i = 0; i < arrlen; ++i) {                    \
 		*((dtype*)arr + i) op ## = *(dtype*)elem; \
 	}
 
-#define ARRAY_ELEM_OPS(op, elem, inp, oup, arrlen, dtype) \
-	for (i = 0; i < arrlen; ++i) {                    \
-		*((dtype*)oup + i) = *((dtype*)inp + i)   \
-				op *(dtype*)elem;         \
+#define ARRAY_ELEM_SET(arr, elem, arrlen, dtype) \
+	for (i = 0; i < arrlen; ++i) {              \
+		*((dtype*)arr + i) = *(dtype*)elem; \
+	}
+
+#define ARRAY_ELEM_CLIP(arr, min, max, arrlen, dtype) \
+	for (i = 0; i < arrlen; ++i) {                              \
+		if (min) {                                          \
+			*((dtype*)arr + i) =                        \
+				*((dtype*)arr + i) < *(dtype*)min ? \
+			*(dtype*)min : *((dtype*)arr + i);          \
+		}                                                   \
+		if (max) {                                          \
+			*((dtype*)arr + i) =                        \
+				*((dtype*)arr + i) > *(dtype*)max ? \
+			*(dtype*)max : *((dtype*)arr + i);          \
+		}                                                   \
+	}
+
+#define ARRAY_EW_OPS(op, oup, a, b, arrlen, dtype) \
+	for (i = 0; i < arrlen; ++i) {                   \
+		*((dtype*)oup + i) = *((dtype*)a + i) op \
+		*((dtype*)b + i);                        \
 	}
 
 #define ARRAY_SUM(arr, arrlen, dtype, sum) \
 	*(dtype*)sum = 0;                           \
 	for (i = 0; i < arrlen; ++i) {              \
 		*(dtype*)sum += *((dtype*)arr + i); \
-	}
-
-#define ARRAY_OPS(op, dst, src, arrlen, dtype) \
-	for (i = 0; i < arrlen; ++i) {                    \
-		*((dtype*)dst + i) += *((dtype*)src + i); \
 	}
 
 #define ARRAY_CAST_CASE(_DT, _srcdt, _dstdt) \
@@ -56,6 +70,57 @@ void cc_array_cast_ ## dtype(void *dst, void *src, int arrlen, int dt)   \
 	}                                                                \
 }
 
+#define ARRAY_SET_CASE(_DT, _dt) \
+case _DT:                                   \
+	ARRAY_ELEM_SET(arr, x, arrlen, _dt) \
+	break;
+void cc_array_set(void *arr, int arrlen, void *x, int dt)
+{
+	cc_int32 i;
+	switch (dt) {
+		ARRAY_SET_CASE(CC_UINT8, cc_uint8);
+		ARRAY_SET_CASE(CC_UINT16, cc_uint16);
+		ARRAY_SET_CASE(CC_UINT32, cc_uint32);
+		ARRAY_SET_CASE(CC_UINT64, cc_uint64);
+		ARRAY_SET_CASE(CC_INT8, cc_int8);
+		ARRAY_SET_CASE(CC_INT16, cc_int16);
+		ARRAY_SET_CASE(CC_INT32, cc_int32);
+		ARRAY_SET_CASE(CC_INT64, cc_int64);
+		ARRAY_SET_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_SET_CASE(CC_FLOAT64, cc_float64);
+		default:
+			utlog_format(UTLOG_ERR,
+				"cc_array: unsupported dtype %x\n", dt);
+			break;
+	}
+}
+
+#define ARRAY_CLIP_CASE(_DT, _dt) \
+case _DT:                                     \
+	ARRAY_ELEM_CLIP(arr, min, max, arrlen, _dt); \
+	break;
+void cc_array_clip_by_value(
+	void *arr, int arrlen, void *min, void *max, int dt)
+{
+	cc_int32 i;
+	switch (dt) {
+		ARRAY_CLIP_CASE(CC_UINT8, cc_uint8);
+		ARRAY_CLIP_CASE(CC_UINT16, cc_uint16);
+		ARRAY_CLIP_CASE(CC_UINT32, cc_uint32);
+		ARRAY_CLIP_CASE(CC_UINT64, cc_uint64);
+		ARRAY_CLIP_CASE(CC_INT8, cc_int8);
+		ARRAY_CLIP_CASE(CC_INT16, cc_int16);
+		ARRAY_CLIP_CASE(CC_INT32, cc_int32);
+		ARRAY_CLIP_CASE(CC_INT64, cc_int64);
+		ARRAY_CLIP_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_CLIP_CASE(CC_FLOAT64, cc_float64);
+		default:
+			utlog_format(UTLOG_ERR,
+				"cc_array: unsupported dtype %x\n", dt);
+			break;
+	}
+}
+
 CC_ARRAY_CAST_IMPLEMENTATION  (uint8)
 CC_ARRAY_CAST_IMPLEMENTATION  (uint16)
 CC_ARRAY_CAST_IMPLEMENTATION  (uint32)
@@ -68,8 +133,8 @@ CC_ARRAY_CAST_IMPLEMENTATION  (float32)
 CC_ARRAY_CAST_IMPLEMENTATION  (float64)
 
 #define ARRAY_ADD_BY_CASE(_DT, _dt) \
-case _DT:                                          \
-	ELEM_OPS_ON_ARRAY(+, x, arr, arrlen, _dt); \
+case _DT:                                     \
+	ARRAY_SC_OPS(+, arr, x, arrlen, _dt); \
 	break;
 void cc_array_add_by(void *arr, int arrlen, void *x, int dt)
 {
@@ -93,8 +158,8 @@ void cc_array_add_by(void *arr, int arrlen, void *x, int dt)
 }
 
 #define ARRAY_SUB_BY_CASE(_DT, _dt) \
-case _DT:                                          \
-	ELEM_OPS_ON_ARRAY(-, x, arr, arrlen, _dt); \
+case _DT:                                     \
+	ARRAY_SC_OPS(-, arr, x, arrlen, _dt); \
 	break;
 void cc_array_sub_by(void *arr, int arrlen, void *x, int dt)
 {
@@ -118,8 +183,8 @@ void cc_array_sub_by(void *arr, int arrlen, void *x, int dt)
 }
 
 #define ARRAY_MUL_BY_CASE(_DT, _dt) \
-case _DT:                                          \
-	ELEM_OPS_ON_ARRAY(*, x, arr, arrlen, _dt); \
+case _DT:                                     \
+	ARRAY_SC_OPS(*, arr, x, arrlen, _dt); \
 	break;
 void cc_array_mul_by(void *arr, int arrlen, void *x, int dt)
 {
@@ -143,8 +208,8 @@ void cc_array_mul_by(void *arr, int arrlen, void *x, int dt)
 }
 
 #define ARRAY_DIV_BY_CASE(_DT, _dt) \
-case _DT:                                          \
-	ELEM_OPS_ON_ARRAY(/, x, arr, arrlen, _dt); \
+case _DT:                                     \
+	ARRAY_SC_OPS(/, arr, x, arrlen, _dt); \
 	break;
 void cc_array_div_by(void *arr, int arrlen, void *x, int dt)
 {
@@ -168,10 +233,10 @@ void cc_array_div_by(void *arr, int arrlen, void *x, int dt)
 }
 
 #define ARRAY_ADD_EW_CASE(_DT, _dt) \
-case _DT:                                            \
-	ARRAY_ELEM_OPS(+, x, inp, oup, arrlen, _dt); \
+case _DT:                                        \
+	ARRAY_EW_OPS(+, oup, a, b, arrlen, _dt); \
 	break;
-void cc_array_add_ew(void *inp, void *oup, int arrlen, void *x, int dt)
+void cc_array_add_ew(void *oup, int arrlen, void *a, void *b, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -192,11 +257,36 @@ void cc_array_add_ew(void *inp, void *oup, int arrlen, void *x, int dt)
 	}
 }
 
-#define ARRAY_MUL_EW_CASE(_DT, _dt) \
-case _DT:                                            \
-	ARRAY_ELEM_OPS(*, x, inp, oup, arrlen, _dt); \
+#define ARRAY_SUB_EW_CASE(_DT, _dt) \
+case _DT:                                        \
+	ARRAY_EW_OPS(-, oup, a, b, arrlen, _dt); \
 	break;
-void cc_array_mul_ew(void *inp, void *oup, int arrlen, void *x, int dt)
+void cc_array_sub_ew(void *oup, int arrlen, void *a, void *b, int dt)
+{
+	cc_int32 i;
+	switch (dt) {
+		ARRAY_SUB_EW_CASE(CC_UINT8, cc_uint8);
+		ARRAY_SUB_EW_CASE(CC_UINT16, cc_uint16);
+		ARRAY_SUB_EW_CASE(CC_UINT32, cc_uint32);
+		ARRAY_SUB_EW_CASE(CC_UINT64, cc_uint64);
+		ARRAY_SUB_EW_CASE(CC_INT8, cc_int8);
+		ARRAY_SUB_EW_CASE(CC_INT16, cc_int16);
+		ARRAY_SUB_EW_CASE(CC_INT32, cc_int32);
+		ARRAY_SUB_EW_CASE(CC_INT64, cc_int64);
+		ARRAY_SUB_EW_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_SUB_EW_CASE(CC_FLOAT64, cc_float64);
+		default:
+			utlog_format(UTLOG_ERR,
+				"cc_array: unsupported dtype %x\n", dt);
+			break;
+	}
+}
+
+#define ARRAY_MUL_EW_CASE(_DT, _dt) \
+case _DT:                                        \
+	ARRAY_EW_OPS(*, oup, a, b, arrlen, _dt); \
+	break;
+void cc_array_mul_ew(void *oup, int arrlen, void *a, void *b, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -210,6 +300,31 @@ void cc_array_mul_ew(void *inp, void *oup, int arrlen, void *x, int dt)
 		ARRAY_MUL_EW_CASE(CC_INT64, cc_int64);
 		ARRAY_MUL_EW_CASE(CC_FLOAT32, cc_float32);
 		ARRAY_MUL_EW_CASE(CC_FLOAT64, cc_float64);
+		default:
+			utlog_format(UTLOG_ERR,
+				"cc_array: unsupported dtype %x\n", dt);
+			break;
+	}
+}
+
+#define ARRAY_DIV_EW_CASE(_DT, _dt) \
+case _DT:                                        \
+	ARRAY_EW_OPS(/, oup, a, b, arrlen, _dt); \
+	break;
+void cc_array_div_ew(void *oup, int arrlen, void *a, void *b, int dt)
+{
+	cc_int32 i;
+	switch (dt) {
+		ARRAY_DIV_EW_CASE(CC_UINT8, cc_uint8);
+		ARRAY_DIV_EW_CASE(CC_UINT16, cc_uint16);
+		ARRAY_DIV_EW_CASE(CC_UINT32, cc_uint32);
+		ARRAY_DIV_EW_CASE(CC_UINT64, cc_uint64);
+		ARRAY_DIV_EW_CASE(CC_INT8, cc_int8);
+		ARRAY_DIV_EW_CASE(CC_INT16, cc_int16);
+		ARRAY_DIV_EW_CASE(CC_INT32, cc_int32);
+		ARRAY_DIV_EW_CASE(CC_INT64, cc_int64);
+		ARRAY_DIV_EW_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_DIV_EW_CASE(CC_FLOAT64, cc_float64);
 		default:
 			utlog_format(UTLOG_ERR,
 				"cc_array: unsupported dtype %x\n", dt);
@@ -261,56 +376,6 @@ void cc_array_mean(void *arr, int arrlen, void *x, int dt)
 		ARRAY_MEAN_CASE(CC_INT64, cc_int64);
 		ARRAY_MEAN_CASE(CC_FLOAT32, cc_float32);
 		ARRAY_MEAN_CASE(CC_FLOAT64, cc_float64);
-		default:
-			utlog_format(UTLOG_ERR,
-				"cc_array: unsupported dtype %x\n", dt);
-			break;
-	}
-}
-
-#define ADD_TO_ARRAY_EW_CASE(_DT, _dt) \
-case _DT:                                    \
-	ARRAY_OPS(+, dst, src, arrlen, _dt); \
-	break;
-void cc_add_to_array_ew(void *dst, void *src, int arrlen, int dt)
-{
-	cc_int32 i;
-	switch (dt) {
-		ADD_TO_ARRAY_EW_CASE(CC_UINT8, cc_uint8);
-		ADD_TO_ARRAY_EW_CASE(CC_UINT16, cc_uint16);
-		ADD_TO_ARRAY_EW_CASE(CC_UINT32, cc_uint32);
-		ADD_TO_ARRAY_EW_CASE(CC_UINT64, cc_uint64);
-		ADD_TO_ARRAY_EW_CASE(CC_INT8, cc_int8);
-		ADD_TO_ARRAY_EW_CASE(CC_INT16, cc_int16);
-		ADD_TO_ARRAY_EW_CASE(CC_INT32, cc_int32);
-		ADD_TO_ARRAY_EW_CASE(CC_INT64, cc_int64);
-		ADD_TO_ARRAY_EW_CASE(CC_FLOAT32, cc_float32);
-		ADD_TO_ARRAY_EW_CASE(CC_FLOAT64, cc_float64);
-		default:
-			utlog_format(UTLOG_ERR,
-				"cc_array: unsupported dtype %x\n", dt);
-			break;
-	}
-}
-
-#define MUL_TO_ARRAY_EW_CASE(_DT, _dt) \
-case _DT:                                    \
-	ARRAY_OPS(*, dst, src, arrlen, _dt); \
-	break;
-void cc_mul_to_array_ew(void *dst, void *src, int arrlen, int dt)
-{
-	cc_int32 i;
-	switch (dt) {
-		MUL_TO_ARRAY_EW_CASE(CC_UINT8, cc_uint8);
-		MUL_TO_ARRAY_EW_CASE(CC_UINT16, cc_uint16);
-		MUL_TO_ARRAY_EW_CASE(CC_UINT32, cc_uint32);
-		MUL_TO_ARRAY_EW_CASE(CC_UINT64, cc_uint64);
-		MUL_TO_ARRAY_EW_CASE(CC_INT8, cc_int8);
-		MUL_TO_ARRAY_EW_CASE(CC_INT16, cc_int16);
-		MUL_TO_ARRAY_EW_CASE(CC_INT32, cc_int32);
-		MUL_TO_ARRAY_EW_CASE(CC_INT64, cc_int64);
-		MUL_TO_ARRAY_EW_CASE(CC_FLOAT32, cc_float32);
-		MUL_TO_ARRAY_EW_CASE(CC_FLOAT64, cc_float64);
 		default:
 			utlog_format(UTLOG_ERR,
 				"cc_array: unsupported dtype %x\n", dt);

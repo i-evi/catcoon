@@ -105,10 +105,33 @@ int cc_tsrcmp_by_shape(cc_tensor_t *a, cc_tensor_t *b)
 
 void cc_print_tensor(cc_tensor_t *tensor)
 {
-	utlog_format(UTLOG_INFO, "");
+	cc_print_tensor_property(tensor);
 	cc_print_array(tensor->data,
 		cc_tensor_elements(tensor), *tensor->dtype,
 		utlog_get_ostream());
+}
+
+void cc_set_tensor(cc_tensor_t *tensor, void *v)
+{
+	cc_array_set(tensor->data, 
+		cc_tensor_elements(tensor), v, *tensor->dtype);
+}
+
+cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
+	void *min, void *max, const char *name)
+{
+	cc_tensor_t *yield;
+	cc_int32 elems = *tensor->shape;
+	const cc_int32 *sptr = tensor->shape;
+	while (*++sptr)
+		elems *= *sptr;
+	if (!name || !strcmp(name, tensor->name))
+		yield = tensor;
+	else
+		yield = cc_copy_tensor(tensor, name);
+	cc_array_clip_by_value(tensor->data,
+		cc_tensor_elements(tensor), min, max, *tensor->dtype);
+	return yield;
 }
 
 cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
@@ -223,6 +246,53 @@ cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 			op);
 #ifdef AUTO_TSRMGR
 			if (strcmp(name, tensor->name))
+				cc_tsrmgr_del(name);
+#else
+			cc_free_tensor(yield);
+#endif
+			return NULL;
+	}
+	return yield;
+}
+
+cc_tensor_t *cc_tensor_ewop(cc_tensor_t *a,
+	cc_tensor_t *b, char op, const char *name)
+{
+	cc_tensor_t *yield;
+	cc_int32 elems = *a->shape;
+	const cc_int32 *sptr = a->shape;
+	while (*++sptr)
+		elems *= *sptr;
+#ifdef ENABLE_CC_ASSERT
+	cc_assert_zero(cc_tsrcmp_by_shape(a, b));
+#endif
+	if (!name || !strcmp(name, a->name))
+		yield = a;
+	else
+		yield = cc_copy_tensor(a, name);
+	switch (op) {
+		case '+':
+			cc_add_to_array_ew(
+				yield->data, b->data, elems, *yield->dtype);
+			break;
+		case '-':
+			cc_sub_to_array_ew(
+				yield->data, b->data, elems, *yield->dtype);
+			break;
+		case '*':
+			cc_mul_to_array_ew(
+				yield->data, b->data, elems, *yield->dtype);
+			break;
+		case '/':
+			cc_div_to_array_ew(
+				yield->data, b->data, elems, *yield->dtype);
+			break;
+		default:
+			utlog_format(UTLOG_ERR,
+			"cc_tensor_by_scalar: unsupported operator [%c]\n",
+			op);
+#ifdef AUTO_TSRMGR
+			if (strcmp(name, a->name))
 				cc_tsrmgr_del(name);
 #else
 			cc_free_tensor(yield);
