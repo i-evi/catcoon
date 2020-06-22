@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cc_array.h"
 #include "cc_assert.h"
 #include "cc_basic.h"
 #include "cc_fmap2d.h"
@@ -21,6 +20,9 @@ extern void (*_conv2d)(void *inp, void *oup,
 		cc_int32 x, cc_int32 y, cc_int32 oup_x,
 		cc_int32 oup_y, cc_int32 sx, cc_int32 sy,
 	void *filter, cc_int32 fw, cc_dtype dt);
+
+extern void (*_array_add_ew)
+	(void *oup, int arrlen, void *a, void *b, int dt);
 
 cc_int32 cc_conv2d_shape_calc(cc_int32 i,
 	cc_int32 k, cc_int32 s, cc_int32 p)
@@ -102,9 +104,10 @@ cc_tensor_t *cc_conv2d(cc_tensor_t *inp,
 				k_ch_mem_size * j),
 				kernel->shape[CC_CONV2D_KERNEL_W],
 			*kernel->dtype);
-		cc_add_to_array_ew(oup->data + o_ch_mem_size * i,
+		_array_add_ew(oup->data + o_ch_mem_size * i,
+			o_ch_size, oup->data + o_ch_mem_size * i,
 			omp_out_buf + omp_get_thread_num() * o_ch_mem_size,
-		o_ch_size, *oup->dtype);
+		 *oup->dtype);
 #else
 		_conv2d((inp_pad->data + p_ch_mem_size * j),
 			omp_out_buf, inp_pad->shape[CC_CNN2D_SHAPE_W],
@@ -115,8 +118,9 @@ cc_tensor_t *cc_conv2d(cc_tensor_t *inp,
 				k_ch_mem_size * j),
 				kernel->shape[CC_CONV2D_KERNEL_W],
 			*kernel->dtype);
-		cc_add_to_array_ew(oup->data + o_ch_mem_size * i,
-			omp_out_buf, o_ch_size, *oup->dtype);
+		_array_add_ew(oup->data + o_ch_mem_size * i, o_ch_size,
+				oup->data + o_ch_mem_size * i, omp_out_buf,
+			*oup->dtype);
 #endif
 		}
 	}

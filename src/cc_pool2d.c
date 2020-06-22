@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-#include "cc_cpufn.h"
 #include "cc_fmap2d.h"
 #include "cc_tsrmgr.h"
 #include "cc_pool2d.h"

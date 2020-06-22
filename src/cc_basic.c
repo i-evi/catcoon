@@ -11,6 +11,42 @@
 #include "util_log.h"
 #include "cc_basic.h"
 
+/* #include "global_fn_cfg.h" */
+#define EXT_ARRAY_CAST_DEFINITION(dtype) \
+extern void (*_array_cast_ ## dtype)(              \
+	void *dst, void *src, int arrlen, int dt);
+
+EXT_ARRAY_CAST_DEFINITION  (uint8)
+EXT_ARRAY_CAST_DEFINITION  (uint16)
+EXT_ARRAY_CAST_DEFINITION  (uint32)
+EXT_ARRAY_CAST_DEFINITION  (uint64)
+EXT_ARRAY_CAST_DEFINITION  (int8)
+EXT_ARRAY_CAST_DEFINITION  (int16)
+EXT_ARRAY_CAST_DEFINITION  (int32)
+EXT_ARRAY_CAST_DEFINITION  (int64)
+EXT_ARRAY_CAST_DEFINITION  (float32)
+EXT_ARRAY_CAST_DEFINITION  (float64)
+
+extern void (*_array_set)(
+	void *arr, int arrlen, void *x, int dt);
+
+extern void (*_array_clip_by_value)(
+	void *arr, int arrlen, void *min, void *max, int dt);
+
+extern void (*_array_add_by)(void *arr, int arrlen, void *x, int dt);
+extern void (*_array_sub_by)(void *arr, int arrlen, void *x, int dt);
+extern void (*_array_mul_by)(void *arr, int arrlen, void *x, int dt);
+extern void (*_array_div_by)(void *arr, int arrlen, void *x, int dt);
+
+extern void (*_array_add_ew)(
+	void *oup, int arrlen,void *a, void *b, int dt);
+extern void (*_array_sub_ew)(
+	void *oup, int arrlen,void *a, void *b, int dt);
+extern void (*_array_mul_ew)(
+	void *oup, int arrlen,void *a, void *b, int dt);
+extern void (*_array_div_ew)(
+	void *oup, int arrlen,void *a, void *b, int dt);
+
 static cc_int32 _calc_elems(const cc_int32 *shape)
 {
 	cc_int32 elems;
@@ -113,7 +149,7 @@ void cc_print_tensor(cc_tensor_t *tensor)
 
 void cc_set_tensor(cc_tensor_t *tensor, void *v)
 {
-	cc_array_set(tensor->data, 
+	_array_set(tensor->data, 
 		cc_tensor_elements(tensor), v, *tensor->dtype);
 }
 
@@ -129,7 +165,7 @@ cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
 		yield = tensor;
 	else
 		yield = cc_copy_tensor(tensor, name);
-	cc_array_clip_by_value(tensor->data,
+	_array_clip_by_value(tensor->data,
 		cc_tensor_elements(tensor), min, max, *tensor->dtype);
 	return yield;
 }
@@ -149,43 +185,43 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 		tensor->shape, dtype, NULL));
 	switch (dtype) {
 		case CC_INT8:
-			cc_array_cast_int8(cast->data,
+			_array_cast_int8(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_UINT8:
-			cc_array_cast_uint8(cast->data,
+			_array_cast_uint8(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_INT16:
-			cc_array_cast_int16(cast->data,
+			_array_cast_int16(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_UINT16:
-			cc_array_cast_uint16(cast->data,
+			_array_cast_uint16(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_INT32:
-			cc_array_cast_int32(cast->data,
+			_array_cast_int32(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_UINT32:
-			cc_array_cast_uint32(cast->data,
+			_array_cast_uint32(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_INT64:
-			cc_array_cast_int64(cast->data,
+			_array_cast_int64(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_UINT64:
-			cc_array_cast_uint64(cast->data,
+			_array_cast_uint64(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_FLOAT32:
-			cc_array_cast_float32(cast->data,
+			_array_cast_float32(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		case CC_FLOAT64:
-			cc_array_cast_float64(cast->data,
+			_array_cast_float64(cast->data,
 				tensor->data, elems, *tensor->dtype);
 			break;
 		default:
@@ -225,19 +261,19 @@ cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 		yield = cc_copy_tensor(tensor, name);
 	switch (op) {
 		case '+':
-			cc_array_add_by(
+			_array_add_by(
 				yield->data, elems, data, *tensor->dtype);
 			break;
 		case '-':
-			cc_array_sub_by(
+			_array_sub_by(
 				yield->data, elems, data, *tensor->dtype);
 			break;
 		case '*':
-			cc_array_mul_by(
+			_array_mul_by(
 				yield->data, elems, data, *tensor->dtype);
 			break;
 		case '/':
-			cc_array_div_by(
+			_array_div_by(
 				yield->data, elems, data, *tensor->dtype);
 			break;
 		default:
@@ -272,20 +308,20 @@ cc_tensor_t *cc_tensor_ewop(cc_tensor_t *a,
 		yield = cc_copy_tensor(a, name);
 	switch (op) {
 		case '+':
-			cc_add_to_array_ew(
-				yield->data, b->data, elems, *yield->dtype);
+			_array_add_ew(yield->data, elems,
+				yield->data, b->data, *yield->dtype);
 			break;
 		case '-':
-			cc_sub_to_array_ew(
-				yield->data, b->data, elems, *yield->dtype);
+			_array_sub_ew(yield->data, elems,
+				yield->data, b->data, *yield->dtype);
 			break;
 		case '*':
-			cc_mul_to_array_ew(
-				yield->data, b->data, elems, *yield->dtype);
+			_array_mul_ew(yield->data, elems,
+				yield->data, b->data, *yield->dtype);
 			break;
 		case '/':
-			cc_div_to_array_ew(
-				yield->data, b->data, elems, *yield->dtype);
+			_array_div_ew(yield->data, elems,
+				yield->data, b->data, *yield->dtype);
 			break;
 		default:
 			utlog_format(UTLOG_ERR,
