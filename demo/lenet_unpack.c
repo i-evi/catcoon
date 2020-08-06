@@ -1,12 +1,54 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "parg.h"
 #include "catcoon.h"
 
 #define INPUT_W 28
 #define INPUT_H 28
 
-const char *parameters_path = "./lenet_parameters.bin";
+char image_path[128];
+char parameters_path[128];
+
+void arg_parser(int argc, char* const argv[])
+{
+	struct parg_state ps;
+	int c;
+	parg_init(&ps);
+	while ((c = parg_getopt(&ps, argc, argv, "hp:v")) != -1) {
+		switch (c) {
+		case 1:
+			strcpy(image_path, ps.optarg);
+			break;
+		case 'h':
+			printf("Usage: [-h] -p parameters-pack image-file\n");
+			printf("-h: Displays this message\n");
+			printf("-p: Choose parameters file path\n");
+			exit(EXIT_SUCCESS);
+			break;
+		case 'p':
+			strcpy(parameters_path, ps.optarg);
+			break;
+		case '?':
+			if (ps.optopt == 'p') {
+				printf("option -p requires an argument\n");
+			} else {
+				printf("unknown option -%c\n", ps.optopt);
+			}
+			exit(EXIT_FAILURE);
+			break;
+		default:
+			printf("error: unhandled option -%c\n", c);
+			exit(EXIT_FAILURE);
+			break;
+		}
+	}
+	if (!strlen(image_path) || !strlen(parameters_path)) {
+		printf("error: incomplete argument\n");
+		exit(EXIT_FAILURE);
+	}
+}
 
 int main(int argc, const char *argv[])
 {
@@ -21,10 +63,7 @@ int main(int argc, const char *argv[])
 		*conv2_w, *conv2_b, *fc1_w, *fc1_b, *fc2_w, *fc2_b;
 	cc_int32 shape_flat[]    = {-1, 1, 1, 0};
 
-	if (argc < 2) {
-		fprintf(stderr, "usage: lenet [filename]\n");
-		exit(255);
-	}
+	arg_parser(argc, (char**)argv);
 
 	/* load parameters */
 	cc_tsrmgr_import(parameters_path);
@@ -37,7 +76,7 @@ int main(int argc, const char *argv[])
 	fc2_w = cc_tsrmgr_get("fc2_w");
 	fc2_b = cc_tsrmgr_get("fc2_b");
 
-	img_read = utim_read(argv[1]);
+	img_read = utim_read(image_path);
 	utim_img2gray(img_read);
 	img = utim_resize(img_read, INPUT_H, INPUT_W, 0);
 	input = cc_image2tensor(img, "input");
@@ -78,7 +117,7 @@ int main(int argc, const char *argv[])
 		}
 		printf("[%d]: %f\n", i, *((cc_float32*)l4->data + i));
 	}
-	printf("Result of \"%s\": [%d]\n", argv[1], j);
+	printf("Result of \"%s\": [%d]\n", image_path, j);
 	cc_tsrmgr_list();
 	cc_clear();
 	return 0;

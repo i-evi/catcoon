@@ -30,7 +30,7 @@ void __________compile_time_test___________()
 }
 #endif
 
-static uint _djb_hash(void *s, uint len, uint seed)
+static uint _djb_hash(const void *s, uint len, uint seed)
 {
 	uint hash = seed;
 	uint i;
@@ -40,7 +40,21 @@ static uint _djb_hash(void *s, uint len, uint seed)
 	return hash;
 }
 
-static int _is_little_endian()
+static int _strcmp(const void *a, const void *b)
+{
+	return strcmp((const char*)a, (const char*)b);
+}
+
+static uint _string_hash(const void *s, uint seed)
+{
+	return _djb_hash(s, strlen((const char*)s), seed);
+}
+
+static uint _seed;
+static __hashFx _hfx = _string_hash;
+static __compFx _cmp = _strcmp;
+
+static int _is_little_endian(void)
 {
 	uint i = 1;
 	unsigned char *c = (unsigned char*)&i;
@@ -92,6 +106,13 @@ static void _switch_byte_order(list_t *list) {
 	_memrev(&list->counter, sizeof(uint));
 	_memrev(&list->blen   , sizeof(uint));
 	_memrev(&list->scale  , sizeof(uint));
+}
+
+list_t *list_new(uint scale, uint blen)
+{
+	if (!blen)
+		return list_new_dynamic(scale);
+	return list_new_static(scale, blen);
 }
 
 list_t *list_new_static(uint scale, uint blen)
@@ -173,8 +194,8 @@ list_t *list_clone_static(list_t *list)
 #define PROCESS_CLONE_DYN_INDEX(i) \
 if (list->index[i]) {                                \
 	s = list_set_record(clone, i,                \
-		list->index[i] + sizeof(DynLenFlag), \
-		*(DynLenFlag*)list->index[i]);       \
+		list->index[i] + sizeof(rlen_t), \
+		*(rlen_t*)list->index[i]);       \
 	if (s) {                                     \
 		clone->status |= s;                  \
 		return clone;                        \
@@ -185,7 +206,7 @@ list_t *list_clone_dynamic(list_t *list)
 {
 	uint i;
 	list_t *clone;
-	ls_status_t s;
+	lsw_t s;
 	if (!list)
 		return NULL;
 	clone = (list_t*)malloc(sizeof(list_t));
@@ -218,7 +239,7 @@ list_t *list_clone_dynamic(list_t *list)
 	return clone;
 }
 
-ls_status_t list_del(list_t *list)
+lsw_t list_del(list_t *list)
 {
 	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
 		return list_del_dynamic(list);
@@ -226,7 +247,7 @@ ls_status_t list_del(list_t *list)
 		return list_del_static(list);
 }
 
-ls_status_t list_del_static(list_t *list)
+lsw_t list_del_static(list_t *list)
 {
 	if (!list)
 		return LSS_SUCCESS;
@@ -238,7 +259,7 @@ ls_status_t list_del_static(list_t *list)
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_del_dynamic(list_t *list)
+lsw_t list_del_dynamic(list_t *list)
 {
 	if (!list)
 		return LSS_SUCCESS;
@@ -254,7 +275,7 @@ ls_status_t list_del_dynamic(list_t *list)
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_set_name(list_t *list, const char *name)
+lsw_t list_set_name(list_t *list, const char *name)
 {
 	if (TEST_FLAG(list->flag, LIST_NOT_SHARED)) {
 		if (!name) {
@@ -279,7 +300,7 @@ ls_status_t list_set_name(list_t *list, const char *name)
 }
 
 
-ls_status_t list_resize(list_t *list, uint newScale)
+lsw_t list_resize(list_t *list, uint newScale)
 {
 	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
 		return list_resize_dynamic(list, newScale);
@@ -287,7 +308,7 @@ ls_status_t list_resize(list_t *list, uint newScale)
 		return list_resize_static(list, newScale);
 }
 
-ls_status_t list_resize_static(list_t *list, uint newScale)
+lsw_t list_resize_static(list_t *list, uint newScale)
 {
 	byte *newMem;
 	uint newLen = newScale * list->blen;
@@ -307,7 +328,7 @@ ls_status_t list_resize_static(list_t *list, uint newScale)
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_resize_dynamic(list_t *list, uint newScale)
+lsw_t list_resize_dynamic(list_t *list, uint newScale)
 {
 	byte **newIndex;
 	uint i = 0;
@@ -331,7 +352,7 @@ ls_status_t list_resize_dynamic(list_t *list, uint newScale)
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_set_record(list_t *list, uint id,
+lsw_t list_set_record(list_t *list, uint id,
 	const void *record, uint len)
 {
 	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
@@ -340,7 +361,7 @@ ls_status_t list_set_record(list_t *list, uint id,
 		return list_set_static_record(list, id, record, len);
 }
 
-ls_status_t list_set_static_record(list_t *list, uint id,
+lsw_t list_set_static_record(list_t *list, uint id,
 	const void *record, uint len)
 {
 	if (id >= list->scale)
@@ -350,21 +371,21 @@ ls_status_t list_set_static_record(list_t *list, uint id,
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_set_dynamic_record(list_t *list, uint id,
+lsw_t list_set_dynamic_record(list_t *list, uint id,
 	const void *record, uint len)
 {
-	DynLenFlag *l;
+	rlen_t *l;
 	uint mlen = 0;
 	if (id >= list->scale)
 		return LSS_BAD_ID;
 	if (list->index[id])
 		return LSS_DYN_ID_EXIST;
-	mlen = len + sizeof(DynLenFlag);
+	mlen = len + sizeof(rlen_t);
 	list->index[id] = (byte*)malloc(mlen);
 	if (!list->index[id])
 		return LSS_MALLOC_ERR;
-	memcpy(list->index[id] + sizeof(DynLenFlag), record, len);
-	l = (DynLenFlag*)list->index[id];
+	memcpy(list->index[id] + sizeof(rlen_t), record, len);
+	l = (rlen_t*)list->index[id];
 	*l = len;
 	list->counter++;
 	list->length += mlen;
@@ -400,13 +421,13 @@ void *list_alloc(list_t *list, uint id, uint nbyte)
 	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE)) {
 		if (list->index[id])
 			list_del_dynamic_record(list, id);
-		list->index[id] = (byte*)malloc(nbyte + sizeof(DynLenFlag));
+		list->index[id] = (byte*)malloc(nbyte + sizeof(rlen_t));
 		if (!list->index[id])
 			return NULL;
-		*(DynLenFlag*)list->index[id] = nbyte;
-		list->length += (nbyte + sizeof(DynLenFlag));
+		*(rlen_t*)list->index[id] = nbyte;
+		list->length += (nbyte + sizeof(rlen_t));
 		list->counter++;
-		return list->index[id] + sizeof(DynLenFlag);
+		return list->index[id] + sizeof(rlen_t);
 	} else { /* LIST_STATIC_MODE */
 		if (nbyte > list->blen)
 			return NULL;
@@ -437,7 +458,7 @@ void *list_get_dynamic_record(list_t *list, uint id)
 		return NULL;
 	else {
 		if (list->index[id])
-			return (list->index[id] + sizeof(DynLenFlag));
+			return (list->index[id] + sizeof(rlen_t));
 		else
 			return NULL;
 	}
@@ -447,7 +468,7 @@ uint list_get_record_len(list_t *list, uint id)
 {
 	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE)) {
 		if (list->index[id])
-			return *(DynLenFlag*)list->index[id];
+			return *(rlen_t*)list->index[id];
 		else
 			return 0;
 	}
@@ -455,7 +476,7 @@ uint list_get_record_len(list_t *list, uint id)
 		return list->blen;
 }
 
-ls_status_t list_del_record(list_t *list, uint id)
+lsw_t list_del_record(list_t *list, uint id)
 {
 	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
 		return list_del_dynamic_record(list, id);
@@ -463,7 +484,7 @@ ls_status_t list_del_record(list_t *list, uint id)
 		return list_del_static_record(list, id);
 }
 
-ls_status_t list_del_static_record(list_t *list, uint id)
+lsw_t list_del_static_record(list_t *list, uint id)
 {
 	if (id >= list->scale)
 		return LSS_BAD_ID;
@@ -471,13 +492,13 @@ ls_status_t list_del_static_record(list_t *list, uint id)
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_del_dynamic_record(list_t *list, uint id)
+lsw_t list_del_dynamic_record(list_t *list, uint id)
 {
 	if (id >= list->scale)
 		return LSS_BAD_ID;
 	if (list->index[id]) {
-		list->length -= sizeof(DynLenFlag);
-		list->length -= *(DynLenFlag*)list->index[id];
+		list->length -= sizeof(rlen_t);
+		list->length -= *(rlen_t*)list->index[id];
 		list->counter--;
 		free(list->index[id]);
 		list->index[id] = NULL;
@@ -485,7 +506,7 @@ ls_status_t list_del_dynamic_record(list_t *list, uint id)
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_swap_record(list_t *list,
+lsw_t list_swap_record(list_t *list,
 	uint id1, uint id2)
 {
 	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
@@ -494,7 +515,7 @@ ls_status_t list_swap_record(list_t *list,
 		return list_swap_static_record(list, id1, id2);
 }
 
-ls_status_t list_swap_static_record(list_t *list,
+lsw_t list_swap_static_record(list_t *list,
 	uint id1, uint id2)
 {
 	if (id1 >= list->scale || id2 >= list->scale)
@@ -504,7 +525,7 @@ ls_status_t list_swap_static_record(list_t *list,
 	return LSS_SUCCESS;	
 }
 
-ls_status_t list_swap_dynamic_record(list_t *list,
+lsw_t list_swap_dynamic_record(list_t *list,
 	uint id1, uint id2)
 {
 	byte *p;
@@ -517,7 +538,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 }
 
 #ifdef ENABLE_FOPS
-	ls_status_t list_export(list_t *list, const char *path,
+	lsw_t list_export(list_t *list, const char *path,
 		const char *mode)
 	{
 		if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
@@ -547,7 +568,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 	}
 
 #ifdef ENABLE_ZLIB
-	static ls_status_t _list_export_static_zlib(list_t *list,
+	static lsw_t _list_export_static_zlib(list_t *list,
 		const char *path, const char *mode)
 	{
 		ZLIB_FILE fp;
@@ -557,7 +578,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 	}
 #endif
 
-	static ls_status_t _list_export_static_ansic(list_t *list,
+	static lsw_t _list_export_static_ansic(list_t *list,
 		const char *path, const char *mode)
 	{
 		IO_FILE fp;
@@ -566,7 +587,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 		return LSS_SUCCESS;
 	}
 
-	ls_status_t list_export_static(list_t *list, const char *path,
+	lsw_t list_export_static(list_t *list, const char *path,
 		const char *mode) {
 		if (!mode)
 			mode = LIST_EXPORT_MODE_DEF;
@@ -585,11 +606,11 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 	#define PROCESS_EXPORT_DYN_RECORD(PREFIX) \
 	if (list->index[sc]) {                                        \
 		if (!_is_little_endian())                             \
-			_memrev(list->index[sc], sizeof(DynLenFlag)); \
-		PREFIX##fwrite(list->index[sc], sizeof(DynLenFlag) +  \
-			*(DynLenFlag*)list->index[sc], 1, fp);        \
+			_memrev(list->index[sc], sizeof(rlen_t)); \
+		PREFIX##fwrite(list->index[sc], sizeof(rlen_t) +  \
+			*(rlen_t*)list->index[sc], 1, fp);        \
 		if (!_is_little_endian()) {                           \
-			_memrev(list->index[sc], sizeof(DynLenFlag)); \
+			_memrev(list->index[sc], sizeof(rlen_t)); \
 			_memrev(&sc, sizeof(uint));                   \
 		}                                                     \
 		PREFIX##fwrite(&sc, sizeof(uint), 1, fp);             \
@@ -621,7 +642,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 	}
 
 #ifdef ENABLE_ZLIB
-	static ls_status_t _list_export_dynamic_zlib(list_t *list,
+	static lsw_t _list_export_dynamic_zlib(list_t *list,
 		const char *path, const char *mode)
 	{
 		ZLIB_FILE fp;
@@ -631,7 +652,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 	}
 #endif
 
-	static ls_status_t _list_export_dynamic_ansic(list_t *list,
+	static lsw_t _list_export_dynamic_ansic(list_t *list,
 		const char *path, const char *mode)
 	{
 		IO_FILE fp;
@@ -640,7 +661,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 		return LSS_SUCCESS;
 	}
 
-	ls_status_t list_export_dynamic(list_t *list, const char *path,
+	lsw_t list_export_dynamic(list_t *list, const char *path,
 		const char *mode)
 	{
 		if (!mode)
@@ -667,19 +688,19 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 		return NULL;                                     \
 	}                                                        \
 	memset(list->index, 0, list->scale * sizeof(byte*));     \
-	while (PREFIX##fread(&len, sizeof(DynLenFlag), 1, fp)) { \
+	while (PREFIX##fread(&len, sizeof(rlen_t), 1, fp)) { \
 		if (!_is_little_endian())                        \
-			_memrev(&len, sizeof(DynLenFlag));       \
-		tmp = (byte*)malloc(len + sizeof(DynLenFlag));   \
+			_memrev(&len, sizeof(rlen_t));       \
+		tmp = (byte*)malloc(len + sizeof(rlen_t));   \
 		if (!tmp) {                                      \
 			list->status |= LIST_IMPORT_ERROR;       \
 			list->status |= LIST_MALLOC_ERROR;       \
 			PREFIX##fclose(fp);                      \
 			return list;                             \
 		}                                                \
-		*(DynLenFlag*)tmp = len;                         \
+		*(rlen_t*)tmp = len;                         \
 		PREFIX##fread(tmp +                              \
-			sizeof(DynLenFlag), len, 1, fp);         \
+			sizeof(rlen_t), len, 1, fp);         \
 		PREFIX##fread(&id, sizeof(uint), 1, fp);         \
 		if (!_is_little_endian())                        \
 			_memrev(&id, sizeof(uint));              \
@@ -701,7 +722,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 	byte *tmp;                                     \
 	uint name_len  = 0;                            \
 	uint id        = 0;                            \
-	DynLenFlag len = 0;                            \
+	rlen_t len = 0;                            \
 	fp = PREFIX##fopen(path, "rb");                \
 	if (!fp)                                       \
 		return NULL;                           \
@@ -831,7 +852,7 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 		return list;
 	}
 
-	ls_status_t list_del_shared(list_t *list)
+	lsw_t list_del_shared(list_t *list)
 	{
 		uint shmlen;
 		if (TEST_FLAG(list->flag, LIST_SHARED_USER))
@@ -920,71 +941,150 @@ ls_status_t list_swap_dynamic_record(list_t *list,
 	}
 #endif /* ENABLE_SSHM */
 
-ls_status_t list_calc_hash_id(list_t *list,
-	void *data, uint len, uint arg, uint *id, __hashFx)
+ccnt_t list_get_record_counter(list_t *list, uint id)
+{
+	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE)) {
+		if (list->index[id])
+			return 1;
+		else
+			return 0;
+	} else { /* LIST_STATIC_MODE */
+		if (TEST_FLAG(list->flag, LIST_HASH_TABLE))
+			return (*(ccnt_t*)(list->mem + id * list->blen)) >> 1;
+	}
+	return 1;
+}
+
+int list_hash_table_test_id(list_t *list, uint id)
+{
+	return (*(ccnt_t*)(list->mem + id * list->blen)) & 1;
+}
+
+list_t *list_new_hash_table(uint scale, uint blen)
+{
+	list_t *list;
+        if (!blen) /* support LIST_STATIC_MODE only */
+		return NULL;
+	list = list_new_static(scale, blen + sizeof(ccnt_t));
+	if (!list)
+		return NULL;
+	SET_FLAG(list->flag, LIST_UNRESIZABLE);
+	SET_FLAG(list->flag, LIST_HASH_TABLE);
+	return list;
+}
+
+lsw_t list_hash_id_calc(list_t *list,
+	const void *data, uint *hi, uint *id)
 {
 	uint nhash, cid;
-	if (hfx == NULL)
-		hfx = _djb_hash;
-	nhash = hfx(data, len, arg) % list->scale;
+	nhash = _hfx(data, _seed) % list->scale;
+	*hi = nhash;
 	cid = nhash;
-	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE)) {
-		while (list->index[cid]) {
-			cid++;
-			if (cid == list->scale)
-				cid = 0;
-			if (cid == nhash)
-				return LSS_ERR_LISTFULL;
-		}
-	} else {  /* LIST_STATIC_MODE */
-		while (list_test_record(list, cid, 0, list->blen)) {
-			cid++;
-			if (cid == list->scale)
-				cid = 0;
-			if (cid == nhash)
-				return LSS_ERR_LISTFULL;
-		}
+	while (list_hash_table_test_id(list, cid)) {
+		cid++;
+		if (cid == list->scale)
+			cid = 0;
+		if (cid  == nhash)
+			return LSS_ERR_LISTFULL;
 	}
 	*id = cid;
 	return LSS_SUCCESS;
 }
 
-ls_status_t list_search_by_hash(list_t *list,
-		void *data, uint len, uint arg, __hashFx,
-	__compFx, void *pattern, uint plen, uint *fid)
+lsw_t list_hash_table_insert(list_t *list,
+	const void *record, uint len)
 {
-	uint nhash, id;
-	if (hfx == NULL)
-		hfx = _djb_hash;
-	nhash = hfx(data, len, arg) % list->scale;
-	id = nhash;
-	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE)) {
-		while (list->index[id]) {
-			if (!cfx(list->index[id] +
-				sizeof(DynLenFlag), pattern, plen)) {
-				*fid = id;
+	uint hi, id, dlen;
+	ccnt_t *hrec, *rrec;
+	lsw_t stat;
+	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
+		return LSS_BAD_OBJ;
+	if ((stat = list_hash_id_calc(list, record, &hi, &id)))
+		return stat;
+	hrec = (ccnt_t*)(list->mem + hi * list->blen);
+	rrec = (ccnt_t*)(list->mem + id * list->blen);
+	dlen = list->blen - sizeof(ccnt_t);
+	if (CCNT_VAL(*hrec) == CCNT_MAX)
+		return LSS_CCNT_MAX;
+	memcpy(rrec + 1, record, len > dlen ? dlen : len);
+	(*hrec) += CCNT_INC;
+	(*rrec) |= 1; /* SET FLAG */
+	return LSS_SUCCESS;
+}
+
+lsw_t list_hash_table_find(list_t *list, const void *key, uint *id)
+{
+	uint nhash, cid;
+	byte *rec;
+	ccnt_t nrec;
+	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
+		return LSS_BAD_OBJ;
+	nhash = _hfx(key, _seed) % list->scale;
+	cid = nhash;
+	rec  = list->mem + cid * list->blen;
+	nrec = (*(ccnt_t*)(list->mem + cid * list->blen)) >> 1;
+	if (!nrec)
+		return LSS_OBJ_NOFOUND;
+	while (nrec--) {
+		if (_hfx(rec + sizeof(ccnt_t),
+			_seed) % list->scale == nhash) {
+			if (!_cmp(rec + sizeof(ccnt_t), key)) {
+				*id = cid;
 				return LSS_SUCCESS;
 			}
-			id++;
-			if (id == list->scale)
-				id = 0;
-			if (id == nhash)
-				return LSS_OBJ_NOFOUND;
 		}
-	} else { /* LIST_STATIC_MODE */
-		while (list_test_record(list, id, 0, list->blen)) {
-			if (!cfx(list->index[id], pattern, plen)) {
-				*fid = id;
-				return LSS_SUCCESS;
-			}
-			id++;
-			if (id == list->scale)
-				id = 0;
-			if (id == nhash)
-				return LSS_OBJ_NOFOUND;
+		cid++;
+		if (cid == nhash)
+			return LSS_OBJ_NOFOUND;
+		if (cid == list->scale) {
+			cid = 0;
+			rec = list->mem;
+		} else {
+			rec += list->blen;
 		}
 	}
-	return LSS_OBJ_NOFOUND;
+	return LSS_SUCCESS;
+}
+
+lsw_t list_hash_table_del(list_t *list, const void *key)
+{
+	uint nhash, id;
+	byte *rec, *csr;
+	ccnt_t nrec;
+	if (TEST_FLAG(list->flag, LIST_DYNAMIC_MODE))
+		return LSS_BAD_OBJ;
+	nhash = _hfx(key, _seed) % list->scale;
+	rec   = list->mem + nhash * list->blen;
+	csr   = rec;
+	nrec  = (*(ccnt_t*)rec) >> 1;
+	if (!nrec)
+		return LSS_SUCCESS;
+	id = nhash;
+	while (1) {
+		if (_hfx(csr + sizeof(ccnt_t),
+			_seed) % list->scale == nhash) {
+			if (!_cmp(csr + sizeof(ccnt_t), key)) {
+				nrec--;
+				if (!nrec)
+					break;
+			}
+		}
+		id++;
+		if (id == nhash) {
+			if (nrec)
+				return LSS_OBJ_NOFOUND;
+			return LSS_BAD_OBJ;
+		}
+		if (id == list->scale) {
+			id  = 0;
+			csr = list->mem;
+		} else {
+			csr += list->blen;
+		}
+	}
+	(*(ccnt_t*)csr) ^= 1; /* CLR FLAG */
+	(*(ccnt_t*)rec) -= CCNT_INC;
+	return LSS_SUCCESS;
 }
 
 void list_print_info(list_t *list, void *stream)
@@ -1014,10 +1114,10 @@ void list_print_info(list_t *list, void *stream)
 	fprintf(fp, "[block length] = %d\n", list->blen);
 }
 
-void operation_status(ls_status_t ops_stat)
+void list_print_status(lsw_t stat, void *stream)
 {
-	FILE *fp = stderr;
-	switch (ops_stat) {
+	FILE *fp = stream ? (FILE*)stream : stdout;
+	switch (stat) {
 		case LSS_SUCCESS:
 			fprintf(fp, "Operation Succeeded!\n");
 			break;
@@ -1056,3 +1156,4 @@ void operation_status(ls_status_t ops_stat)
 			break;
 	}
 }
+

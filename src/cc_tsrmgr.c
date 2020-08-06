@@ -241,8 +241,8 @@ list_t *cc_tsrmgr_pack()
 		off = strlen(csr->name) + 1;
 		for (i = 0; i < csr->container->counter; ++i) {
 			/* Ref: util_list.h */
-			len = *(DynLenFlag*)
-				csr->container->index[i] + sizeof(DynLenFlag);
+			len = *(rlen_t*)
+				csr->container->index[i] + sizeof(rlen_t);
 			memcpy(dptr + off, csr->container->index[i], len);
 			off += len;
 		}
@@ -271,11 +271,11 @@ void cc_tsrmgr_unpack(list_t *tls)
 		off = strlen(name) + 1;
 		for (j = 0; j < CC_TENSOR_ITEMS; ++j) {
 			/* Ref: util_list.h */
-			len = *(DynLenFlag*)(rptr + off);
-			dptr = rptr + off + sizeof(DynLenFlag);
+			len = *(rlen_t*)(rptr + off);
+			dptr = rptr + off + sizeof(rlen_t);
 			cc_assert_zero(
 				list_set_record(container, j, dptr, len));
-			off += (len + sizeof(DynLenFlag));
+			off += (len + sizeof(rlen_t));
 		}
 		cc_tsrmgr_del(name);
 		cc_assert_alloc(
