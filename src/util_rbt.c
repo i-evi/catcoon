@@ -15,8 +15,8 @@ static void* __pointer(struct rbt_node *node) {
 	return node->data;
 }
 
-static int __compare(void *a, void *b) {
-	return (unsigned char*)a - (unsigned char*)b;
+static int __compare(const void *a, const void *b) {
+	return (const unsigned char*)a - (const unsigned char*)b;
 }
 
 struct rbt_node *rbt_nil(void)
@@ -24,10 +24,10 @@ struct rbt_node *rbt_nil(void)
 	return &node_nil;
 }
 
-rbt_t *new_rbt(void*(*get_key)(struct rbt_node *), 
-			int (*compare)(void*, void*))
+struct rbtree *new_rbt(void*(*get_key)(struct rbt_node *), 
+		int (*compare)(const void*, const void*))
 {
-	rbt_t *t = (rbt_t*)malloc(sizeof(rbt_t));
+	struct rbtree *t = (struct rbtree*)malloc(sizeof(struct rbtree));
 	t->root = &node_nil;
 	t->get_key = get_key;
 	t->compare = compare;
@@ -48,7 +48,7 @@ static struct rbt_node *new_rbt_node(void *d)
 	return z;
 }
 
-static void left_rotate(rbt_t *t, struct rbt_node *node)
+static void left_rotate(struct rbtree *t, struct rbt_node *node)
 {
 	struct rbt_node *y = node->right;
 	node->right = y->left;
@@ -65,7 +65,7 @@ static void left_rotate(rbt_t *t, struct rbt_node *node)
 	node->parent = y;
 }
 
-static void right_rotate(rbt_t *t, struct rbt_node *node)
+static void right_rotate(struct rbtree *t, struct rbt_node *node)
 {
 	struct rbt_node *y = node->left;
 	node->left = y->right;
@@ -82,7 +82,7 @@ static void right_rotate(rbt_t *t, struct rbt_node *node)
 	node->parent = y;
 }
 
-static void rbt_insert_fixup(rbt_t *t, struct rbt_node *z)
+static void rbt_insert_fixup(struct rbtree *t, struct rbt_node *z)
 {
 	struct rbt_node *y;
 	while (z->parent->color == RBT_COLOR_RED) {
@@ -123,7 +123,7 @@ static void rbt_insert_fixup(rbt_t *t, struct rbt_node *z)
 	t->root->color = RBT_COLOR_BLACK;
 }
 
-void *rbt_insert(rbt_t *t, void *d)
+void *rbt_insert(struct rbtree *t, void *d)
 {
 	void *holder;
 	struct rbt_node *y = &node_nil, *x = t->root;
@@ -154,7 +154,7 @@ void *rbt_insert(rbt_t *t, void *d)
 	return NULL;
 }
 
-static struct rbt_node *__search_rbt_node(rbt_t *t, void *key)
+static struct rbt_node *__search_rbt_node(struct rbtree *t, void *key)
 {
 	struct rbt_node *z = t->root;
 	while (z != &node_nil) {
@@ -168,7 +168,7 @@ static struct rbt_node *__search_rbt_node(rbt_t *t, void *key)
 	return NULL;
 }
 
-void *rbt_search(rbt_t *t, void *key)
+void *rbt_search(struct rbtree *t, void *key)
 {
 	struct rbt_node *z = __search_rbt_node(t, key);
 	if (z)
@@ -188,13 +188,13 @@ static void __free_rbt(struct rbt_node *root)
 	__free_rbt(r);
 }
 
-void free_rbt(rbt_t *t)
+void free_rbt(struct rbtree *t)
 {
 	__free_rbt(t->root);
 	free(t);
 }
 
-static void __rb_transplant(rbt_t *t,
+static void __rb_transplant(struct rbtree *t,
 	struct rbt_node *u, struct rbt_node *v)
 {
 	if (u->parent == &node_nil)
@@ -212,7 +212,7 @@ static struct rbt_node *__rb_tree_minimum(struct rbt_node *z)
 	return z;
 }
 
-static void __rb_tree_delete_fixup(rbt_t *t, struct rbt_node *x)
+static void __rb_tree_delete_fixup(struct rbtree *t, struct rbt_node *x)
 {
 	struct rbt_node *w;
  	while (x != t->root && x->color == RBT_COLOR_BLACK) {
@@ -271,7 +271,7 @@ static void __rb_tree_delete_fixup(rbt_t *t, struct rbt_node *x)
 	x->color = RBT_COLOR_BLACK;
 }
 
-void *rbt_delete(rbt_t *t, void *key)
+void *rbt_delete(struct rbtree *t, void *key)
 {
 	struct rbt_node *y, *z, *x, *hold_node_to_delete;
 	unsigned char y_original_color;
@@ -307,51 +307,4 @@ void *rbt_delete(rbt_t *t, void *key)
 		__rb_tree_delete_fixup(t, x);
 	free(hold_node_to_delete);
 	return node_to_return;
-}
-
-rbt_iterator *new_rbt_iterator(rbt_t *t)
-{
-	struct rbt_node *aux = t->root;
-	rbt_iterator *it = (rbt_iterator*)malloc(sizeof(rbt_iterator));
-	while(aux->left != &node_nil || aux->right != &node_nil) {
-		while(aux->left != &node_nil)
-			aux = aux->left;
-		if(aux->right != &node_nil)
-			aux = aux->right;
-	}
-	it->current = aux;
-	return it;
-}
-
-int rbt_iterator_has_next(rbt_iterator *it)
-{
-	if(it->current != &node_nil)
-		return 1;
-	return 0;
-}
-
-void *rbt_iterator_next(rbt_iterator *it)
-{
-	struct rbt_node *aux;
-	struct rbt_node *tn = it->current;
-	if (tn->parent != &node_nil &&
-		tn->parent->right != &node_nil &&
-		tn->parent->right != tn) {
-		aux = tn->parent->right;
-		while (aux->left != &node_nil || aux->right != &node_nil) {
-			while(aux->left != &node_nil)
-				aux = aux->left;
-			if (aux->right != &node_nil)
-				aux = aux->right;
-			}
-			it->current = aux;
-		}
-	else
-		it->current = it->current->parent;
-	return tn->data;
-}
-
-void free_rbt_iterator(rbt_iterator *it)
-{
-	free(it);
 }

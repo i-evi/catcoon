@@ -16,36 +16,28 @@ struct rbt_node {
 	unsigned char    color;
 };
 
-typedef struct {
+struct rbtree {
 	struct rbt_node *root;
 	void *(*get_key)(struct rbt_node*);
-	int (*compare)(void*, void*);
-} rbt_t;
+	int (*compare)(const void*, const void*);
+};
 
 typedef struct {
 	struct rbt_node *current;
 } rbt_iterator;
 
-rbt_t *new_rbt(void*(*get_key)(struct rbt_node *), 
-			int (*compare)(void*, void*));
+struct rbtree *new_rbt(void*(*get_key)(struct rbt_node *), 
+		int (*compare)(const void*, const void*));
 
-void free_rbt(rbt_t *t);
+void free_rbt(struct rbtree *t);
 
 struct rbt_node *rbt_nil(void);
 
-void *rbt_insert(rbt_t *t, void *d);
+void *rbt_insert(struct rbtree *t, void *d);
 
-void *rbt_delete(rbt_t *t, void *key);
+void *rbt_delete(struct rbtree *t, void *key);
 
-void *rbt_search(rbt_t *t, void *key);
-
-rbt_iterator *new_rbt_iterator(rbt_t *t);
-
-int rbt_iterator_has_next(rbt_iterator *it);
-
-void *rbt_iterator_next(rbt_iterator *it);
-
-void free_rbt_iterator(rbt_iterator* it);
+void *rbt_search(struct rbtree *t, void *key);
 
 #ifdef __cplusplus
 	}

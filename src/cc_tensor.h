@@ -22,7 +22,7 @@ enum cc_tensor_items {
  */
 
 typedef struct {
-	list_t *container;
+	struct list *container;
 	const char     *name;
 	unsigned char  *data;
 	const cc_dtype *dtype;

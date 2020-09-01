@@ -85,7 +85,7 @@ cc_tensor_t *cc_conv2d(cc_tensor_t *inp,
 		(cc_uint8*)malloc(o_ch_mem_size * num_omp_threads));
 #ifdef AUTO_TSRMGR
 	memset(oup->data, 0,
-		list_get_record_len(oup->container, CC_TENSOR_DATA));
+		list_getlen(oup->container, CC_TENSOR_DATA));
 #endif
 #ifdef ENABLE_OPENMP
 	#pragma omp parallel for private(i, j)

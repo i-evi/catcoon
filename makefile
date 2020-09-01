@@ -1,4 +1,4 @@
-cc = gcc
+CC = gcc
 
 # Build Ctrl Flag
 BCTRL =
@@ -24,14 +24,26 @@ CFLAG += $(DFLAG) $(WFLAG) $(OFLAG)
 # Enable automatic tensor manager
 CFLAG += -DAUTO_TSRMGR
 
+# Configurations for utilities
+UTIM_COND   =
+UT_LIST_CFG = -DENABLE_FOPS
+
 # 3rd party source/library configurations
-# stb: read/write jpg, png, tga format images.
+# stb: Read/write jpg, png, tga format images.
 # Will only support bmp image if disabled
 3RDSRC_CF += stb
 
-# parg: argv parser written in ANSI C
+# parg: Argv parser written in ANSI C
 # Argv parser for demo apps
 3RDSRC_CF += parg
+
+# seb: sequential encoded buffers
+# Pack and save compressed models files
+3RDSRC_CF += seb
+
+# zlib: General-purpose compression and decompression library
+# Pack and save compressed models files
+3RDSRC_CF += zlib
 
 ifneq ($(findstring MINI, $(BCTRL)),)
 	CC = tcc
@@ -54,6 +66,16 @@ endif
 ifneq ($(findstring parg, $(3RDSRC_CF)),)
 	ALL_O   += parg.o
 	APP_INC += -I ./src/3rd_party/parg/
+endif
+
+ifneq ($(findstring seb, $(3RDSRC_CF)),)
+	ALL_O += seb.o fastlz.o
+	UT_LIST_CFG += -DENABLE_SEB -I ./src/3rd_party/seb/
+endif
+
+ifneq ($(findstring zlib, $(3RDSRC_CF)),)
+	LINK += -lz
+	UT_LIST_CFG += -DENABLE_ZLIB
 endif
 
 ALL_O += \
@@ -109,13 +131,18 @@ cc_tensor.o   : $(patsubst %, ./src/%, cc_tensor.h cc_tensor.c)
 util_log.o   : $(patsubst %, ./src/%, util_log.h util_log.c)
 util_rbt.o   : $(patsubst %, ./src/%, util_rbt.h util_rbt.c)
 util_list.o  : $(patsubst %, ./src/%, util_list.h util_list.c)
-	$(CC) -c -o $@ ./src/util_list.c $(CFLAG) -DENABLE_FOPS
+	$(CC) -c -o $@ ./src/util_list.c $(CFLAG) $(UT_LIST_CFG)
 util_image.o : $(patsubst %, ./src/%, util_image.h util_image.c)
 	$(CC) -c -o $@ ./src/util_image.c $(CFLAG) $(UTIM_COND)
 
 # 3rd party objs
 parg.o: ./src/3rd_party/parg/parg*
 	$(CC) -c -o $@ ./src/3rd_party/parg/parg.c $(CFLAG)
+
+seb.o : ./src/3rd_party/seb/seb*
+	$(CC) -c -o $@ ./src/3rd_party/seb/seb.c $(CFLAG)
+fastlz.o : ./src/3rd_party/seb/fastlz*
+	$(CC) -c -o $@ ./src/3rd_party/seb/fastlz.c $(CFLAG)
 
 minimal:
 	$(MAKE) "BCTRL = MINI"

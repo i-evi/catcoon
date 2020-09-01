@@ -8,7 +8,7 @@
 #include "cc_tsrmgr.h"
 
 static int global_counter;
-static rbt_t *global_tsrmgr_table;
+static struct rbtree *global_tsrmgr_table;
 
 struct pair {
 	char *key;
@@ -21,9 +21,9 @@ static void *getkey(struct rbt_node *node)
 	return pair->key;
 }
 
-static int compare(void *a, void *b)
+static int compare(const void *a, const void *b)
 {
-	return strcmp((char*)a, (char*)b);
+	return strcmp((const char*)a, (const char*)b);
 }
 
 static void free_pair(struct pair *pair)
@@ -51,17 +51,21 @@ void cc_tsrmgr_init(void)
 	return;
 }
 
+
+static void _tsrmgr_clear(struct rbt_node *n)
+{
+	if (n != rbt_nil()) {
+		_tsrmgr_clear(n->left);
+		free_pair((struct pair*)n->data);
+		_tsrmgr_clear(n->right);
+	}
+}
+
 void cc_tsrmgr_clear(void)
 {
-	rbt_iterator *it;
-	struct pair *pair;
-	if (!global_tsrmgr_table) return;
-	it = new_rbt_iterator(global_tsrmgr_table);
-	while (rbt_iterator_has_next(it)) {
-		pair = (struct pair*)rbt_iterator_next(it);
-		free_pair(pair);
-	}
-	free_rbt_iterator(it);
+	if (!global_tsrmgr_table)
+		return;
+	_tsrmgr_clear(global_tsrmgr_table->root);
 	free_rbt(global_tsrmgr_table);
 	global_tsrmgr_table = NULL;
 	global_counter = 0;
@@ -198,12 +202,12 @@ static void _print_pair(struct pair *pair)
 		_print_tensor_property((cc_tensor_t*)pair->dat);
 }
 
-static void _cc_tsrmgr_list_traversal(struct rbt_node *n)
+static void _cc_tsrmgr_list(struct rbt_node *n)
 {
 	if (n != rbt_nil()) {
-		_cc_tsrmgr_list_traversal(n->left);
+		_cc_tsrmgr_list(n->left);
 		_print_pair((struct pair*)n->data);
-		_cc_tsrmgr_list_traversal(n->right);
+		_cc_tsrmgr_list(n->right);
 	}
 }
 
@@ -215,48 +219,62 @@ void cc_tsrmgr_list(void)
 	}
 	utlog_format(UTLOG_INFO,
 		"cc_tsrmgr: handling %d tensor(s)\n", global_counter);
-	_cc_tsrmgr_list_traversal(global_tsrmgr_table->root);
+	_cc_tsrmgr_list(global_tsrmgr_table->root);
 }
 
-list_t *cc_tsrmgr_pack()
-{
-	list_t *pack;
+struct tsrmgr_pack_state {
+	struct list *pack;
 	cc_tensor_t *csr;
 	cc_uint8 *dptr;
 	cc_int32 len, off;
-	cc_uint32 i, idc = 0;
-	rbt_iterator *it;
+	cc_uint32 idc;
+};
+
+static struct tsrmgr_pack_state _ps;
+
+static void _tsrmgr_pack(struct rbt_node *n)
+{
+	cc_uint32 i;
+	if (n != rbt_nil()) {
+		_tsrmgr_pack(n->left);
+		_ps.csr = (cc_tensor_t*)
+			((struct pair*)n->data)->dat;
+		_ps.len = strlen(_ps.csr->name) +
+			_ps.csr->container->length + 1;
+		cc_assert_ptr(_ps.dptr =
+			(cc_uint8*)list_alloc(_ps.pack, _ps.idc, _ps.len));
+		strcpy((char*)_ps.dptr, _ps.csr->name);
+		_ps.off = strlen(_ps.csr->name) + 1;
+		for (i = 0; i < _ps.csr->container->counter; ++i) {
+			/* Ref: util_list.h */
+			_ps.len = *(rlen_t*)
+				_ps.csr->container->index[i] + sizeof(rlen_t);
+			memcpy(_ps.dptr + _ps.off,
+				_ps.csr->container->index[i], _ps.len);
+			_ps.off += _ps.len;
+		}
+		_ps.idc++;
+		_tsrmgr_pack(n->right);
+	}
+}
+
+struct list *cc_tsrmgr_pack()
+{
 	if (!global_tsrmgr_table) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return NULL;
 	}
-	cc_assert_ptr(it = new_rbt_iterator(global_tsrmgr_table));
-	cc_assert_ptr(pack = list_new_dynamic(global_counter));
-	while (rbt_iterator_has_next(it)) {
-		csr = (cc_tensor_t*)
-			((struct pair*)rbt_iterator_next(it))->dat;
-		len = strlen(csr->name) + csr->container->length + 1;
-		cc_assert_ptr(dptr = (cc_uint8*)list_alloc(pack, idc, len));
-		strcpy((char*)dptr, csr->name);
-		off = strlen(csr->name) + 1;
-		for (i = 0; i < csr->container->counter; ++i) {
-			/* Ref: util_list.h */
-			len = *(rlen_t*)
-				csr->container->index[i] + sizeof(rlen_t);
-			memcpy(dptr + off, csr->container->index[i], len);
-			off += len;
-		}
-		idc++;
-	}
-	free_rbt_iterator(it);
-	return pack;
+	memset(&_ps, 0, sizeof(struct tsrmgr_pack_state));
+	cc_assert_ptr(_ps.pack = list_new(global_counter, 0));
+	_tsrmgr_pack(global_tsrmgr_table->root);
+	return _ps.pack;
 }
 
-void cc_tsrmgr_unpack(list_t *tls)
+void cc_tsrmgr_unpack(struct list *tls)
 {
 	const char *name;
 	cc_tensor_t *t;
-	list_t *container;
+	struct list *container;
 	cc_uint8 *dptr, *rptr;
 	cc_int32 j, off, len;
 	cc_uint32 i;
@@ -264,17 +282,17 @@ void cc_tsrmgr_unpack(list_t *tls)
 		cc_tsrmgr_init();
 	for (i = 0; i < tls->counter; ++i) {
 		cc_assert_ptr(
-			container = list_new_dynamic(CC_TENSOR_ITEMS));
-		rptr = (cc_uint8*)list_get_record(tls, i);
+			container = list_new(CC_TENSOR_ITEMS, 0));
+		rptr = (cc_uint8*)list_index(tls, i);
 		name = (const char*)rptr;
-		cc_assert_zero(list_set_name(container, name));
+		cc_assert_zero(list_rename(container, name));
 		off = strlen(name) + 1;
 		for (j = 0; j < CC_TENSOR_ITEMS; ++j) {
 			/* Ref: util_list.h */
 			len = *(rlen_t*)(rptr + off);
 			dptr = rptr + off + sizeof(rlen_t);
-			cc_assert_zero(
-				list_set_record(container, j, dptr, len));
+			cc_assert_ptr(
+				list_set_data(container, j, dptr, len));
 			off += (len + sizeof(rlen_t));
 		}
 		cc_tsrmgr_del(name);
@@ -283,28 +301,28 @@ void cc_tsrmgr_unpack(list_t *tls)
 		t->container = container;
 		t->name = container->name;
 		t->data = (cc_uint8*)
-			list_get_record(t->container, CC_TENSOR_DATA);
+			list_index(t->container, CC_TENSOR_DATA);
 		cc_assert_ptr(
 			t->dtype = (cc_dtype*)
-				list_get_record(container, CC_TENSOR_DTYPE));
+				list_index(container, CC_TENSOR_DTYPE));
 		cc_assert_ptr(
 			t->shape = (cc_int32*)
-				list_get_record(container, CC_TENSOR_SHAPE));
+				list_index(container, CC_TENSOR_SHAPE));
 		cc_tsrmgr_reg(t);
 	}
 }
 
 void cc_tsrmgr_export(const char *filename)
 {
-	list_t *pack;
+	struct list *pack;
 	cc_assert_ptr(pack = cc_tsrmgr_pack());
-	cc_assert_zero(list_export(pack, filename, NULL));
+	cc_assert_zero(list_export(pack, filename));
 	list_del(pack);
 }
 
 void cc_tsrmgr_import(const char *filename)
 {
-	list_t *pack;
+	struct list *pack;
 	cc_assert_ptr(pack = list_import(filename));
 	cc_tsrmgr_unpack(pack);
 	list_del(pack);

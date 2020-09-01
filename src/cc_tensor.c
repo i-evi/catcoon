@@ -20,25 +20,25 @@ cc_tensor_t *cc_create_tensor( const cc_int32 *shape,
 	cc_assert_alloc(
 		tensor = (cc_tensor_t*)malloc(sizeof(cc_tensor_t)));
 	cc_assert_ptr(
-		tensor->container = list_new_dynamic(CC_TENSOR_ITEMS));
+		tensor->container = list_new(CC_TENSOR_ITEMS, 0));
 	cc_assert_alloc(
 		list_alloc(tensor->container, CC_TENSOR_DATA, memsize));
 	tensor->data = (unsigned char*)
-		list_get_record(tensor->container, CC_TENSOR_DATA);
+		list_index(tensor->container, CC_TENSOR_DATA);
 	memset(tensor->data, 0, memsize);
-	cc_assert_zero(
-		list_set_record(tensor->container, CC_TENSOR_SHAPE,
+	cc_assert_ptr(
+		list_set_data(tensor->container, CC_TENSOR_SHAPE,
 			shape, (sptr - shape + 1) * sizeof(cc_int32)));
 	cc_assert_ptr(
 		tensor->shape = (cc_int32*)
-			list_get_record(tensor->container, CC_TENSOR_SHAPE));
-	cc_assert_zero(
-		list_set_record(tensor->container,
+			list_index(tensor->container, CC_TENSOR_SHAPE));
+	cc_assert_ptr(
+		list_set_data(tensor->container,
 			CC_TENSOR_DTYPE, &dtype, sizeof(cc_dtype)));
 	cc_assert_ptr(
 		tensor->dtype = (cc_dtype*)
-			list_get_record(tensor->container, CC_TENSOR_DTYPE));
-	cc_assert_zero(list_set_name(tensor->container, name));
+			list_index(tensor->container, CC_TENSOR_DTYPE));
+	cc_assert_zero(list_rename(tensor->container, name));
 	tensor->name = tensor->container->name;
 #ifdef AUTO_TSRMGR
 	if (name) {
@@ -57,14 +57,14 @@ cc_tensor_t *cc_copy_tensor(cc_tensor_t *tensor, const char *name)
 		copied->container = list_clone(tensor->container));
 	cc_assert_ptr(
 		copied->data = (unsigned char*)
-			list_get_record(copied->container, CC_TENSOR_DATA));
+			list_index(copied->container, CC_TENSOR_DATA));
 	cc_assert_ptr(
 		copied->shape = (cc_int32*)
-			list_get_record(copied->container, CC_TENSOR_SHAPE));
+			list_index(copied->container, CC_TENSOR_SHAPE));
 	cc_assert_ptr(
 		copied->dtype = (cc_dtype*)
-			list_get_record(copied->container, CC_TENSOR_DTYPE));
-	cc_assert_zero(list_set_name(copied->container, name));
+			list_index(copied->container, CC_TENSOR_DTYPE));
+	cc_assert_zero(list_rename(copied->container, name));
 	copied->name = copied->container->name;
 #ifdef AUTO_TSRMGR
 	if (name) {
@@ -85,13 +85,13 @@ cc_tensor_t *cc_load_tensor(const char *filename)
 	}
 	cc_assert_ptr(
 		tensor->data = (unsigned char*)
-			list_get_record(tensor->container, CC_TENSOR_DATA));
+			list_index(tensor->container, CC_TENSOR_DATA));
 	cc_assert_ptr(
 		tensor->shape = (cc_int32*)
-			list_get_record(tensor->container, CC_TENSOR_SHAPE));
+			list_index(tensor->container, CC_TENSOR_SHAPE));
 	cc_assert_ptr(
 		tensor->dtype = (cc_dtype*)
-			list_get_record(tensor->container, CC_TENSOR_DTYPE));
+			list_index(tensor->container, CC_TENSOR_DTYPE));
 	tensor->name = tensor->container->name;
 #ifdef AUTO_TSRMGR
 	cc_tsrmgr_del(tensor->name);
@@ -108,7 +108,7 @@ cc_tensor_t *cc_load_bin(const char *filename,
 	cc_tensor_t *tensor;
 	cc_assert_ptr(tensor = cc_create_tensor(shape, dtype, name));
 	cc_assert_ptr(fp = fopen(filename, "rb"));
-	memsize = list_get_record_len(tensor->container, CC_TENSOR_DATA);
+	memsize = list_getlen(tensor->container, CC_TENSOR_DATA);
 	cc_assert(fread(tensor->data, memsize, 1, fp));
 	fclose(fp);
 	return tensor;
@@ -116,7 +116,7 @@ cc_tensor_t *cc_load_bin(const char *filename,
 
 void cc_save_tensor(cc_tensor_t *tensor, const char *filename)
 {
-	list_export(tensor->container, filename, NULL);
+	list_export(tensor->container, filename);
 }
 
 void cc_free_tensor(cc_tensor_t *tensor)

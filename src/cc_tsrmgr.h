@@ -25,8 +25,8 @@ void cc_tsrmgr_list(void);
  * To pack a tensor's container:
  * name | dtype | shape | data 
  */
-list_t *cc_tsrmgr_pack();
-void cc_tsrmgr_unpack(list_t *tls);
+struct list *cc_tsrmgr_pack();
+void cc_tsrmgr_unpack(struct list *tls);
 
 void cc_tsrmgr_export(const char *filename);
 void cc_tsrmgr_import(const char *filename);

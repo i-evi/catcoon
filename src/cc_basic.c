@@ -113,13 +113,13 @@ cc_tensor_t *cc_tensor_reshape(cc_tensor_t *tensor, cc_int32 *shape)
 	while (*++sptr)
 		elems *= *sptr;
 	cc_assert_zero(
-		list_del_record(tensor->container, CC_TENSOR_SHAPE));
-	cc_assert_zero(
-		list_set_record(tensor->container, CC_TENSOR_SHAPE,
+		list_erase(tensor->container, CC_TENSOR_SHAPE));
+	cc_assert_ptr(
+		list_set_data(tensor->container, CC_TENSOR_SHAPE,
 			shape, (sptr - shape + 1) * sizeof(cc_int32)));
 	cc_assert_ptr(
 		tensor->shape = (cc_int32*)
-			list_get_record(tensor->container, CC_TENSOR_SHAPE));
+			list_index(tensor->container, CC_TENSOR_SHAPE));
 	return tensor;
 }
 
@@ -231,7 +231,7 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 			cc_free_tensor(cast);
 			return NULL;
 	}
-	list_set_name(cast->container, name);
+	list_rename(cast->container, name);
 	cast->name = cast->container->name;
 	if (!name || !strcmp(name, tensor->name)) {
 #ifdef AUTO_TSRMGR
