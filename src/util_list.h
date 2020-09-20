@@ -12,11 +12,11 @@
 #endif
 
 #ifndef byte
-	#define _LIST_H_TYPE_BYTE
+	#define LS_TYPE_BYTE
 	#define byte unsigned char
 #endif
 #ifndef uint
-	#define _LIST_H_TYPE_UINT
+	#define LS_TYPE_UINT
 	#define uint unsigned int
 #endif
 
@@ -213,10 +213,10 @@ lsw_t list_hash_table_del(struct list *ls, const void *key);
 
 void list_print_properties(struct list *ls, void *stream);
 
-#ifdef _LIST_H_TYPE_BYTE
+#ifdef LS_TYPE_BYTE
 	#undef byte
 #endif
-#ifdef _LIST_H_TYPE_UINT
+#ifdef LS_TYPE_UINT
 	#undef uint
 #endif
 

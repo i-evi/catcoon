@@ -36,7 +36,6 @@ typedef _DT_FLOAT32 cc_float32;
 typedef _DT_FLOAT64 cc_float64;
 
 /*
- *
  * 7 6 5 4 3  ~  0
  * | | | | |_____|
  * | | | |    |____sub-class code
@@ -45,10 +44,6 @@ typedef _DT_FLOAT64 cc_float64;
  * | |______integer or float(0/1)
  * |
  * |______unsigned or signed(0/1)
- *
- * Sub class code:
- * bits = 2 ^ n
- *
  */
 
 #define CC_FLAG_POINT 6

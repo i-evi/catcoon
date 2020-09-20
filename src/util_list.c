@@ -10,11 +10,15 @@
 #endif
 
 #ifndef byte
+	#define LS_TYPE_BYTE
 	#define byte unsigned char
 #endif
 #ifndef uint
+	#define LS_TYPE_UINT
 	#define uint unsigned int
 #endif
+
+#define LS_ALLOC(type) ((type*)calloc(1, sizeof(type)))
 
 #define ASSERT_ON_BUILD(condition)\
 	((void)sizeof(char[1 - 2*!!(condition)]))
@@ -99,19 +103,19 @@ void _switch_byte_order(struct list *ls) {
 static LS_INLINE
 struct list *list_new_static(uint scale, uint blen)
 {
-	struct list *ls =
-		(struct list*)malloc(sizeof(struct list));
-	if (!scale || !blen || !ls)
+	struct list *ls;
+	if (!scale || !blen)
 		return NULL;
-	memset(ls, 0, sizeof(struct list));
+	ls = LS_ALLOC(struct list);
+	if (!ls)
+		return NULL;
 	SET_FLAG(ls->flag, LIST_STATIC_MODE);
 	ls->length = scale * blen;
-	ls->mem = (byte*)malloc(ls->length);
+	ls->mem = (byte*)calloc(ls->length, sizeof(byte));
 	if (!ls->mem) {
 		free(ls);
 		return NULL;
 	}
-	memset(ls->mem, 0, ls->length);
 	ls->blen    = blen;
 	ls->scale   = scale;
 	ls->counter = scale;
@@ -121,18 +125,18 @@ struct list *list_new_static(uint scale, uint blen)
 static LS_INLINE
 struct list *list_new_dynamic(uint scale)
 {
-	struct list *ls =
-		(struct list*)malloc(sizeof(struct list));
-	if (!scale || !ls)
+	struct list *ls;
+	if (!scale)
 		return NULL;
-	memset(ls, 0, sizeof(struct list));
+	ls = LS_ALLOC(struct list);
+	if (!ls)
+		return NULL;
 	SET_FLAG(ls->flag, LIST_DYNAMIC_MODE);
-	ls->index = (byte**)malloc(scale * sizeof(byte*));
+	ls->index = (byte**)calloc(scale, sizeof(byte*));
 	if (!ls->index) {
 		free(ls);
 		return NULL;
 	}
-	memset(ls->index, 0, scale * sizeof(byte*));
 	ls->scale = scale;
 	return ls;
 }
@@ -284,8 +288,6 @@ lsw_t list_rename(struct list *ls, const char *name)
 			return LSS_MALLOC_ERR;
 		strcpy(ls->name, name);
 	} else { /* LIST_SHARED_ */
-		memset((char*)ls + 
-			sizeof(struct list), 0, LIST_NAME_LEN);
 		strcpy((char*)ls + sizeof(struct list), name);
 	}
 	return LSS_SUCCESS;
@@ -532,7 +534,7 @@ static void *std_open(const char *pathname, const char *mode)
 
 static int std_close(void *fp)
 {
-	return fclose(fp);
+	return fclose((FILE*)fp);
 }
 
 static long std_read(void *buf, long size, void *fp)
@@ -542,7 +544,7 @@ static long std_read(void *buf, long size, void *fp)
 
 static long std_write(void *buf, long size, void *fp)
 {
-	return fwrite(buf, size, 1, fp);
+	return fwrite(buf, size, 1, (FILE*)fp);
 }
 
 static struct lsio_struct lsio = {
@@ -642,12 +644,12 @@ static int _zlib_close(void *fp)
 
 static long _zlib_read(void *buf, long size, void *fp)
 {
-	return gzread(fp, buf, size);
+	return gzread((gzFile)fp, buf, size);
 }
 
 static long _zlib_write(void *buf, long size, void *fp)
 {
-	return gzwrite(fp, buf, size);
+	return gzwrite((gzFile)fp, buf, size);
 }
 
 void list_set_io_zlib(void)
@@ -786,13 +788,11 @@ lsw_t list_export(struct list *ls, const char *path)
 	fp = lsio.open(path, "rb");                \
 	if (!fp)                                   \
 		return NULL;                       \
-	ls = (struct list*)                        \
-		malloc(sizeof(struct list));       \
+	ls = LS_ALLOC(struct list);                \
 	if (!ls) {                                 \
 		lsio.close(fp);                    \
 		return NULL;                       \
 	}                                          \
-	memset(ls, 0, sizeof(struct list));        \
 	lsio.read(&name_len, sizeof(uint), fp);    \
 	if (!_is_little_endian())                  \
 		_memrev(&name_len, sizeof(uint));  \
@@ -891,9 +891,7 @@ struct list *list_new_shared(uint scale, uint blen, uint key)
 {
 	byte *shm;
 	uint shmlen = 0;
-	struct list *ls =
-		(struct list*)
-			malloc(sizeof(struct list));
+	struct list *ls = LS_ALLOC(struct list);
 	if (!ls)
 		return NULL;
 	memset(ls, 0, sizeof(struct list));
@@ -1002,7 +1000,7 @@ lsw_t list_del_shared(struct list *ls)
 	strcpy((char*)shm + sizeof(struct list), name); \
 	free(name);                                     \
 	ls->name = (char*)shm + sizeof(struct list);    \
-	ls->mem  = shm + sizeof(struct list) +LIST_NAME_LEN;
+	ls->mem  = shm + sizeof(struct list) + LIST_NAME_LEN;
 
 struct list *
 list_import_shared(const char *path, uint key)
@@ -1182,3 +1180,10 @@ void list_print_properties(struct list *ls, void *stream)
 	fprintf(fp, "[record]       = %d\n", ls->counter);
 	fprintf(fp, "[block length] = %d\n", ls->blen);
 }
+
+#ifdef LS_TYPE_BYTE
+	#undef byte
+#endif
+#ifdef LS_TYPE_UINT
+	#undef uint
+#endif

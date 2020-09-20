@@ -5,7 +5,7 @@
 	extern "C" {
 #endif
 
-#define UTLOG_CLK_FRAC 1000
+#define UTLOG_CLK_FRAC (CLOCKS_PER_SEC / 1000)
 
 #define UTLOG_DEFAULT_OSTREAM stderr
 
@@ -24,7 +24,6 @@ enum utlog_highlight {
 	UTLOG_HIGHLIGHT_ON,
 	UTLOG_HIGHLIGHT_OFF
 };
-
 
 void  utlog_set_ostream(void *stream);
 void *utlog_get_ostream(void);

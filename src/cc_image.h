@@ -15,9 +15,9 @@
 #define CC_IT_SHAPE_H 1
 #define CC_IT_SHAPE_W 2
 
-cc_tensor_t *cc_image2tensor(utim_image_t *img, const char *name);
+cc_tensor_t *cc_image2tensor(UTIM_IMG *img, const char *name);
 
-utim_image_t *cc_tensor2image(cc_tensor_t *tensor);
+UTIM_IMG *cc_tensor2image(cc_tensor_t *tensor);
 
 #ifndef _CC_IMAGE_C_
 	#undef CC_IT_SHAPE_C

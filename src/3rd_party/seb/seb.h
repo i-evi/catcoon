@@ -36,11 +36,11 @@
 #define SEB_BUFFER_LENGTH (16 * 1024) /* Buffer length by default */
 
 #ifndef byte
-	#define _SEB_H_TYPE_BYTE
+	#define SEB_TYPE_BYTE
 	#define byte unsigned char
 #endif
 #ifndef uint32
-	#define _SEB_H_TYPE_UINT32
+	#define SEB_TYPE_UINT32
 	#define uint32 unsigned int
 #endif
 
@@ -65,6 +65,13 @@ typedef int (seb_decode_function)(int ctrl,
 			void *input, int input_length,
 		void *output, int max_out_length);
 
+/* #if `stdio.h` has been included */
+#ifndef FOPEN_MAX
+#define SEB_FPTR_TYPE void*
+#else
+#define SEB_FPTR_TYPE FILE*
+#endif
+
 typedef struct {
 	byte  *buffer;        /* Data buffer */
 	byte  *encdat;        /* Encoded data */
@@ -79,7 +86,7 @@ typedef struct {
 	int decode_ctrl;
 	seb_encode_function *encode;
 	seb_decode_function *decode;
-	void *fp; /* FILE* */
+	SEB_FPTR_TYPE fp; /* FILE* */
 } sebFILE;
 
 void seb_global_encoder(int enctype);
@@ -94,10 +101,10 @@ uint32   sebfread(void *ptr, uint32 size, uint32 nmemb, sebFILE *sebfp);
 
 #define sebfilelen(sebfp) (sebfp->length)
 
-#ifdef _SEB_H_TYPE_BYTE
+#ifdef SEB_TYPE_BYTE
 	#undef byte
 #endif
-#ifdef _SEB_H_TYPE_UINT32
+#ifdef SEB_TYPE_UINT32
 	#undef uint32
 #endif
 

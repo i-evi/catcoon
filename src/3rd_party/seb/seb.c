@@ -25,9 +25,11 @@
 #endif /* SEB_SET_FASTLZ */
 
 #ifndef byte
+	#define SEB_TYPE_BYTE
 	#define byte unsigned char
 #endif
 #ifndef uint32
+	#define SEB_TYPE_UINT32
 	#define uint32 unsigned int
 #endif
 
@@ -306,7 +308,7 @@ uint32 sebfwrite(void *ptr, uint32 size, uint32 nmemb, sebFILE *sebfp)
 /* Notice: little endian */
 static void _seb_read_block(sebFILE *sebfp)
 {
-	int l;
+	uint32 l;
 	byte *p;
 	if (!sebfp->const_blklen) {
 		fread(&l, sizeof(uint32), 1, sebfp->fp);
@@ -315,9 +317,9 @@ static void _seb_read_block(sebFILE *sebfp)
 			p = (byte*)realloc(sebfp->encdat, sebfp->blklen);
 			sebfp->encdat = p ? p : sebfp->encdat;
 		}
-	}
-	else
+	} else {
 		l = sebfp->const_blklen;
+	}
 	fread(sebfp->encdat, l, 1, sebfp->fp);
 	sebfp->decode(sebfp->decode_ctrl,
 			sebfp->encdat, sebfp->blklen,
@@ -357,3 +359,10 @@ void sebfclose(sebFILE *sebfp)
 	fclose(sebfp->fp);
 	free(sebfp);
 }
+
+#ifdef SEB_TYPE_BYTE
+	#undef byte
+#endif
+#ifdef SEB_TYPE_UINT32
+	#undef uint32
+#endif

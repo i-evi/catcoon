@@ -67,7 +67,7 @@ int main(int argc, const char *argv[])
 	cc_float32 v;
 	char filepath[256];
 	/* Image */
-	utim_image_t *img, *img_read;
+	UTIM_IMG *img, *img_read;
 	/* Layers */
 	cc_tensor_t *input,*l1, *l1_pool, *l2, *l2_pool, *l2_flat, *l3, *l4;
 	/* Parameters */

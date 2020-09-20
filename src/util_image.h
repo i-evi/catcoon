@@ -35,10 +35,10 @@ typedef struct {
 	int   xsize;
 	int   ysize;
 	int   channels;
-} utim_image_t; /* For 8bit color-depth images */
+} UTIM_IMG; /* For 8bit color-depth images */
 
-typedef int  utim_point_t[2]; /* X, Y */
-typedef byte utim_color_t[4]; /* R, G, B, A */
+typedef int  UTIM_POINT[2]; /* X, Y */
+typedef byte UTIM_COLOR[4]; /* R, G, B, A */
 
 /*
  * PSF2 fonts
@@ -59,7 +59,7 @@ typedef struct {
 	struct psf2_header header;
 	byte              *glyphs;
 	unsigned int      *utf8index;
-} utim_font_t;
+} UTIM_FONT;
 
 #define UTIM_POINT_X 0
 #define UTIM_POINT_Y 1
@@ -74,45 +74,45 @@ typedef struct {
 #define UTIM_RESIZE_NEAREST 0
 #define UTIM_RESIZE_LINEAR  1
 
-utim_image_t *utim_read(const char *filename);
+UTIM_IMG *utim_read(const char *filename);
 
-int utim_write(const char *filename, utim_image_t *img);
+int utim_write(const char *filename, UTIM_IMG *img);
 int utim_write_ctrl(const char *filename,
-	utim_image_t *img, int comp, int quality);
+	UTIM_IMG *img, int comp, int quality);
 
-utim_image_t *utim_clone(utim_image_t *img);
-utim_image_t *utim_create(int x, int y, int nch, int c);
+UTIM_IMG *utim_clone(UTIM_IMG *img);
+UTIM_IMG *utim_create(int x, int y, int nch, int c);
 
-void utim_free_image(utim_image_t *img);
+void utim_free_image(UTIM_IMG *img);
 
-utim_image_t *utim_resize(utim_image_t *img, int x, int y, int mode);
+UTIM_IMG *utim_resize(UTIM_IMG *img, int x, int y, int mode);
 
 /* Swap 2 channels */
-int utim_swap_chl(utim_image_t *img, int a, int b);
+int utim_swap_chl(UTIM_IMG *img, int a, int b);
 
-int utim_img2rgb (utim_image_t *img);
-int utim_img2gray(utim_image_t *img);
-int utim_img2rgba(utim_image_t *img);
+int utim_img2rgb (UTIM_IMG *img);
+int utim_img2gray(UTIM_IMG *img);
+int utim_img2rgba(UTIM_IMG *img);
 
 /* gray2rgb will copy gray channel 2 times */
-int utim_gray2rgb (utim_image_t *gray);
-int utim_gray2rgba(utim_image_t *gray);
-int utim_rgb2bgr  (utim_image_t *rgb);
-int utim_rgb2gray (utim_image_t *rgb);
-int utim_rgb2rgba (utim_image_t *rgb);
-int utim_rgba2rgb (utim_image_t *rgba);
-int utim_rgba2gray(utim_image_t *rgba);
+int utim_gray2rgb (UTIM_IMG *gray);
+int utim_gray2rgba(UTIM_IMG *gray);
+int utim_rgb2bgr  (UTIM_IMG *rgb);
+int utim_rgb2gray (UTIM_IMG *rgb);
+int utim_rgb2rgba (UTIM_IMG *rgb);
+int utim_rgba2rgb (UTIM_IMG *rgba);
+int utim_rgba2gray(UTIM_IMG *rgba);
 
-utim_image_t *utim_rgb_by_rgba(utim_image_t *rgba);
-utim_image_t *utim_bgr_by_rgb (utim_image_t *rgb);
-utim_image_t *utim_gray_by_rgb(utim_image_t *rgb);
-utim_image_t *utim_rgb_by_gray(utim_image_t *gray);
+UTIM_IMG *utim_rgb_by_rgba(UTIM_IMG *rgba);
+UTIM_IMG *utim_bgr_by_rgb (UTIM_IMG *rgb);
+UTIM_IMG *utim_gray_by_rgb(UTIM_IMG *rgb);
+UTIM_IMG *utim_rgb_by_gray(UTIM_IMG *gray);
 
-utim_image_t *utim_stack   (utim_image_t **chx, int nch);
-utim_image_t *utim_pick_chl(utim_image_t *img, int ich);
-utim_image_t *utim_set_chl (utim_image_t *img, int ich, int color);
+UTIM_IMG *utim_stack   (UTIM_IMG **chx, int nch);
+UTIM_IMG *utim_pick_chl(UTIM_IMG *img, int ich);
+UTIM_IMG *utim_set_chl (UTIM_IMG *img, int ich, int color);
 
-void utim_negative_color(utim_image_t *img);
+void utim_negative_color(UTIM_IMG *img);
 
 #define utim_set_point(point, x, y) \
 	point[UTIM_POINT_X] = x;    \
@@ -128,40 +128,40 @@ void utim_negative_color(utim_image_t *img);
  * Support Gray, RGB, RGBA images. 
  * If not RGBA image, will convert to RGBA image
  */
-int utim_set_opacity(utim_image_t *img, int opacity);
+int utim_set_opacity(UTIM_IMG *img, int opacity);
 
-int utim_superpose(utim_image_t *bg, utim_image_t *img, utim_point_t p);
+int utim_superpose(UTIM_IMG *bg, UTIM_IMG *img, UTIM_POINT p);
 
 /*
  * Simple Drawing functions
  */
-int utim_set_pixel(utim_image_t *img, utim_point_t p, utim_color_t c);
+int utim_set_pixel(UTIM_IMG *img, UTIM_POINT p, UTIM_COLOR c);
 
-int utim_draw_point(utim_image_t *img, utim_point_t p, utim_color_t c);
+int utim_draw_point(UTIM_IMG *img, UTIM_POINT p, UTIM_COLOR c);
 
 void utim_set_draw_point_fn(int (*fn)
-	(utim_image_t*, utim_point_t, utim_color_t));
+	(UTIM_IMG*, UTIM_POINT, UTIM_COLOR));
 
-void utim_draw_line(utim_image_t *img,
-	utim_point_t a, utim_point_t b, utim_color_t c, int width);
+void utim_draw_line(UTIM_IMG *img,
+	UTIM_POINT a, UTIM_POINT b, UTIM_COLOR c, int width);
 
-void utim_draw_rect(utim_image_t *img,
-	utim_point_t a, int w, int h, utim_color_t c, int width);
+void utim_draw_rect(UTIM_IMG *img,
+	UTIM_POINT a, int w, int h, UTIM_COLOR c, int width);
 
-void utim_draw_circle(utim_image_t *img,
-	utim_point_t center, int radius, utim_color_t color, int width);
+void utim_draw_circle(UTIM_IMG *img,
+	UTIM_POINT center, int radius, UTIM_COLOR color, int width);
 
-void utim_draw_filled_circle(utim_image_t *img,
-	utim_point_t center, int radius, utim_color_t color);
+void utim_draw_filled_circle(UTIM_IMG *img,
+	UTIM_POINT center, int radius, UTIM_COLOR color);
 
 /*
  * Simple text
  */
-utim_font_t *utim_load_font(const char *filename);
+UTIM_FONT *utim_load_font(const char *filename);
 
-void utim_free_font(utim_font_t *font);
+void utim_free_font(UTIM_FONT *font);
 
-utim_image_t *utim_text(utim_font_t *font, char *text, utim_color_t color);
+UTIM_IMG *utim_text(UTIM_FONT *font, char *text, UTIM_COLOR color);
 
 #undef byte
 

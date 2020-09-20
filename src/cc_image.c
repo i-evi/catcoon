@@ -7,7 +7,7 @@
 #define _CC_IMAGE_C_
 #include "cc_image.h"
 
-cc_tensor_t *cc_image2tensor(utim_image_t *img, const char *name)
+cc_tensor_t *cc_image2tensor(UTIM_IMG *img, const char *name)
 {
 	cc_uint8 *ptr;
 	cc_int32 i, j, ch_size;
@@ -30,9 +30,9 @@ cc_tensor_t *cc_image2tensor(utim_image_t *img, const char *name)
 	return tensor;
 }
 
-utim_image_t *cc_tensor2image(cc_tensor_t *tensor)
+UTIM_IMG *cc_tensor2image(cc_tensor_t *tensor)
 {
-	utim_image_t *img;
+	UTIM_IMG *img;
 	cc_uint8 *pxls, *ptr;
 	cc_int32 i, j, ch_size, npxls;
 	const cc_int32 *sptr = tensor->shape;

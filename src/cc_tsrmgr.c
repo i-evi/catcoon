@@ -51,7 +51,6 @@ void cc_tsrmgr_init(void)
 	return;
 }
 
-
 static void _tsrmgr_clear(struct rbt_node *n)
 {
 	if (n != rbt_nil()) {

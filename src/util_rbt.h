@@ -22,10 +22,6 @@ struct rbtree {
 	int (*compare)(const void*, const void*);
 };
 
-typedef struct {
-	struct rbt_node *current;
-} rbt_iterator;
-
 struct rbtree *new_rbt(void*(*get_key)(struct rbt_node *), 
 		int (*compare)(const void*, const void*));
 
