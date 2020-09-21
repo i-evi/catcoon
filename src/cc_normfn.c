@@ -5,9 +5,8 @@
 #include "cc_fmap2d.h"
 #include "cc_normfn.h"
 
-/* #include "global_fn_cfg.h" */
-extern void (*_batch_norm)(
-	void *inp, cc_int32 len, void *bnpara, cc_dtype dt);
+#include "global_fn_cfg.h"
+extern fn_batch_norm _batch_norm;
 
 cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
 	cc_tensor_t *para, const char *name)

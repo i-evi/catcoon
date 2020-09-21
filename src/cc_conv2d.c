@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef ENABLE_OPENMP
+	#include <omp.h>
+#endif
+
 #include "cc_assert.h"
 #include "cc_basic.h"
 #include "cc_fmap2d.h"
@@ -11,18 +15,9 @@
 #include "util_log.h"
 #include "cc_conv2d.h"
 
-#ifdef ENABLE_OPENMP
-	#include <omp.h>
-#endif
-
-/* #include "global_fn_cfg.h" */
-extern void (*_conv2d)(void *inp, void *oup,
-		cc_int32 x, cc_int32 y, cc_int32 oup_x,
-		cc_int32 oup_y, cc_int32 sx, cc_int32 sy,
-	void *filter, cc_int32 fw, cc_dtype dt);
-
-extern void (*_array_add_ew)
-	(void *oup, int arrlen, void *a, void *b, int dt);
+#include "global_fn_cfg.h"
+extern fn_conv2d       _conv2d;
+extern fn_array_add_ew _array_add_ew;
 
 cc_int32 cc_conv2d_shape_calc(cc_int32 i,
 	cc_int32 k, cc_int32 s, cc_int32 p)

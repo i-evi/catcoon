@@ -11,10 +11,9 @@
 #include "util_log.h"
 #include "cc_basic.h"
 
-/* #include "global_fn_cfg.h" */
+#include "global_fn_cfg.h"
 #define EXT_ARRAY_CAST_DEFINITION(dtype) \
-extern void (*_array_cast_ ## dtype)(              \
-	void *dst, void *src, int arrlen, int dt);
+extern fn_array_cast_ ## dtype _array_cast_ ## dtype;
 
 EXT_ARRAY_CAST_DEFINITION  (uint8)
 EXT_ARRAY_CAST_DEFINITION  (uint16)
@@ -33,10 +32,14 @@ extern void (*_array_set)(
 extern void (*_array_clip_by_value)(
 	void *arr, int arrlen, void *min, void *max, int dt);
 
-extern void (*_array_add_by)(void *arr, int arrlen, void *x, int dt);
-extern void (*_array_sub_by)(void *arr, int arrlen, void *x, int dt);
-extern void (*_array_mul_by)(void *arr, int arrlen, void *x, int dt);
-extern void (*_array_div_by)(void *arr, int arrlen, void *x, int dt);
+extern void (*_array_add_by)(
+	void *oup,int arrlen, void *a, void *x, int dt);
+extern void (*_array_sub_by)(
+	void *oup,int arrlen, void *a, void *x, int dt);
+extern void (*_array_mul_by)(
+	void *oup,int arrlen, void *a, void *x, int dt);
+extern void (*_array_div_by)(
+	void *oup,int arrlen, void *a, void *x, int dt);
 
 extern void (*_array_add_ew)(
 	void *oup, int arrlen,void *a, void *b, int dt);
@@ -261,20 +264,20 @@ cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 		yield = cc_copy_tensor(tensor, name);
 	switch (op) {
 		case '+':
-			_array_add_by(
-				yield->data, elems, data, *tensor->dtype);
+			_array_add_by(yield->data, elems,
+				yield->data, data, *tensor->dtype);
 			break;
 		case '-':
-			_array_sub_by(
-				yield->data, elems, data, *tensor->dtype);
+			_array_sub_by(yield->data, elems,
+				yield->data, data, *tensor->dtype);
 			break;
 		case '*':
-			_array_mul_by(
-				yield->data, elems, data, *tensor->dtype);
+			_array_mul_by(yield->data, elems,
+				yield->data, data, *tensor->dtype);
 			break;
 		case '/':
-			_array_div_by(
-				yield->data, elems, data, *tensor->dtype);
+			_array_div_by(yield->data, elems,
+				yield->data, data, *tensor->dtype);
 			break;
 		default:
 			utlog_format(UTLOG_ERR,

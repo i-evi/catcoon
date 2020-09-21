@@ -6,9 +6,9 @@
 #include "cc_dtype.h"
 #include "cc_array.h"
 
-#define ARRAY_SC_OPS(op, arr, elem, arrlen, dtype) \
-	for (i = 0; i < arrlen; ++i) {                    \
-		*((dtype*)arr + i) op ## = *(dtype*)elem; \
+#define ARRAY_SC_OPS(op, oup, arr, elem, arrlen, dtype) \
+	for (i = 0; i < arrlen; ++i) {                                    \
+		*((dtype*)oup + i) = *((dtype*)arr + i) op *(dtype*)elem; \
 	}
 
 #define ARRAY_ELEM_SET(arr, elem, arrlen, dtype) \
@@ -133,10 +133,10 @@ CC_ARRAY_CAST_IMPLEMENTATION  (float32)
 CC_ARRAY_CAST_IMPLEMENTATION  (float64)
 
 #define ARRAY_ADD_BY_CASE(_DT, _dt) \
-case _DT:                                     \
-	ARRAY_SC_OPS(+, arr, x, arrlen, _dt); \
+case _DT:                                        \
+	ARRAY_SC_OPS(+, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_add_by(void *arr, int arrlen, void *x, int dt)
+void cc_array_add_by(void *oup, int arrlen, void *a, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -158,10 +158,10 @@ void cc_array_add_by(void *arr, int arrlen, void *x, int dt)
 }
 
 #define ARRAY_SUB_BY_CASE(_DT, _dt) \
-case _DT:                                     \
-	ARRAY_SC_OPS(-, arr, x, arrlen, _dt); \
+case _DT:                                        \
+	ARRAY_SC_OPS(-, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_sub_by(void *arr, int arrlen, void *x, int dt)
+void cc_array_sub_by(void *oup, int arrlen, void *a, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -183,10 +183,10 @@ void cc_array_sub_by(void *arr, int arrlen, void *x, int dt)
 }
 
 #define ARRAY_MUL_BY_CASE(_DT, _dt) \
-case _DT:                                     \
-	ARRAY_SC_OPS(*, arr, x, arrlen, _dt); \
+case _DT:                                        \
+	ARRAY_SC_OPS(*, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_mul_by(void *arr, int arrlen, void *x, int dt)
+void cc_array_mul_by(void *oup, int arrlen, void *a, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -208,10 +208,10 @@ void cc_array_mul_by(void *arr, int arrlen, void *x, int dt)
 }
 
 #define ARRAY_DIV_BY_CASE(_DT, _dt) \
-case _DT:                                     \
-	ARRAY_SC_OPS(/, arr, x, arrlen, _dt); \
+case _DT:                                        \
+	ARRAY_SC_OPS(/, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_div_by(void *arr, int arrlen, void *x, int dt)
+void cc_array_div_by(void *oup, int arrlen, void *a, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {

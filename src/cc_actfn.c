@@ -3,13 +3,10 @@
 #include "cc_basic.h"
 #include "cc_actfn.h"
 
-/* #include "global_fn_cfg.h" */
-extern void (*_activation_relu)
-	(void *inp, cc_int32 elems, cc_dtype dt);
-extern void (*_activation_relu6)
-	(void *inp, cc_int32 elems, cc_dtype dt);
-extern void (*_activation_softmax)
-	(void *inp, cc_int32 elems, cc_dtype dt);
+#include "global_fn_cfg.h"
+extern fn_activation_relu    _activation_relu;
+extern fn_activation_relu6   _activation_relu6;
+extern fn_activation_softmax _activation_softmax;
 
 cc_tensor_t *cc_relu(cc_tensor_t *tensor, const char *name)
 {

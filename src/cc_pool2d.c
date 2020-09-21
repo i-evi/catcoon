@@ -4,9 +4,8 @@
 #include "cc_tsrmgr.h"
 #include "cc_pool2d.h"
 
-/* #include "global_fn_cfg.h" */
-extern void (*_max_pool2d)(void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
+#include "global_fn_cfg.h"
+extern fn_max_pool2d _max_pool2d;
 
 cc_tensor_t *cc_max_pool2d(cc_tensor_t *inp, cc_int32 s, const char *name)
 {

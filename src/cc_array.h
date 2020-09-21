@@ -28,24 +28,15 @@ void cc_array_set(void *arr, int arrlen, void *x, int dt);
 void cc_array_clip_by_value(
 	void *arr, int arrlen, void *min, void *max, int dt);
 
-void cc_array_add_by(void *arr, int arrlen, void *x, int dt);
-void cc_array_sub_by(void *arr, int arrlen, void *x, int dt);
-void cc_array_mul_by(void *arr, int arrlen, void *x, int dt);
-void cc_array_div_by(void *arr, int arrlen, void *x, int dt);
+void cc_array_add_by(void *oup, int arrlen, void *a, void *x, int dt);
+void cc_array_sub_by(void *oup, int arrlen, void *a, void *x, int dt);
+void cc_array_mul_by(void *oup, int arrlen, void *a, void *x, int dt);
+void cc_array_div_by(void *oup, int arrlen, void *a, void *x, int dt);
 
 void cc_array_add_ew(void *oup, int arrlen, void *a, void *b, int dt);
 void cc_array_sub_ew(void *oup, int arrlen, void *a, void *b, int dt);
 void cc_array_mul_ew(void *oup, int arrlen, void *a, void *b, int dt);
 void cc_array_div_ew(void *oup, int arrlen, void *a, void *b, int dt);
-
-#define cc_add_to_array_ew(dst, src, arrlen, dt) \
-	cc_array_add_ew(dst, arrlen, dst, src, dt)
-#define cc_sub_to_array_ew(dst, src, arrlen, dt) \
-	cc_array_sub_ew(dst, arrlen, dst, src, dt)
-#define cc_mul_to_array_ew(dst, src, arrlen, dt) \
-	cc_array_mul_ew(dst, arrlen, dst, src, dt)
-#define cc_div_to_array_ew(dst, src, arrlen, dt) \
-	cc_array_div_ew(dst, arrlen, dst, src, dt)
 
 void cc_array_sum(void *arr, int arrlen, void *x, int dt);
 void cc_array_mean(void *arr, int arrlen, void *x, int dt);
