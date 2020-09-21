@@ -81,8 +81,8 @@ endif
 ALL_O += \
 catcoon.o cc_tensor.o cc_dtype.o cc_tsrmgr.o cc_fmap2d.o cc_pool2d.o \
 cc_array.o cc_basic.o cc_actfn.o cc_fullycon.o cc_pad2d.o cc_cpufn.o \
-cc_conv2d.o cc_normfn.o cc_image.o util_rbt.o util_list.o util_log.o \
-util_image.o global_fn_cfg.o 
+cc_conv2d.o cc_dsc2d.o cc_normfn.o cc_image.o util_rbt.o util_list.o \
+util_log.o util_image.o global_fn_cfg.o 
 
 CATCOON_A = libcatcoon.a
 
@@ -117,6 +117,7 @@ cc_actfn.o    : $(patsubst %, ./src/%, cc_actfn.h cc_actfn.c)
 cc_array.o    : $(patsubst %, ./src/%, cc_array.h cc_array.c)
 cc_basic.o    : $(patsubst %, ./src/%, cc_basic.h cc_basic.c)
 cc_conv2d.o   : $(patsubst %, ./src/%, cc_conv2d.h cc_conv2d.c)
+cc_dsc2d.o    : $(patsubst %, ./src/%, cc_dsc2d.h cc_dsc2d.c)
 cc_cpufn.o    : $(patsubst %, ./src/%, cc_cpufn.h cc_cpufn.c)
 cc_dtype.o    : $(patsubst %, ./src/%, cc_dtype.h cc_dtype.c)
 cc_fmap2d.o   : $(patsubst %, ./src/%, cc_fmap2d.h cc_fmap2d.c)

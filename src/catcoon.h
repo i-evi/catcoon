@@ -9,6 +9,7 @@
 #include "cc_assert.h"
 #include "cc_basic.h"
 #include "cc_conv2d.h"
+#include "cc_dsc2d.h"
 #include "cc_fmap2d.h"
 #include "cc_fullycon.h"
 #include "cc_image.h"
