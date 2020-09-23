@@ -6,7 +6,7 @@
 #include "cc_tensor.h"
 #include "cc_tsrmgr.h"
 
-cc_tensor_t *cc_create_tensor( const cc_int32 *shape,
+cc_tensor_t *cc_create_tensor(const cc_int32 *shape,
 			cc_dtype dtype, const char *name)
 {
 	const cc_int32 *sptr = shape;
@@ -48,7 +48,7 @@ cc_tensor_t *cc_create_tensor( const cc_int32 *shape,
 	return tensor;
 }
 
-cc_tensor_t *cc_copy_tensor(cc_tensor_t *tensor, const char *name)
+cc_tensor_t *cc_copy_tensor(const cc_tensor_t *tensor, const char *name)
 {
 	cc_tensor_t *copied;
 	cc_assert_alloc(
@@ -114,7 +114,7 @@ cc_tensor_t *cc_load_bin(const char *filename,
 	return tensor;
 }
 
-void cc_save_tensor(cc_tensor_t *tensor, const char *filename)
+void cc_save_tensor(const cc_tensor_t *tensor, const char *filename)
 {
 	list_export(tensor->container, filename);
 }
@@ -129,7 +129,7 @@ void cc_free_tensor(cc_tensor_t *tensor)
 
 #define BUFLEN 128
 #define BUFLIM 100
-void cc_print_tensor_property(cc_tensor_t *tensor)
+void cc_print_tensor_property(const cc_tensor_t *tensor)
 {
 	char buf[BUFLEN];
 	char *bptr = buf;

@@ -29,7 +29,7 @@ enum cc_batch_norm_paraoff {
 #endif
 
 cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
-	cc_tensor_t *para, const char *name);
+	const cc_tensor_t *para, const char *name);
 
 #ifdef __cplusplus
 	}

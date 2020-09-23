@@ -14,7 +14,7 @@
 extern fn_array_add_by _array_add_by;
 
 cc_tensor_t *cc_fmap2d_bias(cc_tensor_t *inp,
-		cc_tensor_t *bias, const char *name)
+	const cc_tensor_t *bias, const char *name)
 {
 	cc_tensor_t *fmap;
 	cc_int32 i, ch_size, ch_mem_size, dt_size;

@@ -7,7 +7,8 @@
 #include "global_fn_cfg.h"
 extern fn_max_pool2d _max_pool2d;
 
-cc_tensor_t *cc_max_pool2d(cc_tensor_t *inp, cc_int32 s, const char *name)
+cc_tensor_t *cc_max_pool2d(
+	const cc_tensor_t *inp, cc_int32 s, const char *name)
 {
 	cc_int32 i, i_ch_size, i_ch_mem_size, o_ch_size, o_ch_mem_size;
 	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};

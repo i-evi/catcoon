@@ -19,18 +19,19 @@
 extern fn_conv2d       _conv2d;
 extern fn_array_add_ew _array_add_ew;
 
-cc_int32 cc_conv2d_shape_calc(cc_int32 i,
-	cc_int32 k, cc_int32 s, cc_int32 p)
+cc_int32 cc_conv2d_shape_calc(
+	cc_int32 i, cc_int32 k, cc_int32 s, cc_int32 p)
 {
 	return (cc_int32)((i - k + 2 * p) / s) + 1;
 }
 
-cc_tensor_t *cc_conv2d(cc_tensor_t *inp,
-	cc_tensor_t *kernel, cc_tensor_t *bias, cc_int32 s,
-	cc_int32 p, cc_int32 off, const char *name)
+cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
+		const cc_tensor_t *kernel, const cc_tensor_t *bias,
+	cc_int32 s, cc_int32 p, cc_int32 off, const char *name)
 {
 	cc_uint8 *omp_out_buf = NULL;
-	cc_tensor_t *inp_pad, *oup = NULL;
+	cc_tensor_t *oup = NULL;
+	const cc_tensor_t *inp_pad;
 	cc_int32 o_ch_size, p_ch_mem_size, o_ch_mem_size,
 		k_ch_mem_size, k_mem_size, num_omp_threads, i, j;
 	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};

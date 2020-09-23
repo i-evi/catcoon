@@ -9,7 +9,7 @@
 extern fn_batch_norm _batch_norm;
 
 cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
-	cc_tensor_t *para, const char *name)
+	const cc_tensor_t *para, const char *name)
 {
 	cc_tensor_t *oup;
 	cc_int32 i, dt_size, ch_size, ch_mem_size;

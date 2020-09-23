@@ -18,12 +18,12 @@ enum cc_conv2d_kernel {
 
 #include "cc_tensor.h"
 
-cc_int32 cc_conv2d_shape_calc(cc_int32 i,
-	cc_int32 k, cc_int32 s, cc_int32 p);
+cc_int32 cc_conv2d_shape_calc(
+	cc_int32 i, cc_int32 k, cc_int32 s, cc_int32 p);
 
-cc_tensor_t *cc_conv2d(cc_tensor_t *inp,
-	cc_tensor_t *kernel, cc_tensor_t *bias, cc_int32 s,
-	cc_int32 p, cc_int32 off, const char *name);
+cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
+		const cc_tensor_t *kernel, const cc_tensor_t *bias,
+	cc_int32 s, cc_int32 p, cc_int32 off, const char *name);
 
 #ifdef __cplusplus
 	}

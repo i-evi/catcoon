@@ -10,8 +10,8 @@
 #include "global_fn_cfg.h"
 extern fn_fully_connected _fully_connected;
 
-cc_tensor_t *cc_fully_connected(cc_tensor_t *inp,
-		cc_tensor_t *w, cc_tensor_t *b, const char *name)
+cc_tensor_t *cc_fully_connected(const cc_tensor_t *inp,
+	const cc_tensor_t *w, const cc_tensor_t *b, const char *name)
 {
 	cc_tensor_t *oup = NULL;
 	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};

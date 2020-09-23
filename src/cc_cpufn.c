@@ -242,7 +242,7 @@ for (i = 0; i < o_y; ++i) {                                          \
 }                                                                    \
 break;
 
-void cc_cpu_max_pool2d(void *inp, void *oup,
+void cc_cpu_max_pool2d(const void *inp, void *oup,
 	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt)
 {
 	cc_int32 o_x = x / s;
@@ -303,10 +303,9 @@ CC_CPU_CONV2D_IMPLEMENTATION  (int64)
 CC_CPU_CONV2D_IMPLEMENTATION  (float32)
 CC_CPU_CONV2D_IMPLEMENTATION  (float64)
 
-
-void cc_cpu_conv2d(void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 oup_x, cc_int32 oup_y,
-	cc_int32 sx, cc_int32 sy, void *filter, cc_int32 fw, cc_dtype dt)
+void cc_cpu_conv2d(const void *inp, void *oup, cc_int32 x, cc_int32 y,
+		cc_int32 oup_x, cc_int32 oup_y, cc_int32 sx, cc_int32 sy,
+	const void *filter, cc_int32 fw, cc_dtype dt)
 {
 	switch (dt) {
 		case CC_UINT8:
@@ -397,8 +396,9 @@ static void cc_cpu_fully_connected_float64(
 	CC_CPU_FULLY_CONNECTED_PROCESS;
 }
 
-void cc_cpu_fully_connected(void *inp, void *oup,
-	void *w, void *b, cc_int32 iw, cc_int32 ow, cc_dtype dt)
+void cc_cpu_fully_connected(const void *inp,
+		void *oup, const void *w, const void *b,
+	cc_int32 iw, cc_int32 ow, cc_dtype dt)
 {
 	switch (dt) {
 		case CC_FLOAT32:
@@ -446,7 +446,8 @@ CC_CPU_BATCH_NORM_IMPLEMENTATION  (int64)
 CC_CPU_BATCH_NORM_IMPLEMENTATION  (float32)
 CC_CPU_BATCH_NORM_IMPLEMENTATION  (float64)
 
-void cc_cpu_batch_norm(void *inp, cc_int32 len, void *bnpara, cc_dtype dt)
+void cc_cpu_batch_norm(void *inp,
+	cc_int32 len, const void *bnpara, cc_dtype dt)
 {
 	switch (dt) {
 		case CC_UINT8:

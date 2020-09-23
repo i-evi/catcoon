@@ -22,8 +22,8 @@ extern fn_array_add_ew _array_add_ew;
 extern fn_array_mul_by _array_add_by;
 
 cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
-	cc_tensor_t *kernel, cc_tensor_t *bias, cc_int32 s,
-	cc_int32 p, cc_int32 off, const char *name)
+		const cc_tensor_t *kernel, const cc_tensor_t *bias,
+	cc_int32 s, cc_int32 p, cc_int32 off, const char *name)
 {
 	cc_uint8 *omp_out_buf = NULL;
 	cc_tensor_t *inp_pad, *oup = NULL;
@@ -109,8 +109,8 @@ cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
 	return oup;
 }
 
-cc_tensor_t *cc_pw_conv2d(cc_tensor_t *inp,
-	cc_tensor_t *kernel, cc_tensor_t *bias, const char *name)
+cc_tensor_t *cc_pw_conv2d(cc_tensor_t *inp, const cc_tensor_t *kernel,
+	const cc_tensor_t *bias, const char *name)
 {
 	cc_uint8 *omp_out_buf = NULL;
 	cc_tensor_t *oup = NULL;

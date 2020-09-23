@@ -26,29 +26,18 @@ EXT_ARRAY_CAST_DEFINITION  (int64)
 EXT_ARRAY_CAST_DEFINITION  (float32)
 EXT_ARRAY_CAST_DEFINITION  (float64)
 
-extern void (*_array_set)(
-	void *arr, int arrlen, void *x, int dt);
+extern fn_array_set _array_set;
+extern fn_array_clip_by_value _array_clip_by_value;
 
-extern void (*_array_clip_by_value)(
-	void *arr, int arrlen, void *min, void *max, int dt);
+extern fn_array_add_by _array_add_by;
+extern fn_array_sub_by _array_sub_by;
+extern fn_array_mul_by _array_mul_by;
+extern fn_array_div_by _array_div_by;
 
-extern void (*_array_add_by)(
-	void *oup,int arrlen, void *a, void *x, int dt);
-extern void (*_array_sub_by)(
-	void *oup,int arrlen, void *a, void *x, int dt);
-extern void (*_array_mul_by)(
-	void *oup,int arrlen, void *a, void *x, int dt);
-extern void (*_array_div_by)(
-	void *oup,int arrlen, void *a, void *x, int dt);
-
-extern void (*_array_add_ew)(
-	void *oup, int arrlen,void *a, void *b, int dt);
-extern void (*_array_sub_ew)(
-	void *oup, int arrlen,void *a, void *b, int dt);
-extern void (*_array_mul_ew)(
-	void *oup, int arrlen,void *a, void *b, int dt);
-extern void (*_array_div_ew)(
-	void *oup, int arrlen,void *a, void *b, int dt);
+extern fn_array_add_ew _array_add_ew;
+extern fn_array_sub_ew _array_sub_ew;
+extern fn_array_mul_ew _array_mul_ew;
+extern fn_array_div_ew _array_div_ew;
 
 static cc_int32 _calc_elems(const cc_int32 *shape)
 {
@@ -59,7 +48,7 @@ static cc_int32 _calc_elems(const cc_int32 *shape)
 	return elems;
 }
 
-cc_int32 cc_tensor_elements(cc_tensor_t *tensor)
+cc_int32 cc_tensor_elements(const cc_tensor_t *tensor)
 {
 	cc_int32 elems;
 	if (!tensor)
@@ -91,7 +80,7 @@ void cc_tensor_shape_fix(cc_int32 *shape, cc_int32 elems)
 	}
 }
 
-cc_int32 cc_tensor_dimension(cc_tensor_t *tensor)
+cc_int32 cc_tensor_dimension(const cc_tensor_t *tensor)
 {
 	cc_int32 dim = 0;
 	const cc_int32 *sptr;
@@ -126,7 +115,7 @@ cc_tensor_t *cc_tensor_reshape(cc_tensor_t *tensor, cc_int32 *shape)
 	return tensor;
 }
 
-int cc_tsrcmp_by_shape(cc_tensor_t *a, cc_tensor_t *b)
+int cc_tsrcmp_by_shape(const cc_tensor_t *a, const cc_tensor_t *b)
 {
 	int ret = 0;
 	const cc_int32 *ptra = a->shape;
@@ -142,7 +131,7 @@ int cc_tsrcmp_by_shape(cc_tensor_t *a, cc_tensor_t *b)
 	return 0;
 }
 
-void cc_print_tensor(cc_tensor_t *tensor)
+void cc_print_tensor(const cc_tensor_t *tensor)
 {
 	cc_print_tensor_property(tensor);
 	cc_print_array(tensor->data,
@@ -157,7 +146,7 @@ void cc_set_tensor(cc_tensor_t *tensor, void *v)
 }
 
 cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
-	void *min, void *max, const char *name)
+	const void *min, const void *max, const char *name)
 {
 	cc_tensor_t *yield;
 	cc_int32 elems = *tensor->shape;
@@ -251,7 +240,7 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 }
 
 cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
-	char op, void *data, const char *name)
+	char op, const void *data, const char *name)
 {
 	cc_tensor_t *yield;
 	cc_int32 elems = *tensor->shape;

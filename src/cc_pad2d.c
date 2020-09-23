@@ -12,8 +12,8 @@
 	inp->data + i_ch_mem_size * c + i * i_row_mem_size + j * dtsize, \
 	dtsize);
 
-cc_tensor_t *cc_pad2d(cc_tensor_t *inp, cc_int32 p,
-		cc_int32 offset, const char *name)
+cc_tensor_t *cc_pad2d(const cc_tensor_t *inp,
+	cc_int32 p, cc_int32 offset, const char *name)
 {
 	cc_tensor_t *pad = NULL;
 	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};

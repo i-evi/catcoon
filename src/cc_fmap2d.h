@@ -16,7 +16,7 @@ enum cc_cnn2d_shape {
 };
 
 cc_tensor_t *cc_fmap2d_bias(cc_tensor_t *inp,
-		cc_tensor_t *bias, const char *name);
+	const cc_tensor_t *bias, const char *name);
 
 cc_tensor_t *cc_fmap2d_flat(cc_tensor_t *inp, const char *name);
 

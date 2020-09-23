@@ -49,7 +49,8 @@ case _DT:                                                          \
 	break;
 
 #define CC_ARRAY_CAST_IMPLEMENTATION(dtype) \
-void cc_array_cast_ ## dtype(void *dst, void *src, int arrlen, int dt)   \
+void cc_array_cast_ ## dtype(                                            \
+	void *dst, const void *src, int arrlen, int dt)                  \
 {                                                                        \
 	cc_int32 i;                                                      \
 	switch (dt) {                                                    \
@@ -74,7 +75,7 @@ void cc_array_cast_ ## dtype(void *dst, void *src, int arrlen, int dt)   \
 case _DT:                                   \
 	ARRAY_ELEM_SET(arr, x, arrlen, _dt) \
 	break;
-void cc_array_set(void *arr, int arrlen, void *x, int dt)
+void cc_array_set(void *arr, int arrlen, const void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -100,7 +101,7 @@ case _DT:                                     \
 	ARRAY_ELEM_CLIP(arr, min, max, arrlen, _dt); \
 	break;
 void cc_array_clip_by_value(
-	void *arr, int arrlen, void *min, void *max, int dt)
+	void *arr, int arrlen, const void *min, const void *max, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -136,7 +137,8 @@ CC_ARRAY_CAST_IMPLEMENTATION  (float64)
 case _DT:                                        \
 	ARRAY_SC_OPS(+, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_add_by(void *oup, int arrlen, void *a, void *x, int dt)
+void cc_array_add_by(void *oup,
+	int arrlen, const void *a, const void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -161,7 +163,8 @@ void cc_array_add_by(void *oup, int arrlen, void *a, void *x, int dt)
 case _DT:                                        \
 	ARRAY_SC_OPS(-, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_sub_by(void *oup, int arrlen, void *a, void *x, int dt)
+void cc_array_sub_by(void *oup,
+	int arrlen, const void *a, const void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -186,7 +189,8 @@ void cc_array_sub_by(void *oup, int arrlen, void *a, void *x, int dt)
 case _DT:                                        \
 	ARRAY_SC_OPS(*, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_mul_by(void *oup, int arrlen, void *a, void *x, int dt)
+void cc_array_mul_by(void *oup,
+	int arrlen, const void *a, const void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -211,7 +215,8 @@ void cc_array_mul_by(void *oup, int arrlen, void *a, void *x, int dt)
 case _DT:                                        \
 	ARRAY_SC_OPS(/, oup, a, x, arrlen, _dt); \
 	break;
-void cc_array_div_by(void *oup, int arrlen, void *a, void *x, int dt)
+void cc_array_div_by(void *oup,
+	int arrlen, const void *a, const void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -236,7 +241,8 @@ void cc_array_div_by(void *oup, int arrlen, void *a, void *x, int dt)
 case _DT:                                        \
 	ARRAY_EW_OPS(+, oup, a, b, arrlen, _dt); \
 	break;
-void cc_array_add_ew(void *oup, int arrlen, void *a, void *b, int dt)
+void cc_array_add_ew(void *oup,
+	int arrlen, const void *a, const void *b, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -261,7 +267,8 @@ void cc_array_add_ew(void *oup, int arrlen, void *a, void *b, int dt)
 case _DT:                                        \
 	ARRAY_EW_OPS(-, oup, a, b, arrlen, _dt); \
 	break;
-void cc_array_sub_ew(void *oup, int arrlen, void *a, void *b, int dt)
+void cc_array_sub_ew(void *oup,
+	int arrlen, const void *a, const void *b, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -286,7 +293,8 @@ void cc_array_sub_ew(void *oup, int arrlen, void *a, void *b, int dt)
 case _DT:                                        \
 	ARRAY_EW_OPS(*, oup, a, b, arrlen, _dt); \
 	break;
-void cc_array_mul_ew(void *oup, int arrlen, void *a, void *b, int dt)
+void cc_array_mul_ew(void *oup,
+	int arrlen, const void *a, const void *b, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -311,7 +319,8 @@ void cc_array_mul_ew(void *oup, int arrlen, void *a, void *b, int dt)
 case _DT:                                        \
 	ARRAY_EW_OPS(/, oup, a, b, arrlen, _dt); \
 	break;
-void cc_array_div_ew(void *oup, int arrlen, void *a, void *b, int dt)
+void cc_array_div_ew(void *oup,
+	int arrlen, const void *a, const void *b, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -336,7 +345,7 @@ void cc_array_div_ew(void *oup, int arrlen, void *a, void *b, int dt)
 case _DT:                               \
 	ARRAY_SUM(arr, arrlen, _dt, x); \
 	break;
-void cc_array_sum(void *arr, int arrlen, void *x, int dt)
+void cc_array_sum(const void *arr, int arrlen, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -362,7 +371,7 @@ case _DT:                               \
 	ARRAY_SUM(arr, arrlen, _dt, x); \
 	*(_dt*)x /= arrlen;             \
 	break;
-void cc_array_mean(void *arr, int arrlen, void *x, int dt)
+void cc_array_mean(const void *arr, int arrlen, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
@@ -387,7 +396,7 @@ void cc_array_mean(void *arr, int arrlen, void *x, int dt)
 case _DT:                                 \
 	fprintf(fp, pat, *((_dt*)a + i)); \
 	break;
-void cc_print_array(void *a, int arrlen, int dt, void *stream)
+void cc_print_array(const void *a, int arrlen, int dt, void *stream)
 {	
 	cc_int32 i;
 	const char *pat = NULL;
