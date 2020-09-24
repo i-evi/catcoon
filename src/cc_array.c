@@ -395,6 +395,8 @@ void cc_array_mean(const void *arr, int arrlen, void *x, int dt)
 #define PRINT_ARRAY_CASE(_DT, _dt) \
 case _DT:                                 \
 	fprintf(fp, pat, *((_dt*)a + i)); \
+	if (i < (arrlen - 1))             \
+		fputc(' ', fp);           \
 	break;
 void cc_print_array(const void *a, int arrlen, int dt, void *stream)
 {	
@@ -403,26 +405,26 @@ void cc_print_array(const void *a, int arrlen, int dt, void *stream)
 	FILE *fp = stream ? (FILE*)stream : stdout;
 	switch (dt) {
 		case CC_FLOAT32:
-			pat = "%f ";
+			pat = "%f";
 			break;
 		case CC_FLOAT64:
-			pat = "%lf ";
+			pat = "%lf";
 			break;
 		case CC_UINT8:
 		case CC_UINT16:
 		case CC_UINT32:
-			pat = "%d ";
+			pat = "%d";
 			break;
 		case CC_UINT64:
-			pat = "%ld ";
+			pat = "%ld";
 			break;
 		case CC_INT8:
 		case CC_INT16:
 		case CC_INT32:
-			pat = "%d ";
+			pat = "%d";
 			break;
 		case CC_INT64:
-			pat = "%ld ";
+			pat = "%ld";
 			break;
 		default:
 			utlog_format(UTLOG_ERR,
@@ -447,5 +449,4 @@ void cc_print_array(const void *a, int arrlen, int dt, void *stream)
 				break;
 		}
 	}
-	printf("\n");
 }

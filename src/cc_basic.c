@@ -131,12 +131,137 @@ int cc_tsrcmp_by_shape(const cc_tensor_t *a, const cc_tensor_t *b)
 	return 0;
 }
 
+cc_tensor_t *cc_tensor_stack(cc_tensor_t **tsr,
+	cc_int32 ntsr, cc_int32 axis, const char *name)
+{
+	cc_tensor_t *yield;
+	cc_int32 *shape;
+	cc_int32 i, dim, size, umem, ymem;
+	cc_int32 ncp = 0, nstp = 0;
+	cc_int32 off = 0, unit = 1;
+	dim = cc_tensor_dimension(tsr[0]);
+	cc_assert_ptr(shape =
+		(cc_int32*)calloc(dim + 2, sizeof(cc_int32)));
+	if (dim == axis) { /* axis <= dim */
+		off = 1;
+		shape[0] = 1;
+	}
+	memcpy(shape + off,
+		tsr[0]->shape, dim * sizeof(cc_int32));
+	shape[dim + off - 1 - axis] *= ntsr;
+	cc_assert_ptr(yield =
+		cc_create_tensor(shape, *tsr[0]->dtype, name));
+	for (i = 0; i < axis; ++i) {
+		unit *= tsr[0]->shape[dim - i - 1];
+	}
+	size = cc_dtype_size(*tsr[0]->dtype);
+	ymem = list_getlen(yield->container, CC_TENSOR_DATA);
+	umem = unit * size;
+	i = 0;
+	do {
+		memcpy(yield->data + ncp,
+			tsr[i++]->data + nstp, umem);
+		ncp += umem;
+		if (i == ntsr) {
+			i = 0;
+			nstp += umem;
+		}
+	} while (ncp != ymem);
+	free(shape);
+	return yield;
+}
+
+static void _cc_print_tensor_indent(int n)
+{
+	FILE *ostream = (FILE*)utlog_get_ostream();
+	while (n--)
+		fputc(' ', ostream);
+}
+
+#define CC_PRINT_TENSOR_PROC \
+  i = 0, fidt = 0, cidt = 0;                      \
+  do {                                            \
+    while (sops[i]) {                             \
+      if (fidt) {                                 \
+        _cc_print_tensor_indent(cidt);            \
+        fidt = 0;                                 \
+      }                                           \
+      fputc('[', ostream);                        \
+      cidt++;                                     \
+      i++;                                        \
+    }                                             \
+    fputc('[', ostream);                          \
+    cc_print_array(tensor->data + npt, lelem,     \
+      *tensor->dtype, ostream);                   \
+    fputc(']', ostream);                          \
+    npt += lsize;                                 \
+    if (i - 1 < 0) {                              \
+      fputc('\n', ostream);                       \
+      _cc_print_tensor_indent(cidt);              \
+      break;                                      \
+    }                                             \
+    sops[i - 1]--;                                \
+    if (sops[i - 1]) {                            \
+      fputc('\n', ostream);                       \
+      _cc_print_tensor_indent(cidt);              \
+    } else {                                      \
+      fputc(']', ostream);                        \
+      cidt--;                                     \
+      fidt++;                                     \
+      i = i - 2;                                  \
+      if (i < 0) {                                \
+        fputc('\n', ostream);                     \
+        break;                                    \
+      }                                           \
+      if (sops[i]) {                              \
+        sops[i]--;                                \
+        if (sops[i]) {                            \
+          for (j = ++i; j < (dim - 1); ++j)       \
+            sops[j] = sbak[j];                    \
+        } else {                                  \
+          fputc(']', ostream);                    \
+          cidt--;                                 \
+          fidt++;                                 \
+          while (i > 0) {                         \
+            if (--sops[--i]) {                    \
+              for (j = ++i; j < (dim - 1); ++j)   \
+                sops[j] = sbak[j];                \
+                break;                            \
+            } else {                              \
+              fputc(']', ostream);                \
+              cidt--;                             \
+              fidt++;                             \
+            }                                     \
+          }                                       \
+        }                                         \
+      }                                           \
+      fputc('\n', ostream);                       \
+    }                                             \
+  } while (sops[0]);
+
 void cc_print_tensor(const cc_tensor_t *tensor)
 {
+	cc_int32 *sops, *sbak;
+	int fidt, cidt;
+	cc_int32 i, j, dim, lelem, lsize, esize, ssize, npt = 0;
+	FILE *ostream = (FILE*)utlog_get_ostream();
+	dim   = cc_tensor_dimension(tensor);
+	esize = cc_dtype_size(*tensor->dtype);
+	lelem = tensor->shape[dim - 1];
+	lsize = lelem * esize;
+	ssize = (dim + 1) * sizeof(cc_int32);
+	cc_assert_ptr(sops =
+		(cc_int32*)calloc(dim + 1, sizeof(cc_int32)));
+	cc_assert_ptr(sbak =
+		(cc_int32*)calloc(dim + 1, sizeof(cc_int32)));
+	memcpy(sops, tensor->shape, ssize);
+	memcpy(sbak, tensor->shape, ssize);
+	sops[dim - 1] = 0;
+	sbak[dim - 1] = 0;
 	cc_print_tensor_property(tensor);
-	cc_print_array(tensor->data,
-		cc_tensor_elements(tensor), *tensor->dtype,
-		utlog_get_ostream());
+	CC_PRINT_TENSOR_PROC;
+	free(sops);
+	free(sbak);
 }
 
 void cc_set_tensor(cc_tensor_t *tensor, void *v)

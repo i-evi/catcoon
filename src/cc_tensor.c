@@ -114,6 +114,17 @@ cc_tensor_t *cc_load_bin(const char *filename,
 	return tensor;
 }
 
+cc_tensor_t *cc_tensor_from_array(void *arr,
+	const cc_int32 *shape, cc_dtype dtype, const char *name)
+{
+	cc_int32 memsize;
+	cc_tensor_t *tensor;
+	cc_assert_ptr(tensor = cc_create_tensor(shape, dtype, name));
+	memsize = list_getlen(tensor->container, CC_TENSOR_DATA);
+	memcpy(tensor->data, arr, memsize);
+	return tensor;
+}
+
 void cc_save_tensor(const cc_tensor_t *tensor, const char *filename)
 {
 	list_export(tensor->container, filename);

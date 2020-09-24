@@ -24,6 +24,9 @@ cc_tensor_t *cc_tensor_reshape(
 
 int cc_tsrcmp_by_shape(const cc_tensor_t *a, const cc_tensor_t *b);
 
+cc_tensor_t *cc_tensor_stack(cc_tensor_t **tsr,
+	cc_int32 ntsr, cc_int32 axis, const char *name);
+
 void cc_print_tensor(const cc_tensor_t *tensor);
 
 void cc_set_tensor(cc_tensor_t *tensor, void *v);
