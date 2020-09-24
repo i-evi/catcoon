@@ -28,6 +28,18 @@ enum cc_batch_norm_paraoff {
 };
 #endif
 
+#define CC_BN_EPSILON_DFL_FP32 1e-3
+
+cc_tensor_t *cc_load_bin_bnpara(
+		const char *w_path,             /* Gamma   */
+		const char *b_path,             /* Beta    */
+		const char *m_path,             /* Mean    */
+		const char *v_path,             /* Var     */
+		const char *e_path,             /* Epsilon */
+		cc_int32    nchl,               /* Channel */
+		cc_dtype    dtype,
+		const char *name);
+
 cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
 	const cc_tensor_t *para, const char *name);
 
