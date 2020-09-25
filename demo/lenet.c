@@ -73,14 +73,14 @@ int main(int argc, const char *argv[])
 	/* Parameters */
 	cc_tensor_t *conv1_w, *conv1_b,
 		*conv2_w, *conv2_b, *fc1_w, *fc1_b, *fc2_w, *fc2_b;
-	cc_int32 shape_conv1_w[] = {5, 5, 1, 32, 0};
+	cc_int32 shape_conv1_w[] = {32, 1, 5, 5, 0};
 	cc_int32 shape_conv1_b[] = {32, 0};
-	cc_int32 shape_conv2_w[] = {5, 5, 32, 64, 0};
+	cc_int32 shape_conv2_w[] = {64, 32, 5, 5, 0};
 	cc_int32 shape_conv2_b[] = {64, 0};
 	cc_int32 shape_flat[]    = {-1, 1, 1, 0};
-	cc_int32 shape_fc1_w[]   = {1, 1, 3136, 128, 0};
+	cc_int32 shape_fc1_w[]   = {128, 3136, 1, 1, 0};
 	cc_int32 shape_fc1_b[]   = {128, 0};
-	cc_int32 shape_fc2_w[]   = {1, 1, 128, 10, 0};
+	cc_int32 shape_fc2_w[]   = {10, 128, 1, 1, 0};
 	cc_int32 shape_fc2_b[]   = {10, 0};
 
 	arg_parser(argc, (char**)argv);
