@@ -106,14 +106,14 @@ static byte *_bmp_read(const char *filename,
 #endif
 	color_dp = *(byte*)(header + 28);
 	switch (color_dp) {
-		case 8:
-		case 24:
-		case 32:
-			*channels = color_dp >> 3;
-			break;
-		default:
-			fclose(fp);
-			return NULL;
+	case 8:
+	case 24:
+	case 32:
+		*channels = color_dp >> 3;
+		break;
+	default:
+		fclose(fp);
+		return NULL;
 	}
 	if (!(((*xsize) * (*channels)) % 4)) {
 		windows_byte_cnt = 0;
@@ -163,15 +163,15 @@ static int _bmp_write(const char *filename,
 	utim_uint32_t tmp, r = (xsize * channels) % 4;
 	utim_uint32_t pxl_begin, *x;
 	switch (channels) {
-		case 1:
-			pxl_begin = 54 + 1024;
-			break;
-		case 3:
-		case 4:
-			pxl_begin = 54;
-			break;
-		default:
-			return -1;
+	case 1:
+		pxl_begin = 54 + 1024;
+		break;
+	case 3:
+	case 4:
+		pxl_begin = 54;
+		break;
+	default:
+		return -1;
 	}
 	if (!r) {
 		windows_byte_cnt = 0;
@@ -289,55 +289,55 @@ int utim_write_ctrl(const char *filename,
 #endif
 #ifdef USE3RD_STB_IMAGE
 	switch (*(utim_int32_t*)tbuf) {
-		case UTIM_BMP:
-			if (!comp)
-				comp = img->channels;
-			state = stbi_write_bmp(filename, img->xsize,
-				img->ysize, comp, img->pixels);
-			if (state != 1)
-				return state;
-			return 0;
-		case UTIM_PNG:
-			if (!comp)
-				comp = img->channels;
-			quality = quality ? quality : png_default_compress;
-			stbi_write_png_compression_level = quality;
-			state = stbi_write_png(filename, img->xsize,
-				img->ysize, img->channels, img->pixels,
-				img->xsize * img->channels);
-			if (state != 1)
-				return state;
-			return 0;
-		case UTIM_JPG:
-			if (!comp)
-				comp = img->channels;
-			quality = quality ? quality : jpg_default_quality;
-			state = stbi_write_jpg(filename, img->xsize,
-				img->ysize, comp, img->pixels, quality);
-			if (state != 1)
-				return state;
-			return 0;
-		case UTIM_TGA:
-			if (!comp)
-				comp = img->channels;
-			state = stbi_write_tga(filename, img->xsize,
-				img->ysize, comp, img->pixels);
-			if (state != 1)
-				return state;
-			return 0;
-		default:
-			return -1; /* Not supported file format */
+	case UTIM_BMP:
+		if (!comp)
+			comp = img->channels;
+		state = stbi_write_bmp(filename, img->xsize,
+			img->ysize, comp, img->pixels);
+		if (state != 1)
+			return state;
+		return 0;
+	case UTIM_PNG:
+		if (!comp)
+			comp = img->channels;
+		quality = quality ? quality : png_default_compress;
+		stbi_write_png_compression_level = quality;
+		state = stbi_write_png(filename, img->xsize,
+			img->ysize, img->channels, img->pixels,
+			img->xsize * img->channels);
+		if (state != 1)
+			return state;
+		return 0;
+	case UTIM_JPG:
+		if (!comp)
+			comp = img->channels;
+		quality = quality ? quality : jpg_default_quality;
+		state = stbi_write_jpg(filename, img->xsize,
+			img->ysize, comp, img->pixels, quality);
+		if (state != 1)
+			return state;
+		return 0;
+	case UTIM_TGA:
+		if (!comp)
+			comp = img->channels;
+		state = stbi_write_tga(filename, img->xsize,
+			img->ysize, comp, img->pixels);
+		if (state != 1)
+			return state;
+		return 0;
+	default:
+		return -1; /* Not supported file format */
 	}
 #else /* Support 8, 24, 32 bit bmp image only */
 	if (strcmp(tbuf, "bmp"))
 		return -1;  /* Not supported file format */
 	switch (img->channels) {
-		case 1:
-		case 3:
-		case 4:
-			break;
-		default:
-			return -1;
+	case 1:
+	case 3:
+	case 4:
+		break;
+	default:
+		return -1;
 	}
 	return _bmp_write(filename,
 		img->pixels, img->xsize, img->ysize, img->channels);
@@ -412,24 +412,24 @@ UTIM_IMG *utim_resize(UTIM_IMG *img, int x, int y, int mode)
 	if (!resize)
 		return NULL;
 	switch (mode) {
-		case UTIM_RESIZE_NEAREST:
-			resize->pixels = _image_resize_nearest(img, x, y);
-			if (!resize->pixels) {
-				free(resize);
-				return NULL;
-			}
-			break;
-#ifdef USE3RD_STB_IMAGE
-		case UTIM_RESIZE_LINEAR:
-			resize->pixels = _image_resize_linear(img, x, y);
-			if (!resize->pixels) {
-				free(resize);
-				return NULL;
-			}
-			break;
-#endif
-		default:
+	case UTIM_RESIZE_NEAREST:
+		resize->pixels = _image_resize_nearest(img, x, y);
+		if (!resize->pixels) {
+			free(resize);
 			return NULL;
+		}
+		break;
+#ifdef USE3RD_STB_IMAGE
+	case UTIM_RESIZE_LINEAR:
+		resize->pixels = _image_resize_linear(img, x, y);
+		if (!resize->pixels) {
+			free(resize);
+			return NULL;
+		}
+		break;
+#endif
+	default:
+		return NULL;
 	}
 	resize->xsize = x;
 	resize->ysize = y;
@@ -456,42 +456,42 @@ int utim_swap_chl(UTIM_IMG *img, int a, int b)
 int utim_img2rgb(UTIM_IMG *img)
 {
 	switch (img->channels) {
-		case 1:
-			return utim_gray2rgb(img);
-		case 3:
-			return 0;
-		case 4:
-			return utim_rgba2rgb(img);
-		default:
-			return UTIM_ERR_BAD_ARG;
+	case 1:
+		return utim_gray2rgb(img);
+	case 3:
+		return 0;
+	case 4:
+		return utim_rgba2rgb(img);
+	default:
+		return UTIM_ERR_BAD_ARG;
 	}
 }
 
 int utim_img2gray(UTIM_IMG *img)
 {
 	switch (img->channels) {
-		case 1:
-			return 0;
-		case 3:
-			return utim_rgb2gray(img);
-		case 4:
-			return utim_rgba2gray(img);
-		default:
-			return UTIM_ERR_BAD_ARG;
+	case 1:
+		return 0;
+	case 3:
+		return utim_rgb2gray(img);
+	case 4:
+		return utim_rgba2gray(img);
+	default:
+		return UTIM_ERR_BAD_ARG;
 	}
 }
 
 int utim_img2rgba(UTIM_IMG *img)
 {
 	switch (img->channels) {
-		case 1:
-			return utim_gray2rgba(img);
-		case 3:
-			return utim_rgb2rgba(img);
-		case 4:
-			return 0;
-		default:
-			return UTIM_ERR_BAD_ARG;
+	case 1:
+		return utim_gray2rgba(img);
+	case 3:
+		return utim_rgb2rgba(img);
+	case 4:
+		return 0;
+	default:
+		return UTIM_ERR_BAD_ARG;
 	}
 }
 
@@ -830,16 +830,16 @@ int utim_set_opacity(UTIM_IMG *img, int opacity)
 	byte *c;
 	int i, sum, ch_size;
 	switch (img->channels) {
-		case 1:
-			if (!utim_gray2rgba(img))
-				return UTIM_ERR_BAD_ARG;
-		case 3:
-			if (!utim_rgb2rgba(img))
-				return UTIM_ERR_BAD_ARG;
-		case 4: /* RGBA */
-			break;
-		default:
+	case 1:
+		if (!utim_gray2rgba(img))
 			return UTIM_ERR_BAD_ARG;
+	case 3:
+		if (!utim_rgb2rgba(img))
+			return UTIM_ERR_BAD_ARG;
+	case 4: /* RGBA */
+		break;
+	default:
+		return UTIM_ERR_BAD_ARG;
 	}
 	ch_size = img->xsize * img->ysize;
 	c = img->pixels;

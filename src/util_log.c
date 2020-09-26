@@ -6,9 +6,9 @@
 
 #include "util_log.h"
 
-static int highlight_flag = UTLOG_HIGHLIGHT_ON;
-static FILE *user_log_ostream = NULL;
-static int error_action_flag  = UTLOG_ERR_ACT_ABORT;
+static int   highlight_flag    = UTLOG_HIGHLIGHT_ON;
+static FILE *user_log_ostream  = NULL;
+static int   error_action_flag = UTLOG_ERR_ACT_ABORT;
 
 void utlog_highlight_on(void)
 {
@@ -41,14 +41,14 @@ void utlog_set_error_action(int act)
 const char *_log_clock_style_str(int logtype)
 {
 	switch (logtype) {
-		case UTLOG_ERR:
-			return "\033[;31m";
-		case UTLOG_WARN:
-			return "\033[;33m";
-		case UTLOG_INFO:
-			return "\033[0;36m";
-		default:
-			return NULL;
+	case UTLOG_ERR:
+		return "\033[;31m";
+	case UTLOG_WARN:
+		return "\033[;33m";
+	case UTLOG_INFO:
+		return "\033[0;36m";
+	default:
+		return NULL;
 	}
 }
 
@@ -72,18 +72,18 @@ static char *_find_symbol(char *s, char ch)
 }
 
 #define UTLOG_FORMAT_RET \
-if (logtype == UTLOG_ERR) {                           \
-	switch (error_action_flag) {                  \
-		case UTLOG_ERR_ACT_ABORT:             \
-			exit(-1); /* abort() */       \
-			break;                        \
-		case UTLOG_ERR_ACT_WARNING:           \
-			/* print warning info only */ \
-			break;                        \
-		default:                              \
-			break;                        \
-	}                                             \
-}                                                     \
+if (logtype == UTLOG_ERR) {                   \
+	switch (error_action_flag) {          \
+	case UTLOG_ERR_ACT_ABORT:             \
+		exit(-1); /* abort() */       \
+		break;                        \
+	case UTLOG_ERR_ACT_WARNING:           \
+		/* print warning info only */ \
+		break;                        \
+	default:                              \
+		break;                        \
+	}                                     \
+}                                             \
 return;
 
 void utlog_format(int logtype, const char *fmt, ...)

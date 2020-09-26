@@ -301,52 +301,52 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 	cc_assert_ptr(cast = cc_create_tensor(
 		tensor->shape, dtype, NULL));
 	switch (dtype) {
-		case CC_INT8:
-			_array_cast_int8(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_UINT8:
-			_array_cast_uint8(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_INT16:
-			_array_cast_int16(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_UINT16:
-			_array_cast_uint16(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_INT32:
-			_array_cast_int32(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_UINT32:
-			_array_cast_uint32(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_INT64:
-			_array_cast_int64(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_UINT64:
-			_array_cast_uint64(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_FLOAT32:
-			_array_cast_float32(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		case CC_FLOAT64:
-			_array_cast_float64(cast->data,
-				tensor->data, elems, *tensor->dtype);
-			break;
-		default:
-			utlog_format(UTLOG_ERR,
-				"cc_cast_tensor: unsupported dtype %x\n",
-				dtype);
-			cc_free_tensor(cast);
-			return NULL;
+	case CC_INT8:
+		_array_cast_int8(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_UINT8:
+		_array_cast_uint8(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_INT16:
+		_array_cast_int16(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_UINT16:
+		_array_cast_uint16(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_INT32:
+		_array_cast_int32(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_UINT32:
+		_array_cast_uint32(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_INT64:
+		_array_cast_int64(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_UINT64:
+		_array_cast_uint64(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_FLOAT32:
+		_array_cast_float32(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	case CC_FLOAT64:
+		_array_cast_float64(cast->data,
+			tensor->data, elems, *tensor->dtype);
+		break;
+	default:
+		utlog_format(UTLOG_ERR,
+			"cc_cast_tensor: unsupported dtype %x\n",
+			dtype);
+		cc_free_tensor(cast);
+		return NULL;
 	}
 	list_rename(cast->container, name);
 	cast->name = cast->container->name;
@@ -377,33 +377,33 @@ cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 	else
 		yield = cc_copy_tensor(tensor, name);
 	switch (op) {
-		case '+':
-			_array_add_by(yield->data, elems,
-				yield->data, data, *tensor->dtype);
-			break;
-		case '-':
-			_array_sub_by(yield->data, elems,
-				yield->data, data, *tensor->dtype);
-			break;
-		case '*':
-			_array_mul_by(yield->data, elems,
-				yield->data, data, *tensor->dtype);
-			break;
-		case '/':
-			_array_div_by(yield->data, elems,
-				yield->data, data, *tensor->dtype);
-			break;
-		default:
-			utlog_format(UTLOG_ERR,
-			"cc_tensor_by_scalar: unsupported operator [%c]\n",
-			op);
+	case '+':
+		_array_add_by(yield->data, elems,
+			yield->data, data, *tensor->dtype);
+		break;
+	case '-':
+		_array_sub_by(yield->data, elems,
+			yield->data, data, *tensor->dtype);
+		break;
+	case '*':
+		_array_mul_by(yield->data, elems,
+			yield->data, data, *tensor->dtype);
+		break;
+	case '/':
+		_array_div_by(yield->data, elems,
+			yield->data, data, *tensor->dtype);
+		break;
+	default:
+		utlog_format(UTLOG_ERR,
+		"cc_tensor_by_scalar: unsupported operator [%c]\n",
+		op);
 #ifdef AUTO_TSRMGR
-			if (strcmp(name, tensor->name))
-				cc_tsrmgr_del(name);
+		if (strcmp(name, tensor->name))
+			cc_tsrmgr_del(name);
 #else
-			cc_free_tensor(yield);
+		cc_free_tensor(yield);
 #endif
-			return NULL;
+		return NULL;
 	}
 	return yield;
 }
@@ -424,33 +424,32 @@ cc_tensor_t *cc_tensor_ewop(cc_tensor_t *a,
 	else
 		yield = cc_copy_tensor(a, name);
 	switch (op) {
-		case '+':
-			_array_add_ew(yield->data, elems,
-				yield->data, b->data, *yield->dtype);
-			break;
-		case '-':
-			_array_sub_ew(yield->data, elems,
-				yield->data, b->data, *yield->dtype);
-			break;
-		case '*':
-			_array_mul_ew(yield->data, elems,
-				yield->data, b->data, *yield->dtype);
-			break;
-		case '/':
-			_array_div_ew(yield->data, elems,
-				yield->data, b->data, *yield->dtype);
-			break;
-		default:
-			utlog_format(UTLOG_ERR,
-			"cc_tensor_by_scalar: unsupported operator [%c]\n",
-			op);
+	case '+':
+		_array_add_ew(yield->data, elems,
+			yield->data, b->data, *yield->dtype);
+		break;
+	case '-':
+		_array_sub_ew(yield->data, elems,
+			yield->data, b->data, *yield->dtype);
+		break;
+	case '*':
+		_array_mul_ew(yield->data, elems,
+			yield->data, b->data, *yield->dtype);
+		break;
+	case '/':
+		_array_div_ew(yield->data, elems,
+			yield->data, b->data, *yield->dtype);
+		break;
+	default:
+		utlog_format(UTLOG_ERR,
+		"cc_tensor_by_scalar: unsupported operator [%c]\n", op);
 #ifdef AUTO_TSRMGR
-			if (strcmp(name, a->name))
-				cc_tsrmgr_del(name);
+		if (strcmp(name, a->name))
+			cc_tsrmgr_del(name);
 #else
-			cc_free_tensor(yield);
+		cc_free_tensor(yield);
 #endif
-			return NULL;
+		return NULL;
 	}
 	return yield;
 }

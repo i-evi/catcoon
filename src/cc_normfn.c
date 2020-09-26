@@ -30,15 +30,15 @@ cc_tensor_t *cc_load_bin_bnpara(const char *w_path, const char *b_path,
 		tsr[CC_BN_OFFSET_EPSILON] =
 			cc_create_tensor(shape, dtype, NULL);
 		switch (dtype) {
-			case CC_FLOAT32:
-				cc_set_tensor(tsr[CC_BN_OFFSET_EPSILON],
-				 	&cc_bn_epsilon_dfl_fp32);
-				break;
-			default:
-				utlog_format(UTLOG_ERR,
-					"[%s: %d] Unsupported dtype %x\n",
-					__FILE__, __LINE__, dtype);
-				break;
+		case CC_FLOAT32:
+			cc_set_tensor(tsr[CC_BN_OFFSET_EPSILON],
+			 	&cc_bn_epsilon_dfl_fp32);
+			break;
+		default:
+			utlog_format(UTLOG_ERR,
+				"[%s: %d] Unsupported dtype %x\n",
+				__FILE__, __LINE__, dtype);
+			break;
 		}
 	}
 	para = cc_tensor_stack(tsr, CC_BN_PARAMETERS, 1, name);
