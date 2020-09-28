@@ -416,6 +416,18 @@ void cc_cpu_fully_connected(const void *inp,
 	}
 }
 
+#ifndef CC_BN_OFFSET_CFG
+#define CC_BN_OFFSET_CFG
+enum {
+	CC_BN_OFFSET_GAMMA = 0,
+	CC_BN_OFFSET_BETA,
+	CC_BN_OFFSET_MEAN,
+	CC_BN_OFFSET_VAR,
+	CC_BN_OFFSET_EPSILON,
+	CC_BN_PARAMETERS
+};
+#endif
+
 #define CC_CPU_BATCH_NORM_IMPLEMENTATION(dt) \
 void cc_cpu_batch_norm_ ## dt(cc_ ## dt *inp,                     \
 	cc_int32 len, cc_ ## dt *bnpara)                          \

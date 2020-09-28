@@ -8,29 +8,29 @@
 #include "cc_tensor.h"
 
 /*
- * Batch Normalization parameters offset
- * bnpara:
+ * Normalization parameters offset
+ * 
  * GAMMA | BETA | MEAN | VAR | EPSILON
  * cc_int32 shape[] = {ch, CC_BN_PARAMETERS, 1, 0}
  *                      \        \___ number of parameters(5)
  *                       \___________ number of channels
- * cc_tensor_t *bnpara = cc_create_tensor(shape, dt, "name");
+ * cc_tensor_t *para = cc_create_tensor(shape, dt, "name");
  */
-#ifndef CC_BN_OFFSET_CFG
-#define CC_BN_OFFSET_CFG
-enum cc_batch_norm_paraoff {
-	CC_BN_OFFSET_GAMMA,
-	CC_BN_OFFSET_BETA,
-	CC_BN_OFFSET_MEAN,
-	CC_BN_OFFSET_VAR,
-	CC_BN_OFFSET_EPSILON,
-	CC_BN_PARAMETERS
+#ifndef CC_NORM_PARA_CFG
+#define CC_NORM_PARA_CFG
+enum cc_norm_para {
+	CC_NORM_GAMMA = 0,
+	CC_NORM_BETA,
+	CC_NORM_MEAN,
+	CC_NORM_VAR,
+	CC_NORM_EPSILON,
+	CC_NORM_PARAMETERS
 };
 #endif
 
-#define CC_BN_EPSILON_DFL_FP32 1e-3
+#define CC_NORM_EPSILON_DFL_FP32 1e-3
 
-cc_tensor_t *cc_load_bin_bnpara(
+cc_tensor_t *cc_load_bin_norm_para(
 		const char *w_path,             /* Gamma   */
 		const char *b_path,             /* Beta    */
 		const char *m_path,             /* Mean    */

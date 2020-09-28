@@ -9,12 +9,12 @@ LINK  += -lm
 # Debug flag, cc_assert
 DFLAG += -DENABLE_CC_ASSERT
 # AddressSanitizer for gcc/clang
-DFLAG += # -g -fsanitize=address -fno-omit-frame-pointer
+DFLAG += -g -fsanitize=address -fno-omit-frame-pointer
 
 CFLAG += # -std=c89
 CFLAG += -Wall # -Wpedantic
 
-OFLAG += -O3
+OFLAG += # -O3
 
 # Enable OpenMP
 OFLAG += -DENABLE_OPENMP -fopenmp
@@ -34,7 +34,7 @@ UT_LIST_CFG = -DENABLE_FOPS
 3RDSRC_CF += stb
 
 # parg: Argv parser written in ANSI C
-# Argv parser for demo apps
+# Argv parser for apps
 3RDSRC_CF += parg
 
 # seb: sequential encoded buffers
@@ -45,9 +45,12 @@ UT_LIST_CFG = -DENABLE_FOPS
 # Pack and save compressed models files
 3RDSRC_CF += zlib
 
+# cJSON: Ultralightweight JSON parser in ANSI C.
+3RDSRC_CF += cjson
+
 ifneq ($(findstring MINI, $(BCTRL)),)
 	CC = tcc
-	CFLAG = -std=c89
+	CFLAG  = -std=c89
 	CFLAG += -DAUTO_TSRMGR
 	3RDSRC_CF = parg
 endif
@@ -78,15 +81,23 @@ ifneq ($(findstring zlib, $(3RDSRC_CF)),)
 	UT_LIST_CFG += -DENABLE_ZLIB
 endif
 
+ifneq ($(findstring cjson, $(3RDSRC_CF)),)
+	ALL_O   += cJSON.o
+	APP_INC += -I ./src/3rd_party/cjson/
+endif
+
 ALL_O += \
 catcoon.o cc_tensor.o cc_dtype.o cc_tsrmgr.o cc_fmap2d.o cc_pool2d.o \
 cc_array.o cc_basic.o cc_actfn.o cc_fullycon.o cc_pad2d.o cc_cpufn.o \
 cc_conv2d.o cc_dsc2d.o cc_normfn.o cc_image.o util_rbt.o util_list.o \
-util_log.o util_image.o global_fn_cfg.o 
+util_log.o util_vec.o util_image.o global_fn_cfg.o 
 
 CATCOON_A = libcatcoon.a
 
-APP_NAMES  = simple lenet lenet_pack lenet_unpack
+APPS_DEMO = simple lenet lenet_pack lenet_unpack 
+APPS_UTIL = packager listpkg
+
+APP_NAMES  = $(APPS_DEMO) $(APPS_UTIL)
 APP_INC   += $(INC)
 APP_LINK  += $(LINK)
 
@@ -106,8 +117,12 @@ all: $(APPS) # $(CATCOON_A)
 # Apps For Linux
 %: ./demo/%.c $(ALL_O)
 	$(CC) -o $@ $< $(ALL_O) $(CFLAG) $(APP_INC) $(APP_LINK)
+%: ./util/%.c $(ALL_O)
+	$(CC) -o $@ $< $(ALL_O) $(CFLAG) $(APP_INC) $(APP_LINK)
 # Apps For Windows
 %.exe: ./demo/%.c $(ALL_O)
+	$(CC) -o $@ $< $(ALL_O) $(CFLAG) $(APP_INC) $(APP_LINK)
+%.exe: ./util/%.c $(ALL_O)
 	$(CC) -o $@ $< $(ALL_O) $(CFLAG) $(APP_INC) $(APP_LINK)
 
 global_fn_cfg.o : $(patsubst %, ./src/%, global_fn_cfg.h global_fn_cfg.c)
@@ -130,6 +145,7 @@ cc_tsrmgr.o   : $(patsubst %, ./src/%, cc_tsrmgr.h cc_tsrmgr.c)
 cc_tensor.o   : $(patsubst %, ./src/%, cc_tensor.h cc_tensor.c)
 
 util_log.o   : $(patsubst %, ./src/%, util_log.h util_log.c)
+util_vec.o   : $(patsubst %, ./src/%, util_vec.h util_vec.c)
 util_rbt.o   : $(patsubst %, ./src/%, util_rbt.h util_rbt.c)
 util_list.o  : $(patsubst %, ./src/%, util_list.h util_list.c)
 	$(CC) -c -o $@ ./src/util_list.c $(CFLAG) $(UT_LIST_CFG)
@@ -144,6 +160,9 @@ seb.o : ./src/3rd_party/seb/seb*
 	$(CC) -c -o $@ ./src/3rd_party/seb/seb.c $(CFLAG)
 fastlz.o : ./src/3rd_party/seb/fastlz*
 	$(CC) -c -o $@ ./src/3rd_party/seb/fastlz.c $(CFLAG)
+
+cJSON.o : ./src/3rd_party/cjson/cJSON*
+	$(CC) -c -o $@ ./src/3rd_party/cjson/cJSON.c $(CFLAG)
 
 minimal:
 	$(MAKE) "BCTRL = MINI"

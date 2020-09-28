@@ -46,8 +46,8 @@ typedef _DT_FLOAT64 cc_float64;
  * |______unsigned or signed(0/1)
  */
 
-#define CC_FLAG_POINT 6
-#define CC_FLAG_SIGN  7
+#define CC_DT_FLAG_POINT 0x40
+#define CC_DT_FLAG_SIGN  0x80
 
 #define CC_UINT8    0x03
 #define CC_UINT16   0x04

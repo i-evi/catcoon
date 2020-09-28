@@ -7,23 +7,6 @@
 
 #include "cc_dtype.h"
 
-/*
- * Batch Normalization parameters offset
- * bnpara:
- * GAMMA | BETA | MEAN | VAR | EPSILON
- */
-#ifndef CC_BN_OFFSET_CFG
-#define CC_BN_OFFSET_CFG
-enum cc_batch_norm_paraoff {
-	CC_BN_OFFSET_GAMMA,
-	CC_BN_OFFSET_BETA,
-	CC_BN_OFFSET_MEAN,
-	CC_BN_OFFSET_VAR,
-	CC_BN_OFFSET_EPSILON,
-	CC_BN_PARAMETERS
-};
-#endif
-
 void cc_cpu_activation_relu (void *inp, cc_int32 elems, cc_dtype dt);
 
 void cc_cpu_activation_relu6(void *inp, cc_int32 elems, cc_dtype dt);
