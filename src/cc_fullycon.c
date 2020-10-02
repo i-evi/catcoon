@@ -14,10 +14,12 @@ cc_tensor_t *cc_fully_connected(const cc_tensor_t *inp,
 	const cc_tensor_t *w, const cc_tensor_t *b, const char *name)
 {
 	cc_tensor_t *oup = NULL;
-	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};
+	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
 #ifdef ENABLE_CC_ASSERT
+	cc_assert(
+		(cc_tensor_dimension(w) == CC_CONV2D_KERNEL_DIM) ||
+		(cc_tensor_dimension(w) == CC_FULLYCON_KERNEL_DIM));
 	cc_assert_zero(cc_tensor_dimension(inp) - CC_CNN2D_DIM);
-	cc_assert_zero(cc_tensor_dimension(w) - CC_CONV2D_KERNEL_DIM);
 	cc_assert_zero(*inp->dtype - *w->dtype);
 	cc_assert_zero(*inp->dtype - *b->dtype);
 	cc_assert_zero(inp->shape[CC_CNN2D_SHAPE_C]

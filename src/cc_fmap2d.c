@@ -48,7 +48,7 @@ cc_tensor_t *cc_fmap2d_flat(cc_tensor_t *inp, const char *name)
 {
 	cc_tensor_t *flat = NULL;
 	cc_uint8 *sptr, *dptr;
-	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};
+	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
 	cc_int32 i, j ,ch_size, dt_size;
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_tensor_dimension(inp) - CC_CNN2D_DIM);

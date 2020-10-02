@@ -12,7 +12,7 @@ enum cc_cnn2d_shape {
 	CC_CNN2D_SHAPE_H,
 	CC_CNN2D_SHAPE_W,
 	CC_CNN2D_DIM,
-	CC_CNN2D_SHAPE_LEN
+	CC_CNN2D_SHAPE
 };
 
 cc_tensor_t *cc_fmap2d_bias(cc_tensor_t *inp,

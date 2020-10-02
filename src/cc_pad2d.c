@@ -16,7 +16,7 @@ cc_tensor_t *cc_pad2d(const cc_tensor_t *inp,
 	cc_int32 p, cc_int32 offset, const char *name)
 {
 	cc_tensor_t *pad = NULL;
-	cc_int32 shape[CC_CNN2D_SHAPE_LEN] = {0};
+	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
 	cc_int32 soffset = offset ? 1 : 0;
 	cc_int32 poffset = offset > 0 ? 1 : 0;
 	cc_int32 i, j, c, dtsize = cc_dtype_size(*inp->dtype);
