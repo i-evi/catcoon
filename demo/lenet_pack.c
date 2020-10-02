@@ -30,7 +30,7 @@ void arg_parser(int argc, char* const argv[])
 	while ((c = parg_getopt(&ps, argc, argv, "hp:o:v")) != -1) {
 		switch (c) {
 		case 'h':
-			printf("Usage: [-h] -p parameters-path -o pack-name\n");
+			printf("Usage: [-h] -p pathname -o filename\n");
 			printf("-h: Displays this message\n");
 			printf("-p: Choose parameters file path\n");
 			printf("-o: Output file name\n");
@@ -58,6 +58,7 @@ void arg_parser(int argc, char* const argv[])
 	}
 	if (!strlen(parameters_path) || !strlen(parameters_pack)) {
 		printf("error: incomplete argument\n");
+		printf("run 'lenet_pack -h' for help.\n");
 		exit(EXIT_FAILURE);
 	}
 }
