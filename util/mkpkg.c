@@ -73,6 +73,7 @@ int main(int argc, char const *argv[])
 	cJSON *json, *item;
 	enum composite_type ctflag = 0;
 	struct vector *vec_bn;
+	int i;
 	arg_parser(argc, (char**)argv);
 	sprintf(json_path, "%s/parameters.json", parameters_path);
 	json_str = read_text_file(json_path);
@@ -97,7 +98,7 @@ int main(int argc, char const *argv[])
 		}
 		item = item->next;
 	} while(item);
-	for (int i = 0; i < vec_bn->size; ++i) {
+	for (i = 0; i < vec_bn->size; ++i) {
 		para_compose_norm(*(char**)vector_index(vec_bn, i));
 	}
 	cc_tsrmgr_list();
