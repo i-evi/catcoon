@@ -15,7 +15,7 @@ DFLAG += # -g -fsanitize=address -fno-omit-frame-pointer
 CFLAG += # -std=c89
 CFLAG += -Wall # -Wpedantic
 
-OFLAG += # -O3
+OFLAG += -O3
 
 # Enable OpenMP
 OFLAG += -DENABLE_OPENMP -fopenmp
@@ -93,8 +93,8 @@ VPATH = $(OBJS_PATH)
 ALL_O += \
 catcoon.o cc_tensor.o cc_dtype.o cc_tsrmgr.o cc_fmap2d.o cc_pool2d.o \
 cc_array.o cc_basic.o cc_actfn.o cc_fullycon.o cc_pad2d.o cc_cpufn.o \
-cc_conv2d.o cc_dsc2d.o cc_normfn.o cc_image.o util_rbt.o util_list.o \
-util_log.o util_vec.o util_image.o global_fn_cfg.o 
+cc_conv2d.o cc_normfn.o cc_image.o util_rbt.o util_list.o util_log.o \
+util_vec.o util_image.o global_fn_cfg.o 
 
 CATCOON_A = libcatcoon.a
 

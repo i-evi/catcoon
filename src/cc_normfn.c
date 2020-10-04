@@ -3,6 +3,7 @@
 #include "cc_assert.h"
 #include "cc_basic.h"
 #include "cc_fmap2d.h"
+#include "cc_tsrmgr.h"
 #include "cc_normfn.h"
 
 #include "global_fn_cfg.h"
@@ -55,10 +56,12 @@ cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
 	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(*inp->dtype - *para->dtype);
 #endif
-	if (!name || !strcmp(name, inp->name))
+	if (!name || !strcmp(name, inp->name)) {
 		oup = inp;
-	else
+	} else {
+		cc_tsrmgr_del(name);
 		oup = cc_copy(inp, name);
+	}
 	dt_size = cc_dtype_size(*inp->dtype);
 	ch_size = inp->shape[CC_CNN2D_SHAPE_H] *
 			inp->shape[CC_CNN2D_SHAPE_W];

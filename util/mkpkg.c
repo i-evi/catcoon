@@ -12,7 +12,7 @@
 
 enum composite_type {
 	P_NOT_COMPOSITE = 0,
-	P_NORMALIZATION,
+	P_NORMALIZATION
 };
 
 static char *read_text_file(const char *pathname);
@@ -71,7 +71,7 @@ int main(int argc, char const *argv[])
 	char json_path[256];
 	char *json_str;
 	cJSON *json, *item;
-	enum composite_type ctflag = 0;
+	enum composite_type ctflag = (enum composite_type)0;
 	struct vector *vec_bn;
 	int i;
 	arg_parser(argc, (char**)argv);
@@ -98,7 +98,7 @@ int main(int argc, char const *argv[])
 		}
 		item = item->next;
 	} while(item);
-	for (i = 0; i < vec_bn->size; ++i) {
+	for (i = 0; i < (int)vec_bn->size; ++i) {
 		para_compose_norm(*(char**)vector_index(vec_bn, i));
 	}
 	cc_tsrmgr_list();

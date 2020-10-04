@@ -25,6 +25,15 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 		const cc_tensor_t *kernel, const cc_tensor_t *bias,
 	cc_int32 s, cc_int32 p, cc_int32 off, const char *name);
 
+/* Depth-wise convolution 2d */
+cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
+		const cc_tensor_t *kernel, const cc_tensor_t *bias,
+	cc_int32 s, cc_int32 p, cc_int32 off, const char *name);
+
+/* Point-wise convolution 2d */
+cc_tensor_t *cc_pw_conv2d(cc_tensor_t *inp, const cc_tensor_t *kernel,
+	const cc_tensor_t *bias, const char *name);
+
 #ifdef __cplusplus
 	}
 #endif
