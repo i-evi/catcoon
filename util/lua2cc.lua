@@ -1,4 +1,4 @@
-local parameterLv  = 0  -- PKG: Begin at 0
+local parameterLv = 0  -- PKG: Begin at 0
 local shapeCounter = 0
 local layerCounter = 1 -- MUST Begin at 1
 local parameterCnt = 1 -- MUST Begin at 1
@@ -70,8 +70,8 @@ dwConv2d = function(args)
     if type(scope) == "string" then
       name = string.format("%s/%s", scope, name)
     end
-    parals[info.paraId + 0] = string.format("%03d_w", info.paraLv)
-    parals[info.paraId + 1] = string.format("%03d_b", info.paraLv)
+    parals[info.paraId + 0] = string.format("%03d.w", info.paraLv)
+    parals[info.paraId + 1] = string.format("%03d.b", info.paraLv)
     layerOutputs[ret.layerId] = output
     if info.input == nil then
       if info.layerId - 1 < 1 then
@@ -80,7 +80,7 @@ dwConv2d = function(args)
       info.input = string.format("@%d", info.layerId - 1)
     end
     return string.format(
-      "%s = cc_conv2d(%s, __pls[%d], __pls[%d], %d, %d, %d, \"%s\");",
+      "%s = cc_dw_conv2d(%s, __pls[%d], __pls[%d], %d, %d, %d, \"%s\");",
       output, info.input, info.paraId - 1, info.paraId, info.stride,
       info.padding, info.offset, name)
   end
@@ -100,8 +100,8 @@ pwConv2d = function(args)
     if type(scope) == "string" then
       name = string.format("%s/%s", scope, name)
     end
-    parals[info.paraId + 0] = string.format("%03d_w", info.paraLv)
-    parals[info.paraId + 1] = string.format("%03d_b", info.paraLv)
+    parals[info.paraId + 0] = string.format("%03d.w", info.paraLv)
+    parals[info.paraId + 1] = string.format("%03d.b", info.paraLv)
     layerOutputs[ret.layerId] = output
     if info.input == nil then
       if info.layerId - 1 < 1 then
@@ -129,8 +129,8 @@ fullyConnected = function(args)
     if type(scope) == "string" then
       name = string.format("%s/%s", scope, name)
     end
-    parals[info.paraId + 0] = string.format("%03d_w", info.paraLv)
-    parals[info.paraId + 1] = string.format("%03d_b", info.paraLv)
+    parals[info.paraId + 0] = string.format("%03d.w", info.paraLv)
+    parals[info.paraId + 1] = string.format("%03d.b", info.paraLv)
     layerOutputs[ret.layerId] = output
     if info.input == nil then
       if info.layerId - 1 < 1 then
@@ -243,7 +243,7 @@ batchNorm2d = function(args)
     if type(scope) == "string" then
       name = string.format("%s/%s", scope, name)
     end
-    parals[info.paraId] = string.format("%03d_n", info.paraLv)
+    parals[info.paraId] = string.format("%03d.n", info.paraLv)
     layerOutputs[ret.layerId] = output
     if info.input == nil then
       if info.layerId - 1 < 1 then
@@ -252,7 +252,7 @@ batchNorm2d = function(args)
       info.input = string.format("@%d", info.layerId - 1)
     end
     return string.format(
-      "%s = cc_batch_norm(%s, __pls[%d], \"%s\");",
+      "%s = cc_batch_norm2d(%s, __pls[%d], \"%s\");",
       output, info.input, info.paraId - 1, name)
   end
   return ret
@@ -288,63 +288,50 @@ reshape = function(args)
   return ret
 end
 
-local fprint = function(fp, ...)
+local fputs = function(fp, ...)
   local args = { ... }
-  local flag = false
   for k, v in pairs(args) do
-    if not flag then
-      flag = true
-    else
-      fp:write('\t')
-    end
     fp:write(v)
   end
-  fp:write('\n')
 end
 
 local printLine = function(line, indent)
   if indent == nil then indent = 0 end
+  local lineLimit = 80
   local indentOff = indent * 8
-  local llen = #line + indentOff
   local indentStr = string.rep("\t", indent)
-  line = indentStr..line
-  if llen <= 80 then
-    fprint(_ctrlfp, line)
-    return
-  end
-  local prev = 0
-  local curr = 0
+  local csr = 1
+  local brk = 0
+  local pos = 0
+  local nextword = ""
+
   repeat
-    curr, _ = string.find(line, ',', prev + 1)
-    if curr == nil then
-      break
+    if pos == 0 then
+      pos = indentOff
+      fputs(_ctrlfp, indentStr)
     end
-    if (curr + indentOff) >= 80 then
-      local buf = string.sub(line, 1, prev)
-      fprint(_ctrlfp, buf)
-      line = string.sub(line, prev + 1)
-      if string.byte(line, 1) == 32 then
-        line = string.sub(line, 2)
+    brk, _ = string.find(line, ',', csr)
+    if brk ~= nil then
+      nextword = string.sub(line, csr, brk)
+    else
+      nextword = string.sub(line, csr)
+    end
+    csr = csr + #nextword
+    if pos + #nextword >= lineLimit then
+      fputs(_ctrlfp, '\n');
+      pos = indentOff
+      fputs(_ctrlfp, indentStr)
+    end
+    if pos == indentOff then
+      local off, _ = string.find(nextword, ' ')
+      if off == 1 then
+        nextword = string.sub(nextword, 2)
       end
     end
-    prev = curr
-  until (#line + indentOff) < 80
-  if #line > 80 then
-    local looking = string.byte(',', 1)
-    for i = #line, 60, -1 do
-      if string.byte(line, i) == looking then
-        fprint(_ctrlfp, string.sub(line, 1, i))
-        line = string.sub(line, i + 1)
-        break
-      end
-    end
-  end
-  curr, _ = string.find(line, ' ')
-  if curr == 1 then
-    line = string.sub(line, 2)
-  end
-  line = indentStr..line
-  fprint(_ctrlfp, line)
+    fputs(_ctrlfp, string.format("%s", nextword))
+    pos = pos + #nextword
+  until csr >= #line
+  fputs(_ctrlfp, '\n')
 end
 
 local runningFlag = true
@@ -418,7 +405,8 @@ ccCodeTranslator = function(net, cfg)
     "static cc_tensor_t *__pls[%d];", #paraxList), indentOff + 0)
 
   local layerDef = "cc_tensor_t "
-  for k, v in pairs(createTsr) do
+  for k = 1, #createTsr do
+    v = createTsr[k]
     layerDef = layerDef..string.format("*%s, ", v)
   end
   layerDef = string.sub(layerDef, 1, #layerDef - 2)..";"
@@ -431,7 +419,8 @@ ccCodeTranslator = function(net, cfg)
     "__pls[i] = cc_tsrmgr_get(p_namels[i]);"), indentOff + 1)
   printLine("}", indentOff + 0)
 
-  for k, v in pairs(codeLines) do
+  for k = 1, #codeLines do
+    v = codeLines[k]
     v = string.gsub(v, "@%d*,",
       function(s)
         return string.format("%s,",

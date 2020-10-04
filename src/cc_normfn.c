@@ -64,8 +64,8 @@ cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
 	ch_size = inp->shape[CC_CNN2D_SHAPE_H] *
 			inp->shape[CC_CNN2D_SHAPE_W];
 	ch_mem_size = ch_size * dt_size;
-	for (i = 0; i < inp->shape[CC_CNN2D_SHAPE_C]; ++i) {
-		_batch_norm(inp->data + ch_mem_size * i, ch_size,
+	for (i = 0; i < oup->shape[CC_CNN2D_SHAPE_C]; ++i) {
+		_batch_norm(oup->data + ch_mem_size * i, ch_size,
 			para->data + CC_NORM_PARAMETERS * dt_size * i,
 		*para->dtype);
 	}

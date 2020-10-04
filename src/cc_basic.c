@@ -72,10 +72,7 @@ void cc_tensor_shape_fix(cc_int32 *shape, cc_int32 elems)
 		s *= v;
 		sptr++;
 	}
-	if (s != elems) {
-#ifdef ENABLE_CC_ASSERT
-			cc_assert(f);
-#endif
+	if (s != elems || f) {
 		shape[i] = elems / s;
 	}
 }

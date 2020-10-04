@@ -12,7 +12,7 @@ network = {
     l4  = conv2d         ({input = "l3", stride = 1, padding = 2}),
     l5  = relu           ({input = "l4"}),
     l6  = maxPool2d      ({input = "l5", stride = 2}),
-    l7  = reshape        ({input = "l6", shape = {-1, 1}}),
+    l7  = reshape        ({input = "l6", shape = {-1, 1, 1}}),
     l8  = fullyConnected ({input = "l7"}),
     l9  = relu           ({input = "l8"}),
     l10 = fullyConnected ({input = "l9"}),
