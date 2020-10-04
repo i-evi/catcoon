@@ -19,7 +19,7 @@ cc_tensor_t *cc_fmap2d_bias(cc_tensor_t *inp,
 	cc_tensor_t *fmap;
 	cc_int32 i, ch_size, ch_mem_size, dt_size;
 #ifdef ENABLE_CC_ASSERT
-	cc_assert_zero(cc_tensor_dimension(inp) - CC_CNN2D_DIM);
+	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(*inp->dtype - *bias->dtype);
 	cc_assert_zero(inp->shape[CC_CNN2D_SHAPE_C]
 			- bias->shape[CC_CNN2D_SHAPE_C]);
@@ -28,7 +28,7 @@ cc_tensor_t *cc_fmap2d_bias(cc_tensor_t *inp,
 	if (!name || !strcmp(name, inp->name))
 		fmap = inp;
 	else
-		fmap = cc_copy_tensor(inp, name);
+		fmap = cc_copy(inp, name);
 	dt_size = cc_dtype_size(*fmap->dtype);
 	ch_size = fmap->shape[CC_CNN2D_SHAPE_H] *
 			fmap->shape[CC_CNN2D_SHAPE_W];
@@ -51,17 +51,17 @@ cc_tensor_t *cc_fmap2d_flat(cc_tensor_t *inp, const char *name)
 	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
 	cc_int32 i, j ,ch_size, dt_size;
 #ifdef ENABLE_CC_ASSERT
-	cc_assert_zero(cc_tensor_dimension(inp) - CC_CNN2D_DIM);
+	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 #endif
 #ifdef AUTO_TSRMGR
 	flat = cc_tsrmgr_get(name);
 #endif
 	if (!flat) {
-		shape[CC_CNN2D_SHAPE_C] = cc_tensor_elements(inp);
+		shape[CC_CNN2D_SHAPE_C] = cc_elements(inp);
 		shape[CC_CNN2D_SHAPE_H] = 1;
 		shape[CC_CNN2D_SHAPE_W] = 1;
 		cc_assert_ptr(flat =
-			cc_create_tensor(shape, *inp->dtype, name));
+			cc_create(shape, *inp->dtype, name));
 	}
 	sptr = (cc_uint8*)inp->data;
 	dptr = (cc_uint8*)flat->data;

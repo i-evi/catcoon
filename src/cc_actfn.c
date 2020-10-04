@@ -14,9 +14,9 @@ cc_tensor_t *cc_relu(cc_tensor_t *tensor, const char *name)
 	if (!name || !strcmp(name, tensor->name))
 		relu = tensor;
 	else
-		relu = cc_copy_tensor(tensor, name);
+		relu = cc_copy(tensor, name);
 	_activation_relu(relu->data,
-		cc_tensor_elements(relu), *relu->dtype);
+		cc_elements(relu), *relu->dtype);
 	return relu;
 }
 
@@ -26,9 +26,9 @@ cc_tensor_t *cc_relu6(cc_tensor_t *tensor, const char *name)
 	if (!name || !strcmp(name, tensor->name))
 		relu = tensor;
 	else
-		relu = cc_copy_tensor(tensor, name);
+		relu = cc_copy(tensor, name);
 	_activation_relu6(relu->data,
-		cc_tensor_elements(relu), *relu->dtype);
+		cc_elements(relu), *relu->dtype);
 	return relu;
 }
 
@@ -38,8 +38,8 @@ cc_tensor_t *cc_softmax(cc_tensor_t *tensor, const char *name)
 	if (!name || !strcmp(name, tensor->name))
 		softmax = tensor;
 	else
-		softmax = cc_copy_tensor(tensor, name);
+		softmax = cc_copy(tensor, name);
 	_activation_softmax(softmax->data,
-		cc_tensor_elements(softmax), *softmax->dtype);
+		cc_elements(softmax), *softmax->dtype);
 	return softmax;
 }

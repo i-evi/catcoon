@@ -48,7 +48,7 @@ static cc_int32 _calc_elems(const cc_int32 *shape)
 	return elems;
 }
 
-cc_int32 cc_tensor_elements(const cc_tensor_t *tensor)
+cc_int32 cc_elements(const cc_tensor_t *tensor)
 {
 	cc_int32 elems;
 	if (!tensor)
@@ -57,7 +57,7 @@ cc_int32 cc_tensor_elements(const cc_tensor_t *tensor)
 	return elems;
 }
 
-void cc_tensor_shape_fix(cc_int32 *shape, cc_int32 elems)
+void cc_shape_fix(cc_int32 *shape, cc_int32 elems)
 {
 	cc_int32 v, i = 0, f = 0, s = 1;
 	const cc_int32 *sptr = shape;
@@ -77,7 +77,7 @@ void cc_tensor_shape_fix(cc_int32 *shape, cc_int32 elems)
 	}
 }
 
-cc_int32 cc_tensor_dimension(const cc_tensor_t *tensor)
+cc_int32 cc_dimension(const cc_tensor_t *tensor)
 {
 	cc_int32 dim = 0;
 	const cc_int32 *sptr;
@@ -89,11 +89,11 @@ cc_int32 cc_tensor_dimension(const cc_tensor_t *tensor)
 	return dim;
 }
 
-cc_tensor_t *cc_tensor_reshape(cc_tensor_t *tensor, cc_int32 *shape)
+cc_tensor_t *cc_reshape(cc_tensor_t *tensor, cc_int32 *shape)
 {
 	cc_int32 elems;
 	const cc_int32 *sptr;
-	cc_tensor_shape_fix(shape, _calc_elems(tensor->shape));
+	cc_shape_fix(shape, _calc_elems(tensor->shape));
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(_calc_elems(tensor->shape) - _calc_elems(shape));
 #endif
@@ -112,7 +112,7 @@ cc_tensor_t *cc_tensor_reshape(cc_tensor_t *tensor, cc_int32 *shape)
 	return tensor;
 }
 
-int cc_tsrcmp_by_shape(const cc_tensor_t *a, const cc_tensor_t *b)
+int cc_compare_by_shape(const cc_tensor_t *a, const cc_tensor_t *b)
 {
 	int ret = 0;
 	const cc_int32 *ptra = a->shape;
@@ -128,7 +128,7 @@ int cc_tsrcmp_by_shape(const cc_tensor_t *a, const cc_tensor_t *b)
 	return 0;
 }
 
-cc_tensor_t *cc_tensor_stack(cc_tensor_t **tsr,
+cc_tensor_t *cc_stack(cc_tensor_t **tsr,
 	cc_int32 ntsr, cc_int32 axis, const char *name)
 {
 	cc_tensor_t *yield;
@@ -136,7 +136,7 @@ cc_tensor_t *cc_tensor_stack(cc_tensor_t **tsr,
 	cc_int32 i, dim, size, umem, ymem;
 	cc_int32 ncp = 0, nstp = 0;
 	cc_int32 off = 0, unit = 1;
-	dim = cc_tensor_dimension(tsr[0]);
+	dim = cc_dimension(tsr[0]);
 	cc_assert_ptr(shape =
 		(cc_int32*)calloc(dim + 2, sizeof(cc_int32)));
 	if (dim == axis) { /* axis <= dim */
@@ -147,7 +147,7 @@ cc_tensor_t *cc_tensor_stack(cc_tensor_t **tsr,
 		tsr[0]->shape, dim * sizeof(cc_int32));
 	shape[dim + off - 1 - axis] *= ntsr;
 	cc_assert_ptr(yield =
-		cc_create_tensor(shape, *tsr[0]->dtype, name));
+		cc_create(shape, *tsr[0]->dtype, name));
 	for (i = 0; i < axis; ++i) {
 		unit *= tsr[0]->shape[dim - i - 1];
 	}
@@ -168,19 +168,19 @@ cc_tensor_t *cc_tensor_stack(cc_tensor_t **tsr,
 	return yield;
 }
 
-static void _cc_print_tensor_indent(int n)
+static void _cc_print_indent(int n)
 {
 	FILE *ostream = (FILE*)utlog_get_ostream();
 	while (n--)
 		fputc(' ', ostream);
 }
 
-#define CC_PRINT_TENSOR_PROC \
+#define CC_PRINT_PROC \
   i = 0, fidt = 0, cidt = 0;                      \
   do {                                            \
     while (sops[i]) {                             \
       if (fidt) {                                 \
-        _cc_print_tensor_indent(cidt);            \
+        _cc_print_indent(cidt);                   \
         fidt = 0;                                 \
       }                                           \
       fputc('[', ostream);                        \
@@ -194,13 +194,13 @@ static void _cc_print_tensor_indent(int n)
     npt += lsize;                                 \
     if (i - 1 < 0) {                              \
       fputc('\n', ostream);                       \
-      _cc_print_tensor_indent(cidt);              \
+      _cc_print_indent(cidt);                     \
       break;                                      \
     }                                             \
     sops[i - 1]--;                                \
     if (sops[i - 1]) {                            \
       fputc('\n', ostream);                       \
-      _cc_print_tensor_indent(cidt);              \
+      _cc_print_indent(cidt);                     \
     } else {                                      \
       fputc(']', ostream);                        \
       cidt--;                                     \
@@ -236,13 +236,13 @@ static void _cc_print_tensor_indent(int n)
     }                                             \
   } while (sops[0]);
 
-void cc_print_tensor(const cc_tensor_t *tensor)
+void cc_print(const cc_tensor_t *tensor)
 {
 	cc_int32 *sops, *sbak;
 	int fidt, cidt;
 	cc_int32 i, j, dim, lelem, lsize, esize, ssize, npt = 0;
 	FILE *ostream = (FILE*)utlog_get_ostream();
-	dim   = cc_tensor_dimension(tensor);
+	dim   = cc_dimension(tensor);
 	esize = cc_dtype_size(*tensor->dtype);
 	lelem = tensor->shape[dim - 1];
 	lsize = lelem * esize;
@@ -255,16 +255,16 @@ void cc_print_tensor(const cc_tensor_t *tensor)
 	memcpy(sbak, tensor->shape, ssize);
 	sops[dim - 1] = 0;
 	sbak[dim - 1] = 0;
-	cc_print_tensor_property(tensor);
-	CC_PRINT_TENSOR_PROC;
+	cc_property(tensor);
+	CC_PRINT_PROC;
 	free(sops);
 	free(sbak);
 }
 
-void cc_set_tensor(cc_tensor_t *tensor, void *v)
+void cc_set_value(cc_tensor_t *tensor, void *v)
 {
 	_array_set(tensor->data, 
-		cc_tensor_elements(tensor), v, *tensor->dtype);
+		cc_elements(tensor), v, *tensor->dtype);
 }
 
 cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
@@ -278,13 +278,13 @@ cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
 	if (!name || !strcmp(name, tensor->name))
 		yield = tensor;
 	else
-		yield = cc_copy_tensor(tensor, name);
+		yield = cc_copy(tensor, name);
 	_array_clip_by_value(tensor->data,
-		cc_tensor_elements(tensor), min, max, *tensor->dtype);
+		cc_elements(tensor), min, max, *tensor->dtype);
 	return yield;
 }
 
-cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
+cc_tensor_t *cc_cast(cc_tensor_t *tensor,
 		cc_dtype dtype, const char *name)
 {
 	cc_tensor_t *cast;
@@ -295,8 +295,7 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 	memsize = cc_dtype_size(dtype) * elems;
 	if (!memsize)
 		return NULL;
-	cc_assert_ptr(cast = cc_create_tensor(
-		tensor->shape, dtype, NULL));
+	cc_assert_ptr(cast = cc_create(tensor->shape, dtype, NULL));
 	switch (dtype) {
 	case CC_INT8:
 		_array_cast_int8(cast->data,
@@ -340,9 +339,9 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 		break;
 	default:
 		utlog_format(UTLOG_ERR,
-			"cc_cast_tensor: unsupported dtype %x\n",
+			"cc_cast: unsupported dtype %x\n",
 			dtype);
-		cc_free_tensor(cast);
+		cc_free(cast);
 		return NULL;
 	}
 	list_rename(cast->container, name);
@@ -351,7 +350,7 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 #ifdef AUTO_TSRMGR
 		cc_tsrmgr_replace(cast);
 #else
-		cc_free_tensor(tensor);
+		cc_free(tensor);
 #endif
 		return cast;
 	}
@@ -361,7 +360,7 @@ cc_tensor_t *cc_cast_tensor(cc_tensor_t *tensor,
 	return cast;
 }
 
-cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
+cc_tensor_t *cc_scalar(cc_tensor_t *tensor,
 	char op, const void *data, const char *name)
 {
 	cc_tensor_t *yield;
@@ -372,7 +371,7 @@ cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 	if (!name || !strcmp(name, tensor->name))
 		yield = tensor;
 	else
-		yield = cc_copy_tensor(tensor, name);
+		yield = cc_copy(tensor, name);
 	switch (op) {
 	case '+':
 		_array_add_by(yield->data, elems,
@@ -392,20 +391,20 @@ cc_tensor_t *cc_tensor_by_scalar(cc_tensor_t *tensor,
 		break;
 	default:
 		utlog_format(UTLOG_ERR,
-		"cc_tensor_by_scalar: unsupported operator [%c]\n",
+		"cc_scalar: unsupported operator [%c]\n",
 		op);
 #ifdef AUTO_TSRMGR
 		if (strcmp(name, tensor->name))
 			cc_tsrmgr_del(name);
 #else
-		cc_free_tensor(yield);
+		cc_free(yield);
 #endif
 		return NULL;
 	}
 	return yield;
 }
 
-cc_tensor_t *cc_tensor_ewop(cc_tensor_t *a,
+cc_tensor_t *cc_elemwise(cc_tensor_t *a,
 	cc_tensor_t *b, char op, const char *name)
 {
 	cc_tensor_t *yield;
@@ -414,12 +413,12 @@ cc_tensor_t *cc_tensor_ewop(cc_tensor_t *a,
 	while (*++sptr)
 		elems *= *sptr;
 #ifdef ENABLE_CC_ASSERT
-	cc_assert_zero(cc_tsrcmp_by_shape(a, b));
+	cc_assert_zero(cc_compare_by_shape(a, b));
 #endif
 	if (!name || !strcmp(name, a->name))
 		yield = a;
 	else
-		yield = cc_copy_tensor(a, name);
+		yield = cc_copy(a, name);
 	switch (op) {
 	case '+':
 		_array_add_ew(yield->data, elems,
@@ -439,12 +438,12 @@ cc_tensor_t *cc_tensor_ewop(cc_tensor_t *a,
 		break;
 	default:
 		utlog_format(UTLOG_ERR,
-		"cc_tensor_by_scalar: unsupported operator [%c]\n", op);
+		"cc_scalar: unsupported operator [%c]\n", op);
 #ifdef AUTO_TSRMGR
 		if (strcmp(name, a->name))
 			cc_tsrmgr_del(name);
 #else
-		cc_free_tensor(yield);
+		cc_free(yield);
 #endif
 		return NULL;
 	}

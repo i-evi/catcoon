@@ -37,8 +37,8 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
 	char pad_name[CC_CONV2D_PAD_NAME_LEN];
 #ifdef ENABLE_CC_ASSERT
-	cc_assert_zero(cc_tensor_dimension(inp) - CC_CNN2D_DIM);
-	cc_assert_zero(cc_tensor_dimension(kernel) - CC_CONV2D_KERNEL_DIM);
+	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
+	cc_assert_zero(cc_dimension(kernel) - CC_CONV2D_KERNEL_DIM);
 	cc_assert_zero(*inp->dtype - *kernel->dtype);
 	cc_assert_zero(inp->shape[CC_CNN2D_SHAPE_C]
 			- kernel->shape[CC_CONV2D_KERNEL_I]);
@@ -61,7 +61,7 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 		shape[CC_CNN2D_SHAPE_W] = cc_conv2d_shape_calc(
 				inp->shape[CC_CNN2D_SHAPE_W],
 			kernel->shape[CC_CONV2D_KERNEL_W], s, p);
-		oup = cc_create_tensor(shape, *inp->dtype, name);
+		oup = cc_create(shape, *inp->dtype, name);
 	}
 	o_ch_size = oup->shape[CC_CNN2D_SHAPE_W] *
 			oup->shape[CC_CNN2D_SHAPE_H];

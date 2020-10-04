@@ -20,7 +20,7 @@ cc_tensor_t *cc_max_pool2d(
 		shape[CC_CNN2D_SHAPE_C] = inp->shape[CC_CNN2D_SHAPE_C];
 		shape[CC_CNN2D_SHAPE_H] = inp->shape[CC_CNN2D_SHAPE_H] / s;
 		shape[CC_CNN2D_SHAPE_W] = inp->shape[CC_CNN2D_SHAPE_W] / s;
-		pool = cc_create_tensor(shape, *inp->dtype, name);
+		pool = cc_create(shape, *inp->dtype, name);
 	}
 	i_ch_size = inp->shape[CC_CNN2D_SHAPE_H] *
 			inp->shape[CC_CNN2D_SHAPE_W];

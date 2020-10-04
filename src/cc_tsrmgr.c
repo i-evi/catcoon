@@ -29,7 +29,7 @@ static int compare(const void *a, const void *b)
 static void free_pair(struct pair *pair)
 {
 	/* if (pair) */
-	cc_free_tensor((cc_tensor_t*)pair->dat);
+	cc_free((cc_tensor_t*)pair->dat);
 	free(pair);
 }
 

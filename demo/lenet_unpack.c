@@ -83,9 +83,9 @@ int main(int argc, const char *argv[])
 	input = cc_image2tensor(img, "input");
 	utim_free_image(img);
 	utim_free_image(img_read);
-	input = cc_cast_tensor(input, CC_FLOAT32, "input");
+	input = cc_cast(input, CC_FLOAT32, "input");
 	v = 255.;
-	input = cc_tensor_by_scalar(input, '/', &v, "input");
+	input = cc_scalar(input, '/', &v, "input");
 
 	l1 = cc_conv2d(input, conv1_w, conv1_b, 1, 2, 0, "l1_conv");
 
@@ -100,7 +100,7 @@ int main(int argc, const char *argv[])
 	l2_pool = cc_max_pool2d(l2, 2, "l2_pool");
 
 	/* l2_flat = cc_fmap2d_flat(l2_pool, "l2_flat"); */
-	l2_flat = cc_tensor_reshape(l2_pool, shape_flat);
+	l2_flat = cc_reshape(l2_pool, shape_flat);
 
 	l3 = cc_fully_connected(l2_flat, fc1_w, fc1_b, "fc1");
 

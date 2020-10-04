@@ -35,7 +35,7 @@ cc_tensor_t *cc_pad2d(const cc_tensor_t *inp,
 			inp->shape[CC_CNN2D_SHAPE_H] + p + p - soffset;
 		shape[CC_CNN2D_SHAPE_W] = 
 			inp->shape[CC_CNN2D_SHAPE_W] + p + p - soffset;
-		pad = cc_create_tensor(shape, *inp->dtype, name);
+		pad = cc_create(shape, *inp->dtype, name);
 	}
 	p_ch_size = pad->shape[CC_CNN2D_SHAPE_W] *
 			pad->shape[CC_CNN2D_SHAPE_H];

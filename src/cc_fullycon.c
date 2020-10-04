@@ -16,10 +16,9 @@ cc_tensor_t *cc_fully_connected(const cc_tensor_t *inp,
 	cc_tensor_t *oup = NULL;
 	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
 #ifdef ENABLE_CC_ASSERT
-	cc_assert(
-		(cc_tensor_dimension(w) == CC_CONV2D_KERNEL_DIM) ||
-		(cc_tensor_dimension(w) == CC_FULLYCON_KERNEL_DIM));
-	cc_assert_zero(cc_tensor_dimension(inp) - CC_CNN2D_DIM);
+	cc_assert((cc_dimension(w) == CC_CONV2D_KERNEL_DIM) ||
+		(cc_dimension(w) == CC_FULLYCON_KERNEL_DIM));
+	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(*inp->dtype - *w->dtype);
 	cc_assert_zero(*inp->dtype - *b->dtype);
 	cc_assert_zero(inp->shape[CC_CNN2D_SHAPE_C]
@@ -32,7 +31,7 @@ cc_tensor_t *cc_fully_connected(const cc_tensor_t *inp,
 		shape[CC_CNN2D_SHAPE_C] = w->shape[CC_CONV2D_KERNEL_O];
 		shape[CC_CNN2D_SHAPE_H] = 1;
 		shape[CC_CNN2D_SHAPE_W] = 1;
-		oup = cc_create_tensor(shape, *inp->dtype, name);
+		oup = cc_create(shape, *inp->dtype, name);
 	}
 	if (b)
 		_fully_connected(inp->data, oup->data,

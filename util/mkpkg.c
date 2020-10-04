@@ -225,20 +225,20 @@ static void para_compose_norm(const char *name)
 	memcpy(buf, name, len);
 	buf[len] = '\0';
 	buf[len - 1] = 'w';
-	tsr[CC_NORM_GAMMA] = cc_tensor_reshape(cc_tsrmgr_get(buf), shape);
+	tsr[CC_NORM_GAMMA] = cc_reshape(cc_tsrmgr_get(buf), shape);
 	buf[len - 1] = 'b';
-	tsr[CC_NORM_BETA]  = cc_tensor_reshape(cc_tsrmgr_get(buf), shape);
+	tsr[CC_NORM_BETA]  = cc_reshape(cc_tsrmgr_get(buf), shape);
 	buf[len - 1] = 'm';
-	tsr[CC_NORM_MEAN]  = cc_tensor_reshape(cc_tsrmgr_get(buf), shape);
+	tsr[CC_NORM_MEAN]  = cc_reshape(cc_tsrmgr_get(buf), shape);
 	buf[len - 1] = 'v';
-	tsr[CC_NORM_VAR]   = cc_tensor_reshape(cc_tsrmgr_get(buf), shape);
+	tsr[CC_NORM_VAR]   = cc_reshape(cc_tsrmgr_get(buf), shape);
 	buf[len - 1] = 'e';
 	tsr[CC_NORM_EPSILON] =cc_tsrmgr_get(buf);
 	if (!tsr[CC_NORM_EPSILON]) {
 		switch (*tsr[CC_NORM_GAMMA]->dtype) {
 		case CC_FLOAT32:
 			tsr[CC_NORM_EPSILON] =
-				cc_create_tensor(tsr[CC_NORM_GAMMA]->shape,
+				cc_create(tsr[CC_NORM_GAMMA]->shape,
 					*tsr[CC_NORM_GAMMA]->dtype, buf);
 			break;
 		default: /* Unsupported dtype */
@@ -247,7 +247,7 @@ static void para_compose_norm(const char *name)
 		}
 	}
 	buf[len - 1] = 'n';
-	cc_tensor_stack(tsr, CC_NORM_PARAMETERS, 1, buf);
+	cc_stack(tsr, CC_NORM_PARAMETERS, 1, buf);
 	for (i = 0; i < CC_NORM_PARAMETERS; ++i) {
 		cc_tsrmgr_del(tsr[i]->name);
 	}

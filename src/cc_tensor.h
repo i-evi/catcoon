@@ -29,24 +29,24 @@ typedef struct {
 	const cc_int32 *shape;
 } cc_tensor_t;
 
-cc_tensor_t *cc_create_tensor(const cc_int32 *shape,
-			cc_dtype dtype, const char *name);
+cc_tensor_t *cc_create(
+	const cc_int32 *shape, cc_dtype dtype, const char *name);
 
-cc_tensor_t *cc_copy_tensor(const cc_tensor_t *tensor, const char *name);
+cc_tensor_t *cc_copy(const cc_tensor_t *tensor, const char *name);
 
-cc_tensor_t *cc_load_tensor(const char *filename);
+cc_tensor_t *cc_load(const char *filename);
 
 cc_tensor_t *cc_load_bin(const char *filename,
 	const cc_int32 *shape, cc_dtype dtype, const char *name);
 
-cc_tensor_t *cc_tensor_from_array(void *arr,
+cc_tensor_t *cc_from_array(void *arr,
 	const cc_int32 *shape, cc_dtype dtype, const char *name);
 
-void cc_save_tensor(const cc_tensor_t *tensor, const char *filename);
+void cc_save(const cc_tensor_t *tensor, const char *filename);
 
-void cc_free_tensor(cc_tensor_t *tensor);
+void cc_free(cc_tensor_t *tensor);
 
-void cc_print_tensor_property(const cc_tensor_t *tensor);
+void cc_property(const cc_tensor_t *tensor);
 
 #ifdef __cplusplus
 	}

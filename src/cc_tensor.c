@@ -6,7 +6,7 @@
 #include "cc_tensor.h"
 #include "cc_tsrmgr.h"
 
-cc_tensor_t *cc_create_tensor(const cc_int32 *shape,
+cc_tensor_t *cc_create(const cc_int32 *shape,
 			cc_dtype dtype, const char *name)
 {
 	const cc_int32 *sptr = shape;
@@ -48,7 +48,7 @@ cc_tensor_t *cc_create_tensor(const cc_int32 *shape,
 	return tensor;
 }
 
-cc_tensor_t *cc_copy_tensor(const cc_tensor_t *tensor, const char *name)
+cc_tensor_t *cc_copy(const cc_tensor_t *tensor, const char *name)
 {
 	cc_tensor_t *copied;
 	cc_assert_alloc(
@@ -74,7 +74,7 @@ cc_tensor_t *cc_copy_tensor(const cc_tensor_t *tensor, const char *name)
 	return copied;
 }
 
-cc_tensor_t *cc_load_tensor(const char *filename)
+cc_tensor_t *cc_load(const char *filename)
 {
 	cc_tensor_t *tensor;
 	cc_assert_alloc(
@@ -106,7 +106,7 @@ cc_tensor_t *cc_load_bin(const char *filename,
 	FILE *fp;
 	cc_int32 memsize;
 	cc_tensor_t *tensor;
-	cc_assert_ptr(tensor = cc_create_tensor(shape, dtype, name));
+	cc_assert_ptr(tensor = cc_create(shape, dtype, name));
 	cc_assert_ptr(fp = fopen(filename, "rb"));
 	memsize = list_getlen(tensor->container, CC_TENSOR_DATA);
 	cc_assert(fread(tensor->data, memsize, 1, fp));
@@ -114,23 +114,23 @@ cc_tensor_t *cc_load_bin(const char *filename,
 	return tensor;
 }
 
-cc_tensor_t *cc_tensor_from_array(void *arr,
+cc_tensor_t *cc_from_array(void *arr,
 	const cc_int32 *shape, cc_dtype dtype, const char *name)
 {
 	cc_int32 memsize;
 	cc_tensor_t *tensor;
-	cc_assert_ptr(tensor = cc_create_tensor(shape, dtype, name));
+	cc_assert_ptr(tensor = cc_create(shape, dtype, name));
 	memsize = list_getlen(tensor->container, CC_TENSOR_DATA);
 	memcpy(tensor->data, arr, memsize);
 	return tensor;
 }
 
-void cc_save_tensor(const cc_tensor_t *tensor, const char *filename)
+void cc_save(const cc_tensor_t *tensor, const char *filename)
 {
 	list_export(tensor->container, filename);
 }
 
-void cc_free_tensor(cc_tensor_t *tensor)
+void cc_free(cc_tensor_t *tensor)
 {
 	if (tensor) {
 		list_del(tensor->container);
@@ -140,7 +140,7 @@ void cc_free_tensor(cc_tensor_t *tensor)
 
 #define BUFLEN 128
 #define BUFLIM 100
-void cc_print_tensor_property(const cc_tensor_t *tensor)
+void cc_property(const cc_tensor_t *tensor)
 {
 	char buf[BUFLEN];
 	char *bptr = buf;

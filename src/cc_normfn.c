@@ -27,11 +27,10 @@ cc_tensor_t *cc_load_bin_norm_para(const char *w_path, const char *b_path,
 		tsr[CC_NORM_EPSILON] =
 			cc_load_bin(e_path, shape, dtype, NULL);
 	} else {
-		tsr[CC_NORM_EPSILON] =
-			cc_create_tensor(shape, dtype, NULL);
+		tsr[CC_NORM_EPSILON] = cc_create(shape, dtype, NULL);
 		switch (dtype) {
 		case CC_FLOAT32:
-			cc_set_tensor(tsr[CC_NORM_EPSILON],
+			cc_set_value(tsr[CC_NORM_EPSILON],
 			 	&cc_norm_eps_dfl_fp32);
 			break;
 		default:
@@ -41,9 +40,9 @@ cc_tensor_t *cc_load_bin_norm_para(const char *w_path, const char *b_path,
 			break;
 		}
 	}
-	para = cc_tensor_stack(tsr, CC_NORM_PARAMETERS, 1, name);
+	para = cc_stack(tsr, CC_NORM_PARAMETERS, 1, name);
 	for (i = 0; i < CC_NORM_PARAMETERS; ++i)
-		cc_free_tensor(tsr[i]);
+		cc_free(tsr[i]);
 	return para;
 }
 
@@ -53,13 +52,13 @@ cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
 	cc_tensor_t *oup;
 	cc_int32 i, dt_size, ch_size, ch_mem_size;
 #ifdef ENABLE_CC_ASSERT
-	cc_assert_zero(cc_tensor_dimension(inp) - CC_CNN2D_DIM);
+	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(*inp->dtype - *para->dtype);
 #endif
 	if (!name || !strcmp(name, inp->name))
 		oup = inp;
 	else
-		oup = cc_copy_tensor(inp, name);
+		oup = cc_copy(inp, name);
 	dt_size = cc_dtype_size(*inp->dtype);
 	ch_size = inp->shape[CC_CNN2D_SHAPE_H] *
 			inp->shape[CC_CNN2D_SHAPE_W];
