@@ -23,6 +23,9 @@ typedef void (*fn_activation_softmax)(
 typedef void (*fn_max_pool2d)(const void *inp, void *oup,
 	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
 
+typedef void (*fn_avg_pool2d)(const void *inp, void *oup,
+	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
+
 typedef void (*fn_conv2d)(const void *inp, void *oup,
 	cc_int32 x,cc_int32 y, cc_int32 oup_x, cc_int32 oup_y,
 	cc_int32 sx, cc_int32 sy, const void *filter,

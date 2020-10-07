@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include "cc_assert.h"
@@ -266,6 +267,53 @@ void cc_cpu_max_pool2d(const void *inp, void *oup,
 			"cc_cpufn: unsupported dtype %x\n", dt);
 	}
 	free(v_max);
+}
+
+#define CC_CPU_AVG_POOL2D_CASE(DT, dtype) \
+case DT:                                                             \
+for (i = 0; i < o_y; ++i) {                                          \
+	for (j = 0; j < o_x; ++j)                                    \
+	{                                                            \
+		memset(v_avg, 0, cc_dtype_size(dt));                 \
+		for (k = 0; k < s; ++k)                              \
+		{                                                    \
+			for (l = 0; l < s; ++l)                      \
+			{                                            \
+				curr = (dtype*)inp +                 \
+					(s * i + k) * x + j * s + l; \
+				*(dtype*)v_avg += *((dtype*)curr);   \
+			}                                            \
+		}                                                    \
+		*((dtype*)oup + i * o_x + j) =                       \
+			(*(dtype*)v_avg) / (s * s);                  \
+	}                                                            \
+}                                                                    \
+break;
+
+void cc_cpu_avg_pool2d(const void *inp, void *oup,
+	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt)
+{
+	cc_int32 o_x = x / s;
+	cc_int32 o_y = y / s;
+	cc_int32 i, j, k, l;
+	void *curr, *v_avg;
+	cc_assert_alloc(v_avg = malloc(cc_dtype_size(dt)));
+	switch (dt) {
+	CC_CPU_AVG_POOL2D_CASE(CC_UINT8,   cc_uint8);
+	CC_CPU_AVG_POOL2D_CASE(CC_UINT16,  cc_uint16);
+	CC_CPU_AVG_POOL2D_CASE(CC_UINT32,  cc_uint32);
+	CC_CPU_AVG_POOL2D_CASE(CC_UINT64,  cc_uint64);
+	CC_CPU_AVG_POOL2D_CASE(CC_INT8,    cc_int8);
+	CC_CPU_AVG_POOL2D_CASE(CC_INT16,   cc_int16);
+	CC_CPU_AVG_POOL2D_CASE(CC_INT32,   cc_int32);
+	CC_CPU_AVG_POOL2D_CASE(CC_INT64,   cc_int64);
+	CC_CPU_AVG_POOL2D_CASE(CC_FLOAT32, cc_float32);
+	CC_CPU_AVG_POOL2D_CASE(CC_FLOAT64, cc_float64);
+	default:
+		utlog_format(UTLOG_ERR,
+			"cc_cpufn: unsupported dtype %x\n", dt);
+	}
+	free(v_avg);
 }
 
 #define CC_CPU_CONV2D_IMPLEMENTATION(dt) \

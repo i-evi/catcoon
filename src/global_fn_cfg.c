@@ -39,5 +39,6 @@ fn_activation_softmax _activation_softmax = cc_cpu_activation_softmax;
 
 fn_conv2d          _conv2d          = cc_cpu_conv2d;
 fn_max_pool2d      _max_pool2d      = cc_cpu_max_pool2d;
+fn_max_pool2d      _avg_pool2d      = cc_cpu_avg_pool2d;
 fn_fully_connected _fully_connected = cc_cpu_fully_connected;
 fn_batch_norm      _batch_norm      = cc_cpu_batch_norm;

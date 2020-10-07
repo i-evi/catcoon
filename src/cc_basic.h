@@ -26,6 +26,9 @@ int cc_compare_by_shape(const cc_tensor_t *a, const cc_tensor_t *b);
 cc_tensor_t *cc_stack(cc_tensor_t **tsr,
 	cc_int32 ntsr, cc_int32 axis, const char *name);
 
+cc_tensor_t *cc_concat(cc_tensor_t **tsr,
+	cc_int32 ntsr, cc_int32 axis, const char *name);
+
 void cc_print(const cc_tensor_t *tensor);
 
 void cc_set_value(cc_tensor_t *tensor, void *v);
@@ -46,6 +49,9 @@ cc_tensor_t *cc_elemwise(cc_tensor_t *a,
 
 cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
 	const void *min, const void *max, const char *name);
+
+cc_tensor_t *cc_from_array(void *arr,
+	const cc_int32 *shape, cc_dtype dtype, const char *name);
 
 #ifdef __cplusplus
 	}

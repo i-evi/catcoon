@@ -152,9 +152,8 @@ void cc_tsrmgr_del(const char *name)
 cc_tensor_t *cc_tsrmgr_get(const char *name)
 {
 	struct pair *ptr;
-#ifdef ENABLE_CC_ASSERT
-	cc_assert_ptr(name);
-#endif
+	if (!name)
+		return NULL;
 	if (!global_tsrmgr_table) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return NULL;

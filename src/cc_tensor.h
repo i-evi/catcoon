@@ -39,9 +39,6 @@ cc_tensor_t *cc_load(const char *filename);
 cc_tensor_t *cc_load_bin(const char *filename,
 	const cc_int32 *shape, cc_dtype dtype, const char *name);
 
-cc_tensor_t *cc_from_array(void *arr,
-	const cc_int32 *shape, cc_dtype dtype, const char *name);
-
 void cc_save(const cc_tensor_t *tensor, const char *filename);
 
 void cc_free(cc_tensor_t *tensor);

@@ -10,6 +10,9 @@
 cc_tensor_t *cc_max_pool2d(
 	const cc_tensor_t *inp, cc_int32 s, const char *name);
 
+cc_tensor_t *cc_avg_pool2d(
+	const cc_tensor_t *inp, cc_int32 s, const char *name);
+
 #ifdef __cplusplus
 	}
 #endif

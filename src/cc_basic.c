@@ -168,6 +168,43 @@ cc_tensor_t *cc_stack(cc_tensor_t **tsr,
 	return yield;
 }
 
+cc_tensor_t *cc_concat(cc_tensor_t **tsr,
+	cc_int32 ntsr, cc_int32 axis, const char *name)
+{
+	cc_tensor_t *yield;
+	cc_int32 *shape;
+	cc_int32 i, j, dim, raxis, umem, cmem;
+	cc_int32 ncp = 0, nseg = 1, unit = 1;
+	dim = cc_dimension(tsr[0]);
+	cc_assert_ptr(shape =
+		(cc_int32*)calloc(dim + 1, sizeof(cc_int32)));
+	memcpy(shape, tsr[0]->shape, dim * sizeof(cc_int32));
+	raxis = dim - 1 - axis;
+	shape[raxis] = 0;
+	for (i = 0; i < ntsr; ++i) {
+		shape[raxis] += tsr[i]->shape[raxis];
+	}
+	cc_assert_ptr(yield =
+		cc_create(shape, *tsr[0]->dtype, name));
+	for (i = 0; i < dim - axis - 1; ++i) {
+		nseg *= tsr[0]->shape[i];
+	}
+	for (i = 0; i < axis; ++i) {
+		unit *= tsr[0]->shape[dim - i - 1];
+	}
+	umem = unit * cc_dtype_size(*tsr[0]->dtype);
+	for (i = 0; i < nseg; ++i) {
+		for (j = 0; j < ntsr; ++j) {
+			cmem = umem * tsr[j]->shape[raxis];
+			memcpy(yield->data + ncp,
+				tsr[j]->data + i * cmem, cmem);
+			ncp += cmem;
+		}
+	}
+	free(shape);
+	return yield;
+}
+
 static void _cc_print_indent(int n)
 {
 	FILE *ostream = (FILE*)utlog_get_ostream();
@@ -448,4 +485,15 @@ cc_tensor_t *cc_elemwise(cc_tensor_t *a,
 		return NULL;
 	}
 	return yield;
+}
+
+cc_tensor_t *cc_from_array(void *arr,
+	const cc_int32 *shape, cc_dtype dtype, const char *name)
+{
+	cc_int32 memsize;
+	cc_tensor_t *tensor;
+	cc_assert_ptr(tensor = cc_create(shape, dtype, name));
+	memsize = list_getlen(tensor->container, CC_TENSOR_DATA);
+	memcpy(tensor->data, arr, memsize);
+	return tensor;
 }
