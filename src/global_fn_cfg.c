@@ -1,26 +1,29 @@
+#include "cc_cpufn.h"
 #include "global_fn_cfg.h"
 
 void __gfn_check__(void) {return;}
 
-fn_array_set    _array_set    = cc_array_set;
+fn_array_set    _array_set    = cc_cpu_array_set;
 
 fn_array_clip_by_value
-	_array_clip_by_value  = cc_array_clip_by_value;
+	_array_clip_by_value  = cc_cpu_array_clip_by_value;
 
-fn_array_add_by _array_add_by = cc_array_add_by;
-fn_array_sub_by _array_sub_by = cc_array_sub_by;
-fn_array_mul_by _array_mul_by = cc_array_mul_by;
-fn_array_div_by _array_div_by = cc_array_div_by;
+fn_array_add_by _array_add_by = cc_cpu_array_add_by;
+fn_array_sub_by _array_sub_by = cc_cpu_array_sub_by;
+fn_array_mul_by _array_mul_by = cc_cpu_array_mul_by;
+fn_array_div_by _array_div_by = cc_cpu_array_div_by;
 
-fn_array_add_ew _array_add_ew = cc_array_add_ew;
-fn_array_sub_ew _array_sub_ew = cc_array_sub_ew;
-fn_array_mul_ew _array_mul_ew = cc_array_mul_ew;
-fn_array_div_ew _array_div_ew = cc_array_div_ew;
+fn_array_add_ew _array_add_ew = cc_cpu_array_add_ew;
+fn_array_sub_ew _array_sub_ew = cc_cpu_array_sub_ew;
+fn_array_mul_ew _array_mul_ew = cc_cpu_array_mul_ew;
+fn_array_div_ew _array_div_ew = cc_cpu_array_div_ew;
 
+fn_array_sum    _array_sum    = cc_cpu_array_sum;
+fn_array_mean   _array_mean   = cc_cpu_array_mean;
 
 #define GLOBAL_FN_SET_ARRAY_CAST(dtype) \
 fn_array_cast_ ## dtype _array_cast_ ## dtype = \
-	cc_array_cast_ ## dtype;
+	cc_cpu_array_cast_ ## dtype;
 
 GLOBAL_FN_SET_ARRAY_CAST  (uint8)
 GLOBAL_FN_SET_ARRAY_CAST  (uint16)

@@ -277,10 +277,10 @@ reshape = function(args)
       if info.layerId - 1 < 1 then
         assert(nil, "must specify an input for the 1st layer")
       end
-      info.input = layerOutputs[info.layerId - 1]
+      info.input = string.format("@%d", info.layerId - 1)
     end
     local code = string.format(
-      "%s = cc_tensor_reshape(%s, __shape%d);",
+      "%s = cc_reshape(%s, __shape%d);",
       output, info.input, info.shapeId)
     layerOutputs[ret.layerId] = output
     return code

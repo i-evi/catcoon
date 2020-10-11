@@ -11,34 +11,6 @@
 #include "util_log.h"
 #include "cc_basic.h"
 
-#include "global_fn_cfg.h"
-#define EXT_ARRAY_CAST_DEFINITION(dtype) \
-extern fn_array_cast_ ## dtype _array_cast_ ## dtype;
-
-EXT_ARRAY_CAST_DEFINITION  (uint8)
-EXT_ARRAY_CAST_DEFINITION  (uint16)
-EXT_ARRAY_CAST_DEFINITION  (uint32)
-EXT_ARRAY_CAST_DEFINITION  (uint64)
-EXT_ARRAY_CAST_DEFINITION  (int8)
-EXT_ARRAY_CAST_DEFINITION  (int16)
-EXT_ARRAY_CAST_DEFINITION  (int32)
-EXT_ARRAY_CAST_DEFINITION  (int64)
-EXT_ARRAY_CAST_DEFINITION  (float32)
-EXT_ARRAY_CAST_DEFINITION  (float64)
-
-extern fn_array_set _array_set;
-extern fn_array_clip_by_value _array_clip_by_value;
-
-extern fn_array_add_by _array_add_by;
-extern fn_array_sub_by _array_sub_by;
-extern fn_array_mul_by _array_mul_by;
-extern fn_array_div_by _array_div_by;
-
-extern fn_array_add_ew _array_add_ew;
-extern fn_array_sub_ew _array_sub_ew;
-extern fn_array_mul_ew _array_mul_ew;
-extern fn_array_div_ew _array_div_ew;
-
 static cc_int32 _calc_elems(const cc_int32 *shape)
 {
 	cc_int32 elems;
@@ -300,7 +272,7 @@ void cc_print(const cc_tensor_t *tensor)
 
 void cc_set_value(cc_tensor_t *tensor, void *v)
 {
-	_array_set(tensor->data, 
+	cc_array_set(tensor->data, 
 		cc_elements(tensor), v, *tensor->dtype);
 }
 
@@ -316,7 +288,7 @@ cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
 		yield = tensor;
 	else
 		yield = cc_copy(tensor, name);
-	_array_clip_by_value(tensor->data,
+	cc_array_clip_by_value(tensor->data,
 		cc_elements(tensor), min, max, *tensor->dtype);
 	return yield;
 }
@@ -335,43 +307,43 @@ cc_tensor_t *cc_cast(cc_tensor_t *tensor,
 	cc_assert_ptr(cast = cc_create(tensor->shape, dtype, NULL));
 	switch (dtype) {
 	case CC_INT8:
-		_array_cast_int8(cast->data,
+		cc_array_cast_int8(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_UINT8:
-		_array_cast_uint8(cast->data,
+		cc_array_cast_uint8(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_INT16:
-		_array_cast_int16(cast->data,
+		cc_array_cast_int16(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_UINT16:
-		_array_cast_uint16(cast->data,
+		cc_array_cast_uint16(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_INT32:
-		_array_cast_int32(cast->data,
+		cc_array_cast_int32(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_UINT32:
-		_array_cast_uint32(cast->data,
+		cc_array_cast_uint32(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_INT64:
-		_array_cast_int64(cast->data,
+		cc_array_cast_int64(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_UINT64:
-		_array_cast_uint64(cast->data,
+		cc_array_cast_uint64(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_FLOAT32:
-		_array_cast_float32(cast->data,
+		cc_array_cast_float32(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	case CC_FLOAT64:
-		_array_cast_float64(cast->data,
+		cc_array_cast_float64(cast->data,
 			tensor->data, elems, *tensor->dtype);
 		break;
 	default:
@@ -411,19 +383,19 @@ cc_tensor_t *cc_scalar(cc_tensor_t *tensor,
 		yield = cc_copy(tensor, name);
 	switch (op) {
 	case '+':
-		_array_add_by(yield->data, elems,
+		cc_array_add_by(yield->data, elems,
 			yield->data, data, *tensor->dtype);
 		break;
 	case '-':
-		_array_sub_by(yield->data, elems,
+		cc_array_sub_by(yield->data, elems,
 			yield->data, data, *tensor->dtype);
 		break;
 	case '*':
-		_array_mul_by(yield->data, elems,
+		cc_array_mul_by(yield->data, elems,
 			yield->data, data, *tensor->dtype);
 		break;
 	case '/':
-		_array_div_by(yield->data, elems,
+		cc_array_div_by(yield->data, elems,
 			yield->data, data, *tensor->dtype);
 		break;
 	default:
@@ -458,19 +430,19 @@ cc_tensor_t *cc_elemwise(cc_tensor_t *a,
 		yield = cc_copy(a, name);
 	switch (op) {
 	case '+':
-		_array_add_ew(yield->data, elems,
+		cc_array_add_ew(yield->data, elems,
 			yield->data, b->data, *yield->dtype);
 		break;
 	case '-':
-		_array_sub_ew(yield->data, elems,
+		cc_array_sub_ew(yield->data, elems,
 			yield->data, b->data, *yield->dtype);
 		break;
 	case '*':
-		_array_mul_ew(yield->data, elems,
+		cc_array_mul_ew(yield->data, elems,
 			yield->data, b->data, *yield->dtype);
 		break;
 	case '/':
-		_array_div_ew(yield->data, elems,
+		cc_array_div_ew(yield->data, elems,
 			yield->data, b->data, *yield->dtype);
 		break;
 	default:

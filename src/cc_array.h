@@ -10,7 +10,7 @@
  */
 
 #define CC_ARRAY_CAST_DEFINITION(dtype) \
-void cc_array_cast_ ## dtype(                            \
+void cc_array_cast_ ## dtype(                           \
 	void *dst, const void *src, int arrlen, int dt);
 
 CC_ARRAY_CAST_DEFINITION  (uint8)

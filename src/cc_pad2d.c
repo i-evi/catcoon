@@ -41,6 +41,9 @@ cc_tensor_t *cc_pad2d(const cc_tensor_t *inp,
 			pad->shape[CC_CNN2D_SHAPE_H];
 	p_ch_mem_size  = p_ch_size * dtsize;
 	p_row_mem_size = pad->shape[CC_CNN2D_SHAPE_W] * dtsize;
+#ifdef ENABLE_OPENMP
+#pragma omp parallel for private(c, i, j)
+#endif
 	for (c = 0; c < inp->shape[CC_CNN2D_SHAPE_C]; ++c) {
 		for (i = 0; i < inp->shape[CC_CNN2D_SHAPE_H]; ++i) {
 			for (j = 0; j < inp->shape[CC_CNN2D_SHAPE_W]; ++j)

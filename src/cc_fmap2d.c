@@ -6,12 +6,12 @@
 #endif
 
 #include "cc_assert.h"
+#include "cc_array.h"
 #include "cc_basic.h"
 #include "cc_fmap2d.h"
 #include "cc_tsrmgr.h"
 
 #include "global_fn_cfg.h"
-extern fn_array_add_by _array_add_by;
 
 cc_tensor_t *cc_fmap2d_bias(cc_tensor_t *inp,
 	const cc_tensor_t *bias, const char *name)
@@ -37,7 +37,7 @@ cc_tensor_t *cc_fmap2d_bias(cc_tensor_t *inp,
 	#pragma omp parallel for private(i)
 #endif
 	for (i = 0; i < bias->shape[CC_CNN2D_SHAPE_C]; ++i) {
-		_array_add_by(fmap->data + ch_mem_size * i,
+		cc_array_add_by(fmap->data + ch_mem_size * i,
 			ch_size, fmap->data + ch_mem_size * i,
 			bias->data + dt_size * i, *fmap->dtype);
 	}

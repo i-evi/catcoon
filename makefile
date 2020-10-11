@@ -15,7 +15,7 @@ DFLAG += # -g -fsanitize=address -fno-omit-frame-pointer
 CFLAG += # -std=c89
 CFLAG += -Wall # -Wpedantic
 
-OFLAG += -O3
+OFLAG += -O3 -march=native
 
 # Enable OpenMP
 OFLAG += -DENABLE_OPENMP -fopenmp
@@ -127,7 +127,7 @@ $(OBJS_PATH)/build:
 all: $(APPS)
 
 $(CATCOON_A): $(ALL_O)
-	cd $(OBJS_PATH) && $(AR) $@ $^ && $(MV) $@ ..
+	cd $(OBJS_PATH) && $(AR) $@ $(ALL_O) && $(MV) $@ ..
 
 %.o: ./src/%.c
 	$(CC) -c -o $(OBJS_PATH)/$@ $< $(CFLAG) $(INC)

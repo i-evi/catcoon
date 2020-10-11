@@ -7,6 +7,7 @@
 #endif
 
 #include "cc_assert.h"
+#include "cc_array.h"
 #include "cc_basic.h"
 #include "cc_fmap2d.h"
 #include "cc_pad2d.h"
@@ -17,8 +18,6 @@
 
 #include "global_fn_cfg.h"
 extern fn_conv2d       _conv2d;
-extern fn_array_add_ew _array_add_ew;
-extern fn_array_mul_by _array_mul_by;
 
 cc_int32 cc_conv2d_shape_calc(
 	cc_int32 i, cc_int32 k, cc_int32 s, cc_int32 p)
@@ -101,7 +100,7 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 				k_ch_mem_size * j),
 				kernel->shape[CC_CONV2D_KERNEL_W],
 			*kernel->dtype);
-		_array_add_ew(oup->data + o_ch_mem_size * i,
+		cc_array_add_ew(oup->data + o_ch_mem_size * i,
 			o_ch_size, oup->data + o_ch_mem_size * i,
 			omp_out_buf + omp_get_thread_num() * o_ch_mem_size,
 		 *oup->dtype);
@@ -115,7 +114,7 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 				k_ch_mem_size * j),
 				kernel->shape[CC_CONV2D_KERNEL_W],
 			*kernel->dtype);
-		_array_add_ew(oup->data + o_ch_mem_size * i, o_ch_size,
+		cc_array_add_ew(oup->data + o_ch_mem_size * i, o_ch_size,
 				oup->data + o_ch_mem_size * i, omp_out_buf,
 			*oup->dtype);
 #endif
@@ -264,21 +263,21 @@ cc_tensor_t *cc_pw_conv2d(cc_tensor_t *inp, const cc_tensor_t *kernel,
 		for (j = 0; j < kernel->shape[CC_CONV2D_KERNEL_I]; ++j)
 		{
 #ifdef ENABLE_OPENMP
-		_array_mul_by(
+		cc_array_mul_by(
 			omp_out_buf + omp_get_thread_num() * o_ch_mem_size,
 			o_ch_size, inp->data + o_ch_mem_size * j,
 			kernel->data + k_mem_size * i + k_ch_mem_size * j,
 			*oup->dtype);
-		_array_add_ew(oup->data + o_ch_mem_size * i,
+		cc_array_add_ew(oup->data + o_ch_mem_size * i,
 			o_ch_size, oup->data + o_ch_mem_size * i,
 			omp_out_buf + omp_get_thread_num() * o_ch_mem_size,
 		 *oup->dtype);
 #else
-		_array_mul_by(omp_out_buf, o_ch_size,
+		cc_array_mul_by(omp_out_buf, o_ch_size,
 			inp->data + o_ch_mem_size * j,
 			kernel->data + k_mem_size * i + k_ch_mem_size * j,
 			*oup->dtype);
-		_array_add_ew(oup->data + o_ch_mem_size * i, o_ch_size,
+		cc_array_add_ew(oup->data + o_ch_mem_size * i, o_ch_size,
 				oup->data + o_ch_mem_size * i, omp_out_buf,
 			*oup->dtype);
 #endif
