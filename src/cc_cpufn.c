@@ -410,58 +410,6 @@ void cc_cpu_conv2d(const void *inp, void *oup, cc_int32 x, cc_int32 y,
 	}
 }
 
-#define CC_CPU_FULLY_CONNECTED_PROCESS \
-for (i = 0; i < ow; ++i) {                                    \
-	oup[i] = 0;                                           \
-	for (j = 0; j < iw; ++j) {                            \
-		oup[i] += (*(inp + j)) * (*(w + iw * i + j)); \
-	}                                                     \
-	if (b)                                                \
-		oup[i] += b[i];                               \
-}
-
-static void cc_cpu_fully_connected_float32(
-	cc_float32 *inp, cc_float32 *oup, cc_float32 *w,
-	cc_float32 *b, cc_int32 iw, cc_int32 ow)
-{
-	cc_int32 i, j;
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for private(i, j)
-#endif
-	CC_CPU_FULLY_CONNECTED_PROCESS;
-}
-
-static void cc_cpu_fully_connected_float64(
-	cc_float64 *inp, cc_float64 *oup, cc_float64 *w,
-	cc_float64 *b, cc_int32 iw, cc_int32 ow)
-{
-	cc_int32 i, j;
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for private(i, j)
-#endif
-	CC_CPU_FULLY_CONNECTED_PROCESS;
-}
-
-void cc_cpu_fully_connected(const void *inp,
-		void *oup, const void *w, const void *b,
-	cc_int32 iw, cc_int32 ow, cc_dtype dt)
-{
-	switch (dt) {
-	case CC_FLOAT32:
-		cc_cpu_fully_connected_float32(
-			(cc_float32*)inp, (cc_float32*)oup,
-			(cc_float32*)w, (cc_float32*)b, iw, ow);
-		break;
-	case CC_FLOAT64:
-		cc_cpu_fully_connected_float64(
-			(cc_float64*)inp, (cc_float64*)oup,
-			(cc_float64*)w, (cc_float64*)b, iw, ow);
-		break;
-	default:
-		UNSUPPORTED_DTYPE_LOG(dt);
-	}
-}
-
 #ifndef CC_BN_OFFSET_CFG
 #define CC_BN_OFFSET_CFG
 enum {
@@ -882,6 +830,34 @@ void cc_cpu_array_div_ew(void *oup,
 	ARRAY_DIV_EW_CASE(CC_INT64, cc_int64);
 	ARRAY_DIV_EW_CASE(CC_FLOAT32, cc_float32);
 	ARRAY_DIV_EW_CASE(CC_FLOAT64, cc_float64);
+	default:
+		utlog_format(UTLOG_ERR,
+			"cc_array: unsupported dtype %x\n", dt);
+		break;
+	}
+}
+
+#define ARRAY_DOTPROD_CASE(_DT, _dt) \
+case _DT:                                                  \
+*((_dt*)x) = 0;                                            \
+for (i = 0; i < arrlen; ++i)                               \
+	*((_dt*)x) += *(((_dt*)a) + i) * *(((_dt*)b) + i); \
+break;
+void cc_cpu_array_dot_prod(
+	const void *a, const void *b, int arrlen, void *x, int dt)
+{
+	cc_int32 i;
+	switch (dt) {
+	ARRAY_DOTPROD_CASE(CC_UINT8, cc_uint8);
+	ARRAY_DOTPROD_CASE(CC_UINT16, cc_uint16);
+	ARRAY_DOTPROD_CASE(CC_UINT32, cc_uint32);
+	ARRAY_DOTPROD_CASE(CC_UINT64, cc_uint64);
+	ARRAY_DOTPROD_CASE(CC_INT8, cc_int8);
+	ARRAY_DOTPROD_CASE(CC_INT16, cc_int16);
+	ARRAY_DOTPROD_CASE(CC_INT32, cc_int32);
+	ARRAY_DOTPROD_CASE(CC_INT64, cc_int64);
+	ARRAY_DOTPROD_CASE(CC_FLOAT32, cc_float32);
+	ARRAY_DOTPROD_CASE(CC_FLOAT64, cc_float64);
 	default:
 		utlog_format(UTLOG_ERR,
 			"cc_array: unsupported dtype %x\n", dt);

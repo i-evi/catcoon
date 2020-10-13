@@ -8,11 +8,12 @@
 #include "cc_fullycon.h"
 
 #include "global_fn_cfg.h"
-extern fn_fully_connected _fully_connected;
+extern fn_array_dot_prod _array_dot_prod;
 
 cc_tensor_t *cc_fully_connected(const cc_tensor_t *inp,
 	const cc_tensor_t *w, const cc_tensor_t *b, const char *name)
 {
+	cc_int32 i, mmsize, dtsize;
 	cc_tensor_t *oup = NULL;
 	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
 #ifdef ENABLE_CC_ASSERT
@@ -33,13 +34,17 @@ cc_tensor_t *cc_fully_connected(const cc_tensor_t *inp,
 		shape[CC_CNN2D_SHAPE_W] = 1;
 		oup = cc_create(shape, *inp->dtype, name);
 	}
+	dtsize = cc_dtype_size(*inp->dtype);
+	mmsize = inp->shape[CC_CNN2D_SHAPE_C] * dtsize;
+#ifdef ENABLE_OPENMP
+	#pragma omp parallel for private(i)
+#endif
+	for (i = 0; i < w->shape[CC_CONV2D_KERNEL_O]; ++i) {
+		_array_dot_prod(inp->data, w->data + i * mmsize,
+				inp->shape[CC_CNN2D_SHAPE_C],
+			oup->data + i * dtsize, *inp->dtype);
+	}
 	if (b)
-		_fully_connected(inp->data, oup->data,
-			w->data, b->data, w->shape[CC_CONV2D_KERNEL_I],
-			w->shape[CC_CONV2D_KERNEL_O], *inp->dtype);
-	else
-		_fully_connected(inp->data, oup->data,
-			w->data, NULL, w->shape[CC_CONV2D_KERNEL_I],
-			w->shape[CC_CONV2D_KERNEL_O], *inp->dtype);
+		oup = cc_fmap2d_bias(oup, b, oup->name);
 	return oup;
 }

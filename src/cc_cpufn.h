@@ -23,10 +23,6 @@ void cc_cpu_conv2d(const void *inp, void *oup, cc_int32 x, cc_int32 y,
 		cc_int32 oup_x, cc_int32 oup_y, cc_int32 sx, cc_int32 sy,
 	const void *filter, cc_int32 fw, cc_dtype dt);
 
-void cc_cpu_fully_connected(const void *inp,
-		void *oup, const void *w, const void *b,
-	cc_int32 iw, cc_int32 ow, cc_dtype dt);
-
 void cc_cpu_batch_norm(void *inp,
 	cc_int32 len, const void *bnpara, cc_dtype dt);
 
@@ -71,6 +67,9 @@ void cc_cpu_array_mul_ew(void *oup,
 	int arrlen, const void *a, const void *b, int dt);
 void cc_cpu_array_div_ew(void *oup,
 	int arrlen, const void *a, const void *b, int dt);
+
+void cc_cpu_array_dot_prod(
+	const void *a, const void *b, int arrlen, void *x, int dt);
 
 void cc_cpu_array_sum (const void *arr, int arrlen, void *x, int dt);
 void cc_cpu_array_mean(const void *arr, int arrlen, void *x, int dt);
