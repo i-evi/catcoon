@@ -83,8 +83,8 @@ void cc_cpu_activation_relu(void *inp, cc_int32 elems, cc_dtype dt)
 		CC_CPU_RELU_CASE_TEMP(cc_float64);
 		break;
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_cpufn: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
 	}
 }
 
@@ -163,8 +163,8 @@ void cc_cpu_activation_relu6(void *inp, cc_int32 elems, cc_dtype dt)
 		CC_CPU_RELU6_CASE_TEMP(cc_float64);
 		break;
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_cpufn: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
 	}
 }
 
@@ -216,8 +216,8 @@ void cc_cpu_activation_softmax(void *inp, cc_int32 elems, cc_dtype dt)
 			(cc_float64*)inp, elems);
 		break;
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_cpufn: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
 	}
 }
 
@@ -252,19 +252,19 @@ void cc_cpu_max_pool2d(const void *inp, void *oup,
 	void *curr, *v_max;
 	cc_assert_alloc(v_max = malloc(cc_dtype_size(dt)));
 	switch (dt) {
-	CC_CPU_MAX_POOL2D_CASE(CC_UINT8,   cc_uint8);
-	CC_CPU_MAX_POOL2D_CASE(CC_UINT16,  cc_uint16);
-	CC_CPU_MAX_POOL2D_CASE(CC_UINT32,  cc_uint32);
-	CC_CPU_MAX_POOL2D_CASE(CC_UINT64,  cc_uint64);
-	CC_CPU_MAX_POOL2D_CASE(CC_INT8,    cc_int8);
-	CC_CPU_MAX_POOL2D_CASE(CC_INT16,   cc_int16);
-	CC_CPU_MAX_POOL2D_CASE(CC_INT32,   cc_int32);
-	CC_CPU_MAX_POOL2D_CASE(CC_INT64,   cc_int64);
-	CC_CPU_MAX_POOL2D_CASE(CC_FLOAT32, cc_float32);
-	CC_CPU_MAX_POOL2D_CASE(CC_FLOAT64, cc_float64);
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT8,   cc_uint8);
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT16,  cc_uint16);
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT32,  cc_uint32);
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT64,  cc_uint64);
+		CC_CPU_MAX_POOL2D_CASE(CC_INT8,    cc_int8);
+		CC_CPU_MAX_POOL2D_CASE(CC_INT16,   cc_int16);
+		CC_CPU_MAX_POOL2D_CASE(CC_INT32,   cc_int32);
+		CC_CPU_MAX_POOL2D_CASE(CC_INT64,   cc_int64);
+		CC_CPU_MAX_POOL2D_CASE(CC_FLOAT32, cc_float32);
+		CC_CPU_MAX_POOL2D_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_cpufn: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
 	}
 	free(v_max);
 }
@@ -299,19 +299,19 @@ void cc_cpu_avg_pool2d(const void *inp, void *oup,
 	void *curr, *v_avg;
 	cc_assert_alloc(v_avg = malloc(cc_dtype_size(dt)));
 	switch (dt) {
-	CC_CPU_AVG_POOL2D_CASE(CC_UINT8,   cc_uint8);
-	CC_CPU_AVG_POOL2D_CASE(CC_UINT16,  cc_uint16);
-	CC_CPU_AVG_POOL2D_CASE(CC_UINT32,  cc_uint32);
-	CC_CPU_AVG_POOL2D_CASE(CC_UINT64,  cc_uint64);
-	CC_CPU_AVG_POOL2D_CASE(CC_INT8,    cc_int8);
-	CC_CPU_AVG_POOL2D_CASE(CC_INT16,   cc_int16);
-	CC_CPU_AVG_POOL2D_CASE(CC_INT32,   cc_int32);
-	CC_CPU_AVG_POOL2D_CASE(CC_INT64,   cc_int64);
-	CC_CPU_AVG_POOL2D_CASE(CC_FLOAT32, cc_float32);
-	CC_CPU_AVG_POOL2D_CASE(CC_FLOAT64, cc_float64);
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT8,   cc_uint8);
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT16,  cc_uint16);
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT32,  cc_uint32);
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT64,  cc_uint64);
+		CC_CPU_AVG_POOL2D_CASE(CC_INT8,    cc_int8);
+		CC_CPU_AVG_POOL2D_CASE(CC_INT16,   cc_int16);
+		CC_CPU_AVG_POOL2D_CASE(CC_INT32,   cc_int32);
+		CC_CPU_AVG_POOL2D_CASE(CC_INT64,   cc_int64);
+		CC_CPU_AVG_POOL2D_CASE(CC_FLOAT32, cc_float32);
+		CC_CPU_AVG_POOL2D_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_cpufn: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
 	}
 	free(v_avg);
 }
@@ -405,8 +405,8 @@ void cc_cpu_conv2d(const void *inp, void *oup, cc_int32 x, cc_int32 y,
 			sx, sy, (cc_float64*)filter, fw);
 		break;
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_cpufn: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
 	}
 }
 
@@ -497,8 +497,8 @@ void cc_cpu_batch_norm(void *inp,
 			(cc_float64*)inp, len, (cc_float64*)bnpara);
 		break;
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_cpufn: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
 	}
 }
 
@@ -545,26 +545,25 @@ case _DT:                                                          \
 	break;
 
 #define CC_CPU_ARRAY_CAST_IMPLEMENTATION(dtype) \
-void cc_cpu_array_cast_ ## dtype(                                \
-	void *dst, const void *src, int arrlen, int dt)          \
-{                                                                \
-	cc_int32 i;                                              \
-	switch (dt) {                                            \
-	ARRAY_CAST_CASE(CC_UINT8, cc_uint8, cc_ ## dtype);       \
-	ARRAY_CAST_CASE(CC_UINT16, cc_uint16, cc_ ## dtype);     \
-	ARRAY_CAST_CASE(CC_UINT32, cc_uint32, cc_ ## dtype);     \
-	ARRAY_CAST_CASE(CC_UINT64, cc_uint64, cc_ ## dtype);     \
-	ARRAY_CAST_CASE(CC_INT8, cc_int8, cc_ ## dtype);         \
-	ARRAY_CAST_CASE(CC_INT16, cc_int16, cc_ ## dtype);       \
-	ARRAY_CAST_CASE(CC_INT32, cc_int32, cc_ ## dtype);       \
-	ARRAY_CAST_CASE(CC_INT64, cc_int64, cc_ ## dtype);       \
-	ARRAY_CAST_CASE(CC_FLOAT32, cc_float32, cc_ ## dtype);   \
-	ARRAY_CAST_CASE(CC_FLOAT64, cc_float64, cc_ ## dtype);   \
-	default:                                                 \
-		utlog_format(UTLOG_ERR,                          \
-			"cc_array: unsupported dtype %x\n", dt); \
-		break;                                           \
-	}                                                        \
+void cc_cpu_array_cast_ ## dtype(                                      \
+	void *dst, const void *src, int arrlen, int dt)                \
+{                                                                      \
+	cc_int32 i;                                                    \
+	switch (dt) {                                                  \
+		ARRAY_CAST_CASE(CC_UINT8, cc_uint8, cc_ ## dtype);     \
+		ARRAY_CAST_CASE(CC_UINT16, cc_uint16, cc_ ## dtype);   \
+		ARRAY_CAST_CASE(CC_UINT32, cc_uint32, cc_ ## dtype);   \
+		ARRAY_CAST_CASE(CC_UINT64, cc_uint64, cc_ ## dtype);   \
+		ARRAY_CAST_CASE(CC_INT8, cc_int8, cc_ ## dtype);       \
+		ARRAY_CAST_CASE(CC_INT16, cc_int16, cc_ ## dtype);     \
+		ARRAY_CAST_CASE(CC_INT32, cc_int32, cc_ ## dtype);     \
+		ARRAY_CAST_CASE(CC_INT64, cc_int64, cc_ ## dtype);     \
+		ARRAY_CAST_CASE(CC_FLOAT32, cc_float32, cc_ ## dtype); \
+		ARRAY_CAST_CASE(CC_FLOAT64, cc_float64, cc_ ## dtype); \
+	default:                                                       \
+		UNSUPPORTED_DTYPE_LOG(dt);                             \
+		break;                                                 \
+	}                                                              \
 }
 
 #define ARRAY_SET_CASE(_DT, _dt) \
@@ -575,19 +574,18 @@ void cc_cpu_array_set(void *arr, int arrlen, const void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_SET_CASE(CC_UINT8, cc_uint8);
-	ARRAY_SET_CASE(CC_UINT16, cc_uint16);
-	ARRAY_SET_CASE(CC_UINT32, cc_uint32);
-	ARRAY_SET_CASE(CC_UINT64, cc_uint64);
-	ARRAY_SET_CASE(CC_INT8, cc_int8);
-	ARRAY_SET_CASE(CC_INT16, cc_int16);
-	ARRAY_SET_CASE(CC_INT32, cc_int32);
-	ARRAY_SET_CASE(CC_INT64, cc_int64);
-	ARRAY_SET_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_SET_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_SET_CASE(CC_UINT8, cc_uint8);
+		ARRAY_SET_CASE(CC_UINT16, cc_uint16);
+		ARRAY_SET_CASE(CC_UINT32, cc_uint32);
+		ARRAY_SET_CASE(CC_UINT64, cc_uint64);
+		ARRAY_SET_CASE(CC_INT8, cc_int8);
+		ARRAY_SET_CASE(CC_INT16, cc_int16);
+		ARRAY_SET_CASE(CC_INT32, cc_int32);
+		ARRAY_SET_CASE(CC_INT64, cc_int64);
+		ARRAY_SET_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_SET_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -601,19 +599,18 @@ void cc_cpu_array_clip_by_value(
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_CLIP_CASE(CC_UINT8, cc_uint8);
-	ARRAY_CLIP_CASE(CC_UINT16, cc_uint16);
-	ARRAY_CLIP_CASE(CC_UINT32, cc_uint32);
-	ARRAY_CLIP_CASE(CC_UINT64, cc_uint64);
-	ARRAY_CLIP_CASE(CC_INT8, cc_int8);
-	ARRAY_CLIP_CASE(CC_INT16, cc_int16);
-	ARRAY_CLIP_CASE(CC_INT32, cc_int32);
-	ARRAY_CLIP_CASE(CC_INT64, cc_int64);
-	ARRAY_CLIP_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_CLIP_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_CLIP_CASE(CC_UINT8, cc_uint8);
+		ARRAY_CLIP_CASE(CC_UINT16, cc_uint16);
+		ARRAY_CLIP_CASE(CC_UINT32, cc_uint32);
+		ARRAY_CLIP_CASE(CC_UINT64, cc_uint64);
+		ARRAY_CLIP_CASE(CC_INT8, cc_int8);
+		ARRAY_CLIP_CASE(CC_INT16, cc_int16);
+		ARRAY_CLIP_CASE(CC_INT32, cc_int32);
+		ARRAY_CLIP_CASE(CC_INT64, cc_int64);
+		ARRAY_CLIP_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_CLIP_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -638,19 +635,18 @@ void cc_cpu_array_add_by(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_ADD_BY_CASE(CC_UINT8, cc_uint8);
-	ARRAY_ADD_BY_CASE(CC_UINT16, cc_uint16);
-	ARRAY_ADD_BY_CASE(CC_UINT32, cc_uint32);
-	ARRAY_ADD_BY_CASE(CC_UINT64, cc_uint64);
-	ARRAY_ADD_BY_CASE(CC_INT8, cc_int8);
-	ARRAY_ADD_BY_CASE(CC_INT16, cc_int16);
-	ARRAY_ADD_BY_CASE(CC_INT32, cc_int32);
-	ARRAY_ADD_BY_CASE(CC_INT64, cc_int64);
-	ARRAY_ADD_BY_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_ADD_BY_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_ADD_BY_CASE(CC_UINT8, cc_uint8);
+		ARRAY_ADD_BY_CASE(CC_UINT16, cc_uint16);
+		ARRAY_ADD_BY_CASE(CC_UINT32, cc_uint32);
+		ARRAY_ADD_BY_CASE(CC_UINT64, cc_uint64);
+		ARRAY_ADD_BY_CASE(CC_INT8, cc_int8);
+		ARRAY_ADD_BY_CASE(CC_INT16, cc_int16);
+		ARRAY_ADD_BY_CASE(CC_INT32, cc_int32);
+		ARRAY_ADD_BY_CASE(CC_INT64, cc_int64);
+		ARRAY_ADD_BY_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_ADD_BY_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -664,19 +660,18 @@ void cc_cpu_array_sub_by(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_SUB_BY_CASE(CC_UINT8, cc_uint8);
-	ARRAY_SUB_BY_CASE(CC_UINT16, cc_uint16);
-	ARRAY_SUB_BY_CASE(CC_UINT32, cc_uint32);
-	ARRAY_SUB_BY_CASE(CC_UINT64, cc_uint64);
-	ARRAY_SUB_BY_CASE(CC_INT8, cc_int8);
-	ARRAY_SUB_BY_CASE(CC_INT16, cc_int16);
-	ARRAY_SUB_BY_CASE(CC_INT32, cc_int32);
-	ARRAY_SUB_BY_CASE(CC_INT64, cc_int64);
-	ARRAY_SUB_BY_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_SUB_BY_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_SUB_BY_CASE(CC_UINT8, cc_uint8);
+		ARRAY_SUB_BY_CASE(CC_UINT16, cc_uint16);
+		ARRAY_SUB_BY_CASE(CC_UINT32, cc_uint32);
+		ARRAY_SUB_BY_CASE(CC_UINT64, cc_uint64);
+		ARRAY_SUB_BY_CASE(CC_INT8, cc_int8);
+		ARRAY_SUB_BY_CASE(CC_INT16, cc_int16);
+		ARRAY_SUB_BY_CASE(CC_INT32, cc_int32);
+		ARRAY_SUB_BY_CASE(CC_INT64, cc_int64);
+		ARRAY_SUB_BY_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_SUB_BY_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -690,19 +685,18 @@ void cc_cpu_array_mul_by(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_MUL_BY_CASE(CC_UINT8, cc_uint8);
-	ARRAY_MUL_BY_CASE(CC_UINT16, cc_uint16);
-	ARRAY_MUL_BY_CASE(CC_UINT32, cc_uint32);
-	ARRAY_MUL_BY_CASE(CC_UINT64, cc_uint64);
-	ARRAY_MUL_BY_CASE(CC_INT8, cc_int8);
-	ARRAY_MUL_BY_CASE(CC_INT16, cc_int16);
-	ARRAY_MUL_BY_CASE(CC_INT32, cc_int32);
-	ARRAY_MUL_BY_CASE(CC_INT64, cc_int64);
-	ARRAY_MUL_BY_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_MUL_BY_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_MUL_BY_CASE(CC_UINT8, cc_uint8);
+		ARRAY_MUL_BY_CASE(CC_UINT16, cc_uint16);
+		ARRAY_MUL_BY_CASE(CC_UINT32, cc_uint32);
+		ARRAY_MUL_BY_CASE(CC_UINT64, cc_uint64);
+		ARRAY_MUL_BY_CASE(CC_INT8, cc_int8);
+		ARRAY_MUL_BY_CASE(CC_INT16, cc_int16);
+		ARRAY_MUL_BY_CASE(CC_INT32, cc_int32);
+		ARRAY_MUL_BY_CASE(CC_INT64, cc_int64);
+		ARRAY_MUL_BY_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_MUL_BY_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -716,19 +710,18 @@ void cc_cpu_array_div_by(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_DIV_BY_CASE(CC_UINT8, cc_uint8);
-	ARRAY_DIV_BY_CASE(CC_UINT16, cc_uint16);
-	ARRAY_DIV_BY_CASE(CC_UINT32, cc_uint32);
-	ARRAY_DIV_BY_CASE(CC_UINT64, cc_uint64);
-	ARRAY_DIV_BY_CASE(CC_INT8, cc_int8);
-	ARRAY_DIV_BY_CASE(CC_INT16, cc_int16);
-	ARRAY_DIV_BY_CASE(CC_INT32, cc_int32);
-	ARRAY_DIV_BY_CASE(CC_INT64, cc_int64);
-	ARRAY_DIV_BY_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_DIV_BY_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_DIV_BY_CASE(CC_UINT8, cc_uint8);
+		ARRAY_DIV_BY_CASE(CC_UINT16, cc_uint16);
+		ARRAY_DIV_BY_CASE(CC_UINT32, cc_uint32);
+		ARRAY_DIV_BY_CASE(CC_UINT64, cc_uint64);
+		ARRAY_DIV_BY_CASE(CC_INT8, cc_int8);
+		ARRAY_DIV_BY_CASE(CC_INT16, cc_int16);
+		ARRAY_DIV_BY_CASE(CC_INT32, cc_int32);
+		ARRAY_DIV_BY_CASE(CC_INT64, cc_int64);
+		ARRAY_DIV_BY_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_DIV_BY_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -742,19 +735,18 @@ void cc_cpu_array_add_ew(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_ADD_EW_CASE(CC_UINT8, cc_uint8);
-	ARRAY_ADD_EW_CASE(CC_UINT16, cc_uint16);
-	ARRAY_ADD_EW_CASE(CC_UINT32, cc_uint32);
-	ARRAY_ADD_EW_CASE(CC_UINT64, cc_uint64);
-	ARRAY_ADD_EW_CASE(CC_INT8, cc_int8);
-	ARRAY_ADD_EW_CASE(CC_INT16, cc_int16);
-	ARRAY_ADD_EW_CASE(CC_INT32, cc_int32);
-	ARRAY_ADD_EW_CASE(CC_INT64, cc_int64);
-	ARRAY_ADD_EW_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_ADD_EW_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_ADD_EW_CASE(CC_UINT8, cc_uint8);
+		ARRAY_ADD_EW_CASE(CC_UINT16, cc_uint16);
+		ARRAY_ADD_EW_CASE(CC_UINT32, cc_uint32);
+		ARRAY_ADD_EW_CASE(CC_UINT64, cc_uint64);
+		ARRAY_ADD_EW_CASE(CC_INT8, cc_int8);
+		ARRAY_ADD_EW_CASE(CC_INT16, cc_int16);
+		ARRAY_ADD_EW_CASE(CC_INT32, cc_int32);
+		ARRAY_ADD_EW_CASE(CC_INT64, cc_int64);
+		ARRAY_ADD_EW_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_ADD_EW_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -768,19 +760,18 @@ void cc_cpu_array_sub_ew(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_SUB_EW_CASE(CC_UINT8, cc_uint8);
-	ARRAY_SUB_EW_CASE(CC_UINT16, cc_uint16);
-	ARRAY_SUB_EW_CASE(CC_UINT32, cc_uint32);
-	ARRAY_SUB_EW_CASE(CC_UINT64, cc_uint64);
-	ARRAY_SUB_EW_CASE(CC_INT8, cc_int8);
-	ARRAY_SUB_EW_CASE(CC_INT16, cc_int16);
-	ARRAY_SUB_EW_CASE(CC_INT32, cc_int32);
-	ARRAY_SUB_EW_CASE(CC_INT64, cc_int64);
-	ARRAY_SUB_EW_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_SUB_EW_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_SUB_EW_CASE(CC_UINT8, cc_uint8);
+		ARRAY_SUB_EW_CASE(CC_UINT16, cc_uint16);
+		ARRAY_SUB_EW_CASE(CC_UINT32, cc_uint32);
+		ARRAY_SUB_EW_CASE(CC_UINT64, cc_uint64);
+		ARRAY_SUB_EW_CASE(CC_INT8, cc_int8);
+		ARRAY_SUB_EW_CASE(CC_INT16, cc_int16);
+		ARRAY_SUB_EW_CASE(CC_INT32, cc_int32);
+		ARRAY_SUB_EW_CASE(CC_INT64, cc_int64);
+		ARRAY_SUB_EW_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_SUB_EW_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -794,19 +785,18 @@ void cc_cpu_array_mul_ew(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_MUL_EW_CASE(CC_UINT8, cc_uint8);
-	ARRAY_MUL_EW_CASE(CC_UINT16, cc_uint16);
-	ARRAY_MUL_EW_CASE(CC_UINT32, cc_uint32);
-	ARRAY_MUL_EW_CASE(CC_UINT64, cc_uint64);
-	ARRAY_MUL_EW_CASE(CC_INT8, cc_int8);
-	ARRAY_MUL_EW_CASE(CC_INT16, cc_int16);
-	ARRAY_MUL_EW_CASE(CC_INT32, cc_int32);
-	ARRAY_MUL_EW_CASE(CC_INT64, cc_int64);
-	ARRAY_MUL_EW_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_MUL_EW_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_MUL_EW_CASE(CC_UINT8, cc_uint8);
+		ARRAY_MUL_EW_CASE(CC_UINT16, cc_uint16);
+		ARRAY_MUL_EW_CASE(CC_UINT32, cc_uint32);
+		ARRAY_MUL_EW_CASE(CC_UINT64, cc_uint64);
+		ARRAY_MUL_EW_CASE(CC_INT8, cc_int8);
+		ARRAY_MUL_EW_CASE(CC_INT16, cc_int16);
+		ARRAY_MUL_EW_CASE(CC_INT32, cc_int32);
+		ARRAY_MUL_EW_CASE(CC_INT64, cc_int64);
+		ARRAY_MUL_EW_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_MUL_EW_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -820,19 +810,18 @@ void cc_cpu_array_div_ew(void *oup,
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_DIV_EW_CASE(CC_UINT8, cc_uint8);
-	ARRAY_DIV_EW_CASE(CC_UINT16, cc_uint16);
-	ARRAY_DIV_EW_CASE(CC_UINT32, cc_uint32);
-	ARRAY_DIV_EW_CASE(CC_UINT64, cc_uint64);
-	ARRAY_DIV_EW_CASE(CC_INT8, cc_int8);
-	ARRAY_DIV_EW_CASE(CC_INT16, cc_int16);
-	ARRAY_DIV_EW_CASE(CC_INT32, cc_int32);
-	ARRAY_DIV_EW_CASE(CC_INT64, cc_int64);
-	ARRAY_DIV_EW_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_DIV_EW_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_DIV_EW_CASE(CC_UINT8, cc_uint8);
+		ARRAY_DIV_EW_CASE(CC_UINT16, cc_uint16);
+		ARRAY_DIV_EW_CASE(CC_UINT32, cc_uint32);
+		ARRAY_DIV_EW_CASE(CC_UINT64, cc_uint64);
+		ARRAY_DIV_EW_CASE(CC_INT8, cc_int8);
+		ARRAY_DIV_EW_CASE(CC_INT16, cc_int16);
+		ARRAY_DIV_EW_CASE(CC_INT32, cc_int32);
+		ARRAY_DIV_EW_CASE(CC_INT64, cc_int64);
+		ARRAY_DIV_EW_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_DIV_EW_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -848,19 +837,18 @@ void cc_cpu_array_dot_prod(
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_DOTPROD_CASE(CC_UINT8, cc_uint8);
-	ARRAY_DOTPROD_CASE(CC_UINT16, cc_uint16);
-	ARRAY_DOTPROD_CASE(CC_UINT32, cc_uint32);
-	ARRAY_DOTPROD_CASE(CC_UINT64, cc_uint64);
-	ARRAY_DOTPROD_CASE(CC_INT8, cc_int8);
-	ARRAY_DOTPROD_CASE(CC_INT16, cc_int16);
-	ARRAY_DOTPROD_CASE(CC_INT32, cc_int32);
-	ARRAY_DOTPROD_CASE(CC_INT64, cc_int64);
-	ARRAY_DOTPROD_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_DOTPROD_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_DOTPROD_CASE(CC_UINT8, cc_uint8);
+		ARRAY_DOTPROD_CASE(CC_UINT16, cc_uint16);
+		ARRAY_DOTPROD_CASE(CC_UINT32, cc_uint32);
+		ARRAY_DOTPROD_CASE(CC_UINT64, cc_uint64);
+		ARRAY_DOTPROD_CASE(CC_INT8, cc_int8);
+		ARRAY_DOTPROD_CASE(CC_INT16, cc_int16);
+		ARRAY_DOTPROD_CASE(CC_INT32, cc_int32);
+		ARRAY_DOTPROD_CASE(CC_INT64, cc_int64);
+		ARRAY_DOTPROD_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_DOTPROD_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -873,19 +861,18 @@ void cc_cpu_array_sum(const void *arr, int arrlen, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_SUM_CASE(CC_UINT8, cc_uint8);
-	ARRAY_SUM_CASE(CC_UINT16, cc_uint16);
-	ARRAY_SUM_CASE(CC_UINT32, cc_uint32);
-	ARRAY_SUM_CASE(CC_UINT64, cc_uint64);
-	ARRAY_SUM_CASE(CC_INT8, cc_int8);
-	ARRAY_SUM_CASE(CC_INT16, cc_int16);
-	ARRAY_SUM_CASE(CC_INT32, cc_int32);
-	ARRAY_SUM_CASE(CC_INT64, cc_int64);
-	ARRAY_SUM_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_SUM_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_SUM_CASE(CC_UINT8, cc_uint8);
+		ARRAY_SUM_CASE(CC_UINT16, cc_uint16);
+		ARRAY_SUM_CASE(CC_UINT32, cc_uint32);
+		ARRAY_SUM_CASE(CC_UINT64, cc_uint64);
+		ARRAY_SUM_CASE(CC_INT8, cc_int8);
+		ARRAY_SUM_CASE(CC_INT16, cc_int16);
+		ARRAY_SUM_CASE(CC_INT32, cc_int32);
+		ARRAY_SUM_CASE(CC_INT64, cc_int64);
+		ARRAY_SUM_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_SUM_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }
@@ -899,19 +886,18 @@ void cc_cpu_array_mean(const void *arr, int arrlen, void *x, int dt)
 {
 	cc_int32 i;
 	switch (dt) {
-	ARRAY_MEAN_CASE(CC_UINT8, cc_uint8);
-	ARRAY_MEAN_CASE(CC_UINT16, cc_uint16);
-	ARRAY_MEAN_CASE(CC_UINT32, cc_uint32);
-	ARRAY_MEAN_CASE(CC_UINT64, cc_uint64);
-	ARRAY_MEAN_CASE(CC_INT8, cc_int8);
-	ARRAY_MEAN_CASE(CC_INT16, cc_int16);
-	ARRAY_MEAN_CASE(CC_INT32, cc_int32);
-	ARRAY_MEAN_CASE(CC_INT64, cc_int64);
-	ARRAY_MEAN_CASE(CC_FLOAT32, cc_float32);
-	ARRAY_MEAN_CASE(CC_FLOAT64, cc_float64);
+		ARRAY_MEAN_CASE(CC_UINT8, cc_uint8);
+		ARRAY_MEAN_CASE(CC_UINT16, cc_uint16);
+		ARRAY_MEAN_CASE(CC_UINT32, cc_uint32);
+		ARRAY_MEAN_CASE(CC_UINT64, cc_uint64);
+		ARRAY_MEAN_CASE(CC_INT8, cc_int8);
+		ARRAY_MEAN_CASE(CC_INT16, cc_int16);
+		ARRAY_MEAN_CASE(CC_INT32, cc_int32);
+		ARRAY_MEAN_CASE(CC_INT64, cc_int64);
+		ARRAY_MEAN_CASE(CC_FLOAT32, cc_float32);
+		ARRAY_MEAN_CASE(CC_FLOAT64, cc_float64);
 	default:
-		utlog_format(UTLOG_ERR,
-			"cc_array: unsupported dtype %x\n", dt);
+		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
 }

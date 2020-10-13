@@ -15,7 +15,7 @@ DFLAG += # -g -fsanitize=address -fno-omit-frame-pointer
 CFLAG += # -std=c89
 CFLAG += -Wall # -Wpedantic
 
-OFLAG += -O3 -march=native
+OFLAG += -Ofast
 
 # Enable OpenMP
 OFLAG += -DENABLE_OPENMP -fopenmp
@@ -29,31 +29,35 @@ CFLAG += -DAUTO_TSRMGR
 UTIM_COND   =
 UT_LIST_CFG = -DENABLE_FOPS
 
+# Additional source/library configurations
+# some experimental implementations of NN functions on cpu
+ADDITIONAL += ecpufn
+
 # 3rd party source/library configurations
 # stb: Read/write jpg, png, tga format images.
 # Will only support bmp image if disabled
-3RDSRC_CF += stb
+3RDSRC_CFG += stb
 
 # parg: Argv parser written in ANSI C
 # Argv parser for apps
-3RDSRC_CF += parg
+3RDSRC_CFG += parg
 
 # seb: sequential encoded buffers
 # Pack and save compressed models files
-3RDSRC_CF += seb
+3RDSRC_CFG += seb
 
 # zlib: General-purpose compression and decompression library
 # Pack and save compressed models files
-3RDSRC_CF += zlib
+3RDSRC_CFG += zlib
 
 # cJSON: Ultralightweight JSON parser in ANSI C.
-3RDSRC_CF += cjson
+3RDSRC_CFG += cjson
 
 ifneq ($(findstring MINI, $(BCTRL)),)
 	CC = tcc
 	CFLAG  = -std=c89
 	CFLAG += -DAUTO_TSRMGR
-	3RDSRC_CF = parg cjson
+	3RDSRC_CFG = parg cjson
 endif
 
 ifneq ($(findstring -std=c89, $(CFLAG)),)
@@ -63,26 +67,31 @@ ifneq ($(findstring -std=c89, $(CFLAG)),)
 	endif
 endif
 
-ifneq ($(findstring stb, $(3RDSRC_CF)),)
+ifneq ($(findstring ecpufn, $(ADDITIONAL)),)
+	ALL_O += ecpufn.o
+	CFLAG += -march=native -DENABLE_ECPUFN
+endif
+
+ifneq ($(findstring stb, $(3RDSRC_CFG)),)
 	UTIM_COND += -DUSE3RD_STB_IMAGE -I ./src/3rd_party/stb/
 endif
 
-ifneq ($(findstring parg, $(3RDSRC_CF)),)
+ifneq ($(findstring parg, $(3RDSRC_CFG)),)
 	ALL_O   += parg.o
 	APP_INC += -I ./src/3rd_party/parg/
 endif
 
-ifneq ($(findstring seb, $(3RDSRC_CF)),)
+ifneq ($(findstring seb, $(3RDSRC_CFG)),)
 	ALL_O += seb.o fastlz.o
 	UT_LIST_CFG += -DENABLE_SEB -I ./src/3rd_party/seb/
 endif
 
-ifneq ($(findstring zlib, $(3RDSRC_CF)),)
+ifneq ($(findstring zlib, $(3RDSRC_CFG)),)
 	LINK += -lz
 	UT_LIST_CFG += -DENABLE_ZLIB
 endif
 
-ifneq ($(findstring cjson, $(3RDSRC_CF)),)
+ifneq ($(findstring cjson, $(3RDSRC_CFG)),)
 	ALL_O   += cJSON.o
 	APP_INC += -I ./src/3rd_party/cjson/
 endif
@@ -169,6 +178,10 @@ util_list.o  : $(patsubst %, ./src/%, util_list.h util_list.c)
 	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG) $(UT_LIST_CFG)
 util_image.o : $(patsubst %, ./src/%, util_image.h util_image.c)
 	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG) $(UTIM_COND)
+
+# Additional objs
+ecpufn.o: ./src/additional/ecpufn/ecpufn*
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG)
 
 # 3rd party objs
 parg.o: ./src/3rd_party/parg/parg*
