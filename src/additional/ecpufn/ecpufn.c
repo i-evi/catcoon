@@ -86,8 +86,8 @@ void ecpu_conv2d_f32(const f32 *in, f32 *out, i32 ix, i32 iy,
 	}
 }
 
-#if defined(__x86_64) && defined(__SSE4_1__)
-void sse4_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
+#if defined(__x86_64) && defined(__SSE__)
+void sse_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
 	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, size, nblk;
@@ -108,12 +108,11 @@ void sse4_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
 	}
 }
 
-void sse4_conv2d_f32_k2sx(const f32 *in, f32 *out, i32 ix, i32 iy,
+void sse_conv2d_f32_k2sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, j, off;
 	__m128 lvk, blk;
-	__m128 pdv = _mm_set_ps(1., 1., 1., 1.);
 	f32 *res = (f32*)&(blk);
 	lvk = _mm_set_ps(k[3], k[2], k[1], k[0]);
 	for (i = 0; i <= iy - kw; i += sy) {
@@ -124,20 +123,18 @@ void sse4_conv2d_f32_k2sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 				_mm_loadu_ps(in + off + ix - 2), // h2
 				_MM_SHUFFLE(3, 2, 1, 0));
 			blk = blk * lvk;
-			blk = _mm_dp_ps(blk, pdv, 0xF1);
+			*res += res[1] + res[2] + res[3];
 			*out++ = *res;
 		}
 	}
 }
 
-void sse4_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
+void sse_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, j, u, off;
 	__m128 lvk[3];
 	__m128 blk, acc;
-	__m128 pdvr = _mm_set_ps(0., 1., 1., 1.);
-	__m128 pdvc = _mm_set_ps(1., 1., 1., 0.);
 	f32 *res = (f32*)&(acc);
 	for (u = 0; u < kw; ++u) {
 		memcpy(&(lvk[u]), k + u * kw, sizeof(f32) * kw);
@@ -151,8 +148,7 @@ void sse4_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 				acc += blk * lvk[u];
 				off += ix;
 			}
-			acc = _mm_dp_ps(acc, pdvr, 0xF1);
-			*out++ = *res;
+			*out++ = (res[0] + res[1] + res[2]);
 		}
 	}
 	if (iy - kw >= i) {
@@ -169,12 +165,11 @@ void sse4_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 				acc += blk * lvk[u];
 				off += ix;
 			}
-			acc = _mm_dp_ps(acc, pdvc, 0xF1);
-			*out++ = *res;
+			*out++ = (res[1] + res[2] + res[3]);
 		}
 	}
 }
-#endif /* __SSE4_1__ */
+#endif /* __SSE__ */
 
 #define NAIVE_DOTPROD_IMPLEMENTATION(dtype) \
 void naive_dot_prod_ ## dtype (const dtype *in, \
@@ -225,12 +220,11 @@ void ecpu_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
 #endif
 }
 
-#if defined(__x86_64) && defined(__SSE4_1__)
-void sse4_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
+#if defined(__x86_64) && defined(__SSE__)
+void sse_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
 {
 	i32 i;
 	__m128 blk, acc, vwb;
-	__m128 pdv = _mm_set1_ps(1.);
 	f32 *res = (f32*)&(acc);
 	acc = _mm_setzero_ps();
 	for (i = 0; i < iw - 4; i += 4) {
@@ -238,7 +232,7 @@ void sse4_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
 		vwb = _mm_loadu_ps( w + i);
 		acc += blk * vwb;
 	}
-	acc = _mm_dp_ps(acc, pdv, 0xF1);
+	*res += res[1] + res[2] + res[3]; 
 	*out = *res;
 	for (; i < iw; ++i) {
 		*out += *(in + i) * (*(w + i));
@@ -264,6 +258,102 @@ void avx_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
 	*out = *resl + *resh;
 	for (; i < iw; ++i) {
 		*out += *(in + i) * (*(w + i));
+	}
+}
+#endif
+
+#define NAIVE_MAXPOOL2D_IMPLEMENTATION(dtype) \
+void naive_max_pool2d_ ## dtype (const dtype *in,  \
+        dtype *out, i32 x, i32 y, i32 s)           \
+{                                                  \
+  i32 ox = x / s;                                  \
+  i32 oy = y / s;                                  \
+  i32 i, j, k, l;                                  \
+  const dtype *curr;                               \
+  dtype v_max;                                     \
+  for (i = 0; i < oy; ++i) {                       \
+    for (j = 0; j < ox; ++j) {                     \
+      v_max = *(in + s * i * x + s * j);           \
+      for (k = 0; k < s; ++k) {                    \
+        for (l = 0; l < s; ++l) {                  \
+          curr = in + (s * i + k) * x + j * s + l; \
+          v_max = *curr > v_max ? *curr : v_max;   \
+        }                                          \
+      }                                            \
+      *out++ = v_max;                              \
+    }                                              \
+  }                                                \
+}
+
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (i8);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (u8);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (i16);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (u16);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (i32);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (u32);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (i64);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (u64);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (f32);
+NAIVE_MAXPOOL2D_IMPLEMENTATION  (f64);
+
+#define DFL_MAXPOOL2D_IMPLEMENTATION(dtype) \
+void ecpu_max_pool2d_ ## dtype (                          \
+	const dtype *in, dtype *out, i32 x, i32 y, i32 s) \
+{                                                         \
+	naive_max_pool2d_ ## dtype(in, out, x, y, s);     \
+}
+
+DFL_MAXPOOL2D_IMPLEMENTATION  (i8);
+DFL_MAXPOOL2D_IMPLEMENTATION  (u8);
+DFL_MAXPOOL2D_IMPLEMENTATION  (i16);
+DFL_MAXPOOL2D_IMPLEMENTATION  (u16);
+DFL_MAXPOOL2D_IMPLEMENTATION  (i32);
+DFL_MAXPOOL2D_IMPLEMENTATION  (u32);
+DFL_MAXPOOL2D_IMPLEMENTATION  (i64);
+DFL_MAXPOOL2D_IMPLEMENTATION  (u64);
+/* DFL_MAXPOOL2D_IMPLEMENTATION  (f32); */
+DFL_MAXPOOL2D_IMPLEMENTATION  (f64);
+
+
+void ecpu_max_pool2d_f32(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+{
+	switch (s) {
+#ifdef ALT_MAXPOOL2D_F32_S2
+	case 2:
+		ALT_MAXPOOL2D_F32_S2(in, out, x, y, s);
+		break;
+#endif
+	default:
+		naive_max_pool2d_f32(in, out, x, y, s);
+		break;
+	}
+}
+
+#if defined(__x86_64) && defined(__SSE__)
+void sse_max_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+{
+	i32 i, j;
+	__m128 blka;
+	__m128 blkb;
+	f32 maxl, maxh, a, b;
+	f32 *pa = (f32*)&blka, *pb = ((f32*)&blka) + 2;
+	for (i = 0; i < (y - 1); i += 2) {
+		for (j = 0; j < (x - 3); j += 4) {
+			blka = _mm_loadu_ps(in + (i + 0) * x + j);
+			blkb = _mm_loadu_ps(in + (i + 1) * x + j);
+			blka = _mm_max_ps(blka, blkb);
+			*out++ = pa[0] > pa[1] ? pa[0] : pa[1];  
+			*out++ = pb[0] > pb[1] ? pb[0] : pb[1];  
+		}
+		for (; j < (x - 1); j += 2) {
+			a = *(in + (i + 0) * x + j + 0);
+			b = *(in + (i + 0) * x + j + 1);
+			maxl = a > b ? a : b;
+			a = *(in + (i + 1) * x + j + 0);
+			b = *(in + (i + 1) * x + j + 1);
+			maxh = a > b ? a : b;
+			*out++ = maxl > maxh ? maxl : maxh;
+		}
 	}
 }
 #endif

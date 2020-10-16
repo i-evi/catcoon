@@ -57,12 +57,16 @@ fn_activation_softmax _activation_softmax = cc_cpu_activation_softmax;
 void cc_ecpu_conv2d_wrap(const void *in, void *out, cc_int32 ix,
 	cc_int32 iy, cc_int32 ox, cc_int32 oy, cc_int32 sx, cc_int32 sy,
 	const void *k, cc_int32 kw, cc_dtype dt);
+void cc_ecpu_max_pool2d_wrap(const void *in, void *out,
+	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
+
 fn_conv2d          _conv2d          = cc_ecpu_conv2d_wrap;
+fn_max_pool2d      _max_pool2d      = cc_ecpu_max_pool2d_wrap;
 #else
 fn_conv2d          _conv2d          = cc_cpu_conv2d;
-#endif /* ENABLE_ECPUFN */
 fn_max_pool2d      _max_pool2d      = cc_cpu_max_pool2d;
-fn_max_pool2d      _avg_pool2d      = cc_cpu_avg_pool2d;
+#endif /* ENABLE_ECPUFN */
+fn_avg_pool2d      _avg_pool2d      = cc_cpu_avg_pool2d;
 fn_batch_norm      _batch_norm      = cc_cpu_batch_norm;
 
 #ifdef ENABLE_ECPUFN
@@ -160,6 +164,56 @@ void cc_ecpu_conv2d_wrap(const void *in, void *out, cc_int32 ix,
 	case CC_FLOAT64:
 		ecpu_conv2d_f64((cc_float64*)in, (cc_float64*)out,
 			ix, iy, ox, oy, sx, sy, (cc_float64*)k, kw);
+		break;
+	default:
+		assert(0);
+		break;
+	}
+}
+
+void cc_ecpu_max_pool2d_wrap(const void *in, void *out,
+	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt)
+{
+	switch (dt) {
+	case CC_UINT8:
+		ecpu_max_pool2d_u8(
+			(cc_uint8*)in, (cc_uint8*)out, x, y, s);
+		break;
+	case CC_UINT16:
+		ecpu_max_pool2d_u16(
+			(cc_uint16*)in, (cc_uint16*)out, x, y, s);
+		break;
+	case CC_UINT32:
+		ecpu_max_pool2d_u32(
+			(cc_uint32*)in, (cc_uint32*)out, x, y, s);
+		break;
+	case CC_UINT64:
+		ecpu_max_pool2d_u64(
+			(cc_uint64*)in, (cc_uint64*)out, x, y, s);
+		break;
+	case CC_INT8:
+		ecpu_max_pool2d_i8(
+			(cc_int8*)in, (cc_int8*)out, x, y, s);
+		break;
+	case CC_INT16:
+		ecpu_max_pool2d_i16(
+			(cc_int16*)in, (cc_int16*)out, x, y, s);
+		break;
+	case CC_INT32:
+		ecpu_max_pool2d_i32(
+			(cc_int32*)in, (cc_int32*)out, x, y, s);
+		break;
+	case CC_INT64:
+		ecpu_max_pool2d_i64(
+			(cc_int64*)in, (cc_int64*)out, x, y, s);
+		break;
+	case CC_FLOAT32:
+		ecpu_max_pool2d_f32(
+			(cc_float32*)in, (cc_float32*)out, x, y, s);
+		break;
+	case CC_FLOAT64:
+		ecpu_max_pool2d_f64(
+			(cc_float64*)in, (cc_float64*)out, x, y, s);
 		break;
 	default:
 		assert(0);
