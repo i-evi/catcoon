@@ -288,7 +288,7 @@ lsw_t list_rename(struct list *ls, const char *name)
 			return LSS_MALLOC_ERR;
 		strcpy(ls->name, name);
 	} else { /* LIST_SHARED_ */
-		strcpy((char*)ls + sizeof(struct list), name);
+		strcpy(ls->name, name);
 	}
 	return LSS_SUCCESS;
 }
