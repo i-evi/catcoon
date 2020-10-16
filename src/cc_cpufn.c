@@ -224,13 +224,10 @@ void cc_cpu_activation_softmax(void *inp, cc_int32 elems, cc_dtype dt)
 #define CC_CPU_MAX_POOL2D_CASE(DT, dtype) \
 case DT:                                                             \
 for (i = 0; i < o_y; ++i) {                                          \
-	for (j = 0; j < o_x; ++j)                                    \
-	{                                                            \
+	for (j = 0; j < o_x; ++j) {                                  \
 		*(dtype*)v_max = *((dtype*)inp + s * i * x + s * j); \
-		for (k = 0; k < s; ++k)                              \
-		{                                                    \
-			for (l = 0; l < s; ++l)                      \
-			{                                            \
+		for (k = 0; k < s; ++k) {                            \
+			for (l = 0; l < s; ++l) {                    \
 				curr = (dtype*)inp +                 \
 					(s * i + k) * x + j * s + l; \
 				*(dtype*)v_max = *((dtype*)curr) >   \
@@ -272,13 +269,10 @@ void cc_cpu_max_pool2d(const void *inp, void *oup,
 #define CC_CPU_AVG_POOL2D_CASE(DT, dtype) \
 case DT:                                                             \
 for (i = 0; i < o_y; ++i) {                                          \
-	for (j = 0; j < o_x; ++j)                                    \
-	{                                                            \
+	for (j = 0; j < o_x; ++j) {                                  \
 		memset(v_avg, 0, cc_dtype_size(dt));                 \
-		for (k = 0; k < s; ++k)                              \
-		{                                                    \
-			for (l = 0; l < s; ++l)                      \
-			{                                            \
+		for (k = 0; k < s; ++k) {                            \
+			for (l = 0; l < s; ++l) {                    \
 				curr = (dtype*)inp +                 \
 					(s * i + k) * x + j * s + l; \
 				*(dtype*)v_avg += *((dtype*)curr);   \
