@@ -167,7 +167,7 @@ cc_tensor_t *cc_tsrmgr_get(const char *name)
 
 #define BUFLEN 128
 #define BUFLIM 100
-static void _print_tensor_property(cc_tensor_t *tensor)
+static void _print_property(cc_tensor_t *tensor)
 {
 	char buf[BUFLEN];
 	char *bptr = buf;
@@ -190,14 +190,11 @@ static void _print_tensor_property(cc_tensor_t *tensor)
 		cc_dtype_to_string(*tensor->dtype), buf);
 }
 
-#define FMTLEN 32
 static void _print_pair(struct pair *pair)
 {
-	char fmt[FMTLEN];
-	sprintf(fmt, "<0x%%0%dlx>: \"%%s\", ", (int)(sizeof(void*) << 1));
-	fprintf((FILE*)utlog_get_ostream(), fmt, pair->dat,
-			((cc_tensor_t*)pair->dat)->name);
-		_print_tensor_property((cc_tensor_t*)pair->dat);
+	fprintf((FILE*)utlog_get_ostream(), "<%p>: \"%s\", ",
+		pair->dat, ((cc_tensor_t*)pair->dat)->name);
+		_print_property((cc_tensor_t*)pair->dat);
 }
 
 static void _cc_tsrmgr_list(struct rbt_node *n)
