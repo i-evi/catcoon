@@ -54,8 +54,8 @@ ADDITIONAL += ecpufn
 3RDSRC_CFG += cjson
 
 ifneq ($(findstring MINI, $(BCTRL)),)
-  CC = gcc
-  CFLAG += -DAUTO_TSRMGR
+  CC = tcc # tiny C compiler
+  CFLAG = -DAUTO_TSRMGR
   ADDITIONAL =
   3RDSRC_CFG = parg cjson
 endif
