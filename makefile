@@ -3,6 +3,7 @@ AR = ar rc
 
 # Build Ctrl Flag
 BCTRL =
+DIALECT = # -std=c89
 
 INC   += -I ./src/
 LINK  += -lm
@@ -12,15 +13,14 @@ DFLAG += -DENABLE_CC_ASSERT
 # AddressSanitizer for gcc/clang
 DFLAG += # -g -fsanitize=address -fno-omit-frame-pointer
 
-CFLAG += # -std=c89
 CFLAG += -Wall # -Wpedantic
 
-OFLAG += -Ofast
+OFLAG += -Ofast -flto
 
 # Enable OpenMP
 OFLAG += -DENABLE_OPENMP -fopenmp
 
-CFLAG += $(DFLAG) $(WFLAG) $(OFLAG)
+CFLAG += $(DFLAG) $(WFLAG) $(OFLAG) $(DIALECT)
 
 # Enable automatic tensor manager
 CFLAG += -DAUTO_TSRMGR
@@ -54,46 +54,50 @@ ADDITIONAL += ecpufn
 3RDSRC_CFG += cjson
 
 ifneq ($(findstring MINI, $(BCTRL)),)
-	CC = tcc
-	CFLAG  = -std=c89
-	CFLAG += -DAUTO_TSRMGR
-	3RDSRC_CFG = parg cjson
+  CC = gcc
+  CFLAG += -DAUTO_TSRMGR
+  ADDITIONAL =
+  3RDSRC_CFG = parg cjson
 endif
 
-ifneq ($(findstring -std=c89, $(CFLAG)),)
-	CFLAG += -DCONFIG_STD_C89
-	ifneq ($(findstring $(CC), gcc clang),)
-		WFLAG += -Wno-long-long
-	endif
+ifneq ($(findstring $(DIALECT), -ansi -std=c89 -std=c90),)
+  CFLAG += -DCONFIG_STD_C89
+  ifneq ($(findstring $(CC), gcc clang),)
+  	WFAG += -Wno-long-long
+  endif
 endif
 
 ifneq ($(findstring ecpufn, $(ADDITIONAL)),)
-	ALL_O += ecpufn.o
-	CFLAG += -march=native -DENABLE_ECPUFN
+  ALL_O += ecpufn.o
+  CFLAG += -march=native -DENABLE_ECPUFN
+  ifneq ($(findstring $(DIALECT), -ansi -std=c89 -std=c90),)
+    $(error "sse2neon.h is Not ansi/c89/c90 compatible") 
+    # DIALECT = 
+  endif
 endif
 
 ifneq ($(findstring stb, $(3RDSRC_CFG)),)
-	UTIM_COND += -DUSE3RD_STB_IMAGE -I ./src/3rd_party/stb/
+  UTIM_COND += -DUSE3RD_STB_IMAGE -I ./src/3rd_party/stb/
 endif
 
 ifneq ($(findstring parg, $(3RDSRC_CFG)),)
-	ALL_O   += parg.o
-	APP_INC += -I ./src/3rd_party/parg/
+  ALL_O   += parg.o
+  APP_INC += -I ./src/3rd_party/parg/
 endif
 
 ifneq ($(findstring seb, $(3RDSRC_CFG)),)
-	ALL_O += seb.o fastlz.o
-	UT_LIST_CFG += -DENABLE_SEB -I ./src/3rd_party/seb/
+  ALL_O += seb.o fastlz.o
+  UT_LIST_CFG += -DENABLE_SEB -I ./src/3rd_party/seb/
 endif
 
 ifneq ($(findstring zlib, $(3RDSRC_CFG)),)
-	LINK += -lz
-	UT_LIST_CFG += -DENABLE_ZLIB
+  LINK += -lz
+  UT_LIST_CFG += -DENABLE_ZLIB
 endif
 
 ifneq ($(findstring cjson, $(3RDSRC_CFG)),)
-	ALL_O   += cJSON.o
-	APP_INC += -I ./src/3rd_party/cjson/
+  ALL_O   += cJSON.o
+  APP_INC += -I ./src/3rd_party/cjson/
 endif
 
 OBJS_PATH = objs
@@ -115,17 +119,17 @@ APP_INC   += $(INC)
 APP_LINK  += $(LINK)
 
 ifeq ($(OS), Windows_NT)
-	RM    = del
-	MV    = move
-	RMDIR = rmdir /q/s
-	MKDIR = mkdir
-	APPS  = $(foreach v, $(APP_NAMES), $(v).exe)
+  RM    = del
+  MV    = move
+  RMDIR = rmdir /q/s
+  MKDIR = mkdir
+  APPS  = $(foreach v, $(APP_NAMES), $(v).exe)
 else
-	RM    = rm -f
-	MV    = mv
-	RMDIR = rm -rf
-	MKDIR = mkdir -p
-	APPS  = $(APP_NAMES)
+  RM    = rm -f
+  MV    = mv
+  RMDIR = rm -rf
+  MKDIR = mkdir -p
+  APPS  = $(APP_NAMES)
 endif
 
 .PHONY: $(OBJS_PATH)/build
