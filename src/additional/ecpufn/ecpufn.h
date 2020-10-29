@@ -46,6 +46,8 @@ ECPU_CONV2D_DECLARATION  (f64);
   #define ALT_CONV2D_F32_K2SX  sse_conv2d_f32_k2sx
   #define ALT_CONV2D_F32_K3S1  sse_conv2d_f32_k3s1
   #define ALT_CONV2D_F32_K3SX  sse_conv2d_f32_k3sx
+  #define ALT_CONV2D_F32_K4SX  sse_conv2d_f32_k4sx
+  #define ALT_CONV2D_F32_K5SX  sse_conv2d_f32_k5sx
 #endif
 
 void sse_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
@@ -55,6 +57,10 @@ void sse_conv2d_f32_k2sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 void sse_conv2d_f32_k3s1(const f32 *in, f32 *out, i32 ix, i32 iy,
 	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
 void sse_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
+	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k4sx(const f32 *in, f32 *out, i32 ix, i32 iy,
+	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k5sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
 
 /* void ecpu_dot_prod_xxx(xxx *in, xxx *out, xxx *w, i32 iw); */
