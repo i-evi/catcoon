@@ -40,7 +40,8 @@ ECPU_CONV2D_DECLARATION  (u64);
 ECPU_CONV2D_DECLARATION  (f32);
 ECPU_CONV2D_DECLARATION  (f64);
 
-#if defined(__x86_64) && defined(__SSE__)
+#if (defined(__x86_64) && defined(__SSE__)) || \
+    (defined(__ARM_NEON)) /* Supported via `sse2neon` */
   #define ALT_CONV2D_F32_K1S1  sse_conv2d_f32_k1s1
   #define ALT_CONV2D_F32_K2SX  sse_conv2d_f32_k2sx
   #define ALT_CONV2D_F32_K3S1  sse_conv2d_f32_k3s1

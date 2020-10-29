@@ -4,6 +4,10 @@
 #include <immintrin.h>
 #endif
 
+#ifdef __ARM_NEON
+#include "sse2neon.h"
+#endif
+
 #include "ecpufn.h"
 
 #define NAIVE_CONV2D_IMPLEMENTATION(dtype) \
@@ -91,7 +95,8 @@ void ecpu_conv2d_f32(const f32 *in, f32 *out, i32 ix, i32 iy,
 	}
 }
 
-#if defined(__x86_64) && defined(__SSE__)
+#if defined(__x86_64) && defined(__SSE__) || \
+    defined(__ARM_NEON) /* Supported via `sse2neon` */
 void sse_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
 	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
@@ -278,7 +283,8 @@ void ecpu_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
 #endif
 }
 
-#if defined(__x86_64) && defined(__SSE__)
+#if defined(__x86_64) && defined(__SSE__) || \
+    defined(__ARM_NEON) /* Supported via `sse2neon` */
 void sse_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
 {
 	i32 i;
@@ -396,7 +402,8 @@ void ecpu_max_pool2d_f32(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 	}
 }
 
-#if defined(__x86_64) && defined(__SSE__)
+#if defined(__x86_64) && defined(__SSE__) || \
+    defined(__ARM_NEON) /* Supported via `sse2neon` */
 void sse_max_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 {
 	i32 i, j;
@@ -552,7 +559,8 @@ void ecpu_avg_pool2d_f32(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 	}
 }
 
-#if defined(__x86_64) && defined(__SSE__)
+#if defined(__x86_64) && defined(__SSE__) || \
+    defined(__ARM_NEON) /* Supported via `sse2neon` */
 void sse_avg_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 {
 	i32 i, j;
