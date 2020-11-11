@@ -111,7 +111,7 @@ util_vec.o util_image.o global_fn_cfg.o
 
 CATCOON_A = libcatcoon.a
 
-APPS_DEMO = simple lenet lenet_pack lenet_unpack 
+APPS_DEMO = simple lenet 
 APPS_UTIL = lspkg mkpkg cclua
 
 APP_NAMES  = $(APPS_DEMO) $(APPS_UTIL)

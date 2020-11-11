@@ -1,50 +1,50 @@
-loadfile("./util/lua2cc.lua")() 
+loadfile("lua2cc.lua")()
 
-network = {
-    networkName  = "vgg16",
-    createScope  = "vgg16",
-    parameterLv  = 0,
-    inputLayers  = {"in"},
-    outputLayers = {"out"},
-    l1   = conv2d          ({input = "in",
-                              stride = 1, padding = 1}),
-    l2   = relu             ({}),
-    l3   = conv2d           ({stride = 1, padding = 1}),
-    l4   = relu             ({}),
-    l5   = maxPool2d        ({stride = 2}),
-    l6   = conv2d           ({stride = 1, padding = 1}),
-    l7   = relu             ({}),
-    l8   = conv2d           ({stride = 1, padding = 1}),
-    l9   = relu             ({}),
-    l10  = maxPool2d        ({stride = 2}),
-    l11  = conv2d           ({stride = 1, padding = 1}),
-    l12  = relu             ({}),
-    l13  = conv2d           ({stride = 1, padding = 1}),
-    l14  = relu             ({}),
-    l15  = conv2d           ({stride = 1, padding = 1}),
-    l16  = relu             ({}),
-    l17  = maxPool2d        ({stride = 2}),
-    l18  = conv2d           ({stride = 1, padding = 1}),
-    l19  = relu             ({}),
-    l20  = conv2d           ({stride = 1, padding = 1}),
-    l21  = relu             ({}),
-    l22  = conv2d           ({stride = 1, padding = 1}),
-    l23  = relu             ({}),
-    l24  = maxPool2d        ({stride = 2}),
-    l25  = conv2d           ({stride = 1, padding = 1}),
-    l26  = relu             ({}),
-    l27  = conv2d           ({stride = 1, padding = 1}),
-    l28  = relu             ({}),
-    l29  = conv2d           ({stride = 1, padding = 1}),
-    l30  = relu             ({}),
-    l31  = maxPool2d        ({stride = 2}),
-    l32  = reshape          ({shape = {-1, 1, 1}}),
-    l33  = fullyConnected   ({}),
-    l34  = relu             ({}),
-    l35  = fullyConnected   ({}),
-    l36  = relu             ({}),
-    l37  = fullyConnected   ({}),
-    out  = softmax          ({input = "l37"})
-}
+vgg16 = new_context({
+  name = "vgg16",
+  inputs = {
+    "in"
+  },
+  outputs = {
+    "out"
+  }
+})
 
-ccCodeTranslator(network, {file = "vgg16.c"})
+features   = new_module()
+classifier = new_module()
+
+for i = 1, 2 do
+  if i == 1 then inp = "#in" else inp = nil end
+  features:append(fn.conv2d    , { input = inp, stride = 1, padding = 1 })
+  features:append(fn.relu      , { name = "#NULL"})
+  features:append(fn.conv2d    , { input = nil, stride = 1, padding = 1 })
+  features:append(fn.relu      , { name = "#NULL"})
+  features:append(fn.max_pool2d, {              stride = 2 })
+end
+
+for i = 1, 3 do
+  if i == 1 then inp = "in" else inp = nil end
+  features:append(fn.conv2d    , { stride = 1, padding = 1 })
+  features:append(fn.relu      , { name = "#NULL"})
+  features:append(fn.conv2d    , { stride = 1, padding = 1 })
+  features:append(fn.relu      , { name = "#NULL"})
+  features:append(fn.conv2d    , { stride = 1, padding = 1 })
+  features:append(fn.relu      , { name = "#NULL"})
+  features:append(fn.max_pool2d, { stride = 2 })
+end
+
+classifier:append(fn.reshape, { shape = { -1, 1, 1 } }) -- C * H * W
+classifier:append(fn.fully_connected)
+classifier:append(fn.relu, { name = "#NULL"})
+classifier:append(fn.fully_connected)
+classifier:append(fn.relu, { name = "#NULL"})
+classifier:append(fn.fully_connected)
+classifier:append(fn.softmax, { output = "#*out", name = "#NULL"})
+
+vgg16.block = "f" -- features
+features:impl_on(vgg16)
+
+vgg16.block = "c" -- classifier
+classifier:impl_on(vgg16)
+
+vgg16:generate()
