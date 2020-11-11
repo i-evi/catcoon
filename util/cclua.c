@@ -7767,6 +7767,20 @@ _print_item(L,i++);
 printf("\t");
 }
 printf("\n");
+return 0;
+}
+
+static int _tostring(lua_State *L){
+switch(lua_type(L,1)){
+case 0:lua_pushstring(L,"nil");break;
+case 1:lua_pushstring(L,lua_toboolean(L,1)?"true":"false");break;
+case 2:lua_pushstring(L,"lightuserdata");break;
+case 3:case 4:lua_pushstring(L,lua_tostring(L,1));break;
+case 5:lua_pushstring(L,"table");break;
+case 6:lua_pushstring(L,"function");break;
+case 7:lua_pushstring(L,"userdata");break;
+case 8:lua_pushstring(L,"thread");break;
+default:lua_pushstring(L,"unknown");}
 return 1;
 }
 
@@ -7778,6 +7792,8 @@ luaL_register(L,"bit",bitlib);
 lua_getfield(L, -10002, "_G");
 lua_pushcclosure(L, _print, 0);
 lua_setfield(L, -2, "print");
+lua_pushcclosure(L, _tostring, 0);
+lua_setfield(L, -2, "tostring");
 if(argc<2)return sizeof(void*);
 lua_createtable(L,0,1);
 for(i=2;i<=argc;i++){

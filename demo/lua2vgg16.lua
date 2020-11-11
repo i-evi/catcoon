@@ -1,4 +1,5 @@
-loadfile("lua2cc.lua")()
+loadfile("./util/lua2cc.lua")()
+loadfile("./util/ccfn.lua")()
 
 vgg16 = new_context({
   name = "vgg16",
