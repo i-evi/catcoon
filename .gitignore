@@ -1,0 +1,4 @@
+/apps/*
+/libs/*
+/objs/*
+*.bin

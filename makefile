@@ -8,22 +8,23 @@ DIALECT = # -std=c89
 INC   += -I ./src/
 LINK  += -lm
 
-# Debug flag, cc_assert
-DFLAG += -DENABLE_CC_ASSERT
+# Debug flags, cc_assert
+DEBUG += -DENABLE_CC_ASSERT
 # AddressSanitizer for gcc/clang
-DFLAG += # -g -fsanitize=address -fno-omit-frame-pointer
+DEBUG += # -g -fsanitize=address -fno-omit-frame-pointer
 
-CFLAG += -Wall # -Wpedantic
+CFLAGS += -Wall # -Wpedantic
 
-OFLAG += -Ofast -flto
-
+# Optimization
+OPTIM += -Ofast -flto
 # Enable OpenMP
-OFLAG += -DENABLE_OPENMP -fopenmp
+OPTIM += -DENABLE_OPENMP -fopenmp
 
-CFLAG += $(DFLAG) $(WFLAG) $(OFLAG) $(DIALECT)
+CFLAGS += $(DEBUG) $(WARN) $(OPTIM) $(DIALECT)
 
+# Behavior configurations
 # Enable automatic tensor manager
-CFLAG += -DAUTO_TSRMGR
+CFLAGS += -DAUTO_TSRMGR
 
 # Configurations for utilities
 UTIM_COND   =
@@ -55,24 +56,23 @@ ADDITIONAL += ecpufn
 
 ifneq ($(findstring MINI, $(BCTRL)),)
   CC = tcc # tiny C compiler
-  CFLAG = -DAUTO_TSRMGR
+  CFLAGS = -DAUTO_TSRMGR
   ADDITIONAL =
   3RDSRC_CFG = parg cjson
 endif
 
 ifneq ($(findstring $(DIALECT), -ansi -std=c89 -std=c90),)
-  CFLAG += -DCONFIG_STD_C89
+  CFLAGS += -DCONFIG_STD_C89
   ifneq ($(findstring $(CC), gcc clang),)
-  	WFAG += -Wno-long-long
+  	WARN += -Wno-long-long
   endif
 endif
 
 ifneq ($(findstring ecpufn, $(ADDITIONAL)),)
-  ALL_O += ecpufn.o
-  CFLAG += -march=native -DENABLE_ECPUFN
+  ALL_O  += ecpufn.o
+  CFLAGS += -march=native -DENABLE_ECPUFN
   ifneq ($(findstring $(DIALECT), -ansi -std=c89 -std=c90),)
-    $(error "sse2neon.h is Not ansi/c89/c90 compatible") 
-    # DIALECT = 
+    $(error "sse2neon.h is NOT ansi/c89/c90 compatible") 
   endif
 endif
 
@@ -91,8 +91,8 @@ ifneq ($(findstring seb, $(3RDSRC_CFG)),)
 endif
 
 ifneq ($(findstring zlib, $(3RDSRC_CFG)),)
-  LINK += -lz
-  UT_LIST_CFG += -DENABLE_ZLIB
+  LINK        += # -lz
+  UT_LIST_CFG += # -DENABLE_ZLIB
 endif
 
 ifneq ($(findstring cjson, $(3RDSRC_CFG)),)
@@ -101,7 +101,9 @@ ifneq ($(findstring cjson, $(3RDSRC_CFG)),)
 endif
 
 OBJS_PATH = objs
-VPATH = $(OBJS_PATH)
+LIBS_PATH = libs
+APPS_PATH = apps
+VPATH += $(OBJS_PATH)
 
 ALL_O += \
 catcoon.o cc_tensor.o cc_dtype.o cc_tsrmgr.o cc_fmap2d.o cc_pool2d.o \
@@ -123,38 +125,43 @@ ifeq ($(OS), Windows_NT)
   MV    = move
   RMDIR = rmdir /q/s
   MKDIR = mkdir
-  APPS  = $(foreach v, $(APP_NAMES), $(v).exe)
+  APPS  = $(foreach v, $(APP_NAMES), $(APPS_PATH)/$(v).exe)
 else
   RM    = rm -f
   MV    = mv
   RMDIR = rm -rf
   MKDIR = mkdir -p
-  APPS  = $(APP_NAMES)
+  APPS  = $(foreach v, $(APP_NAMES), $(APPS_PATH)/$(v))
 endif
 
-.PHONY: $(OBJS_PATH)/build
+$$: $(OBJS_PATH)/build $(LIBS_PATH)/build $(APPS_PATH)/build
+	$(MAKE) all
 
 $(OBJS_PATH)/build:
-	$(MKDIR) $(OBJS_PATH) && echo objs > $@ && $(MAKE) all
+	$(MKDIR) $(OBJS_PATH) && echo objs > $@
+$(LIBS_PATH)/build:
+	$(MKDIR) $(LIBS_PATH) && echo libs > $@
+$(APPS_PATH)/build:
+	$(MKDIR) $(APPS_PATH) && echo apps > $@
 
 all: $(APPS)
 
-$(CATCOON_A): $(ALL_O)
-	cd $(OBJS_PATH) && $(AR) $@ $(ALL_O) && $(MV) $@ ..
+$(LIBS_PATH)/$(CATCOON_A): $(ALL_O)
+	cd $(OBJS_PATH) && $(AR) ../$@ $(ALL_O)
 
 %.o: ./src/%.c
-	$(CC) -c -o $(OBJS_PATH)/$@ $< $(CFLAG) $(INC)
+	$(CC) -c -o $(OBJS_PATH)/$@ $< $(CFLAGS) $(INC)
 
 # Apps For Linux
-%: ./demo/%.c $(CATCOON_A)
-	$(CC) -o $@ $^ $(CFLAG) $(APP_INC) $(APP_LINK)
-%: ./util/%.c $(CATCOON_A)
-	$(CC) -o $@ $^ $(CFLAG) $(APP_INC) $(APP_LINK)
+$(APPS_PATH)/%: ./demo/%.c $(LIBS_PATH)/$(CATCOON_A)
+	$(CC) -o $@ $^ $(CFLAGS) $(APP_INC) $(APP_LINK)
+$(APPS_PATH)/%: ./util/%.c $(LIBS_PATH)/$(CATCOON_A)
+	$(CC) -o $@ $^ $(CFLAGS) $(APP_INC) $(APP_LINK)
 # Apps For Windows
-%.exe: ./demo/%.c $(CATCOON_A)
-	$(CC) -o $@ $^ $(CFLAG) $(APP_INC) $(APP_LINK)
-%.exe: ./util/%.c $(CATCOON_A)
-	$(CC) -o $@ $^ $(CFLAG) $(APP_INC) $(APP_LINK)
+$(APPS_PATH)/%.exe: ./demo/%.c $(LIBS_PATH)/$(CATCOON_A)
+	$(CC) -o $@ $^ $(CFLAGS) $(APP_INC) $(APP_LINK)
+$(APPS_PATH)/%.exe: ./util/%.c $(LIBS_PATH)/$(CATCOON_A)
+	$(CC) -o $@ $^ $(CFLAGS) $(APP_INC) $(APP_LINK)
 
 global_fn_cfg.o : $(patsubst %, ./src/%, global_fn_cfg.h global_fn_cfg.c)
 
@@ -179,28 +186,28 @@ util_log.o   : $(patsubst %, ./src/%, util_log.h util_log.c)
 util_vec.o   : $(patsubst %, ./src/%, util_vec.h util_vec.c)
 util_rbt.o   : $(patsubst %, ./src/%, util_rbt.h util_rbt.c)
 util_list.o  : $(patsubst %, ./src/%, util_list.h util_list.c)
-	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG) $(UT_LIST_CFG)
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAGS) $(UT_LIST_CFG)
 util_image.o : $(patsubst %, ./src/%, util_image.h util_image.c)
-	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG) $(UTIM_COND)
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAGS) $(UTIM_COND)
 
 # Additional objs
 ecpufn.o: ./src/additional/ecpufn/ecpufn*
-	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG)
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAGS)
 
 # 3rd party objs
 parg.o: ./src/3rd_party/parg/parg*
-	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG)
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAGS)
 
 seb.o : ./src/3rd_party/seb/seb*
-	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG)
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAGS)
 fastlz.o : ./src/3rd_party/seb/fastlz*
-	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG)
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAGS)
 
 cJSON.o : ./src/3rd_party/cjson/cJSON*
-	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAG)
+	$(CC) -c -o $(OBJS_PATH)/$@ $(filter %.c, $^) $(CFLAGS)
 
 minimal:
 	$(MAKE) "BCTRL = MINI"
 
 clean:
-	$(RMDIR) $(OBJS_PATH) && $(RM) $(CATCOON_A) $(APPS)
+	$(RMDIR) $(OBJS_PATH) $(LIBS_PATH) $(APPS_PATH)
