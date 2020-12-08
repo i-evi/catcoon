@@ -13,9 +13,9 @@ extern fn_array_dot_prod _array_dot_prod;
 cc_tensor_t *cc_fully_connected(const cc_tensor_t *inp,
 	const cc_tensor_t *w, const cc_tensor_t *b, const char *name)
 {
-	cc_int32 i, mmsize, dtsize;
+	cc_ssize i, mmsize, dtsize;
 	cc_tensor_t *oup = NULL;
-	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
+	cc_ssize shape[CC_CNN2D_SHAPE] = {0};
 #ifdef ENABLE_CC_ASSERT
 	cc_assert((cc_dimension(w) == CC_CONV2D_KERNEL_DIM) ||
 		(cc_dimension(w) == CC_FULLYCON_KERNEL_DIM));

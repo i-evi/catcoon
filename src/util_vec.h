@@ -1,5 +1,5 @@
-#ifndef _VECTOR_H_
-#define _VECTOR_H_
+#ifndef _UTIL_VECTOR_H_
+#define _UTIL_VECTOR_H_
 
 #ifdef CONFIG_STD_C89
 	#define size_t  unsigned int
@@ -45,4 +45,4 @@ void vector_insert(struct vector *vec, int index, void *elem);
 	#undef uint8_t
 #endif
 
-#endif /* _VECTOR_H_ */
+#endif /* _UTIL_VECTOR_H_ */

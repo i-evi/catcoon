@@ -19,22 +19,22 @@
 #include "global_fn_cfg.h"
 extern fn_conv2d       _conv2d;
 
-cc_int32 cc_conv2d_shape_calc(
-	cc_int32 i, cc_int32 k, cc_int32 s, cc_int32 p)
+cc_ssize cc_conv2d_shape_calc(
+	cc_ssize i, cc_ssize k, cc_ssize s, cc_ssize p)
 {
-	return (cc_int32)((i - k + 2 * p) / s) + 1;
+	return (cc_ssize)((i - k + 2 * p) / s) + 1;
 }
 
 cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 		const cc_tensor_t *kernel, const cc_tensor_t *bias,
-	cc_int32 s, cc_int32 p, cc_int32 off, const char *name)
+	cc_ssize s, cc_ssize p, cc_ssize off, const char *name)
 {
 	cc_uint8 *omp_out_buf = NULL;
 	cc_tensor_t *oup = NULL;
 	const cc_tensor_t *inp_pad;
-	cc_int32 o_ch_size, p_ch_mem_size, o_ch_mem_size,
+	cc_ssize o_ch_size, p_ch_mem_size, o_ch_mem_size,
 		k_ch_mem_size, k_mem_size, num_omp_threads, i, j;
-	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
+	cc_ssize shape[CC_CNN2D_SHAPE] = {0};
 	char pad_name[CC_CONV2D_PAD_NAME_LEN];
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
@@ -139,11 +139,11 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 
 cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
 		const cc_tensor_t *kernel, const cc_tensor_t *bias,
-	cc_int32 s, cc_int32 p, cc_int32 off, const char *name)
+	cc_ssize s, cc_ssize p, cc_ssize off, const char *name)
 {
 	cc_tensor_t *inp_pad, *oup = NULL;
-	cc_int32 o_ch_size, p_ch_mem_size, o_ch_mem_size, k_ch_mem_size, i;
-	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
+	cc_ssize o_ch_size, p_ch_mem_size, o_ch_mem_size, k_ch_mem_size, i;
+	cc_ssize shape[CC_CNN2D_SHAPE] = {0};
 	char pad_name[CC_CONV2D_PAD_NAME_LEN];
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
@@ -220,9 +220,9 @@ cc_tensor_t *cc_pw_conv2d(cc_tensor_t *inp, const cc_tensor_t *kernel,
 {
 	cc_uint8 *omp_out_buf = NULL;
 	cc_tensor_t *oup = NULL;
-	cc_int32 o_ch_size, o_ch_mem_size,
+	cc_ssize o_ch_size, o_ch_mem_size,
 		k_ch_mem_size, k_mem_size, num_omp_threads, i, j;
-	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
+	cc_ssize shape[CC_CNN2D_SHAPE] = {0};
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(cc_dimension(kernel) - CC_CONV2D_KERNEL_DIM);

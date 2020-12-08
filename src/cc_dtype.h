@@ -35,6 +35,9 @@ typedef _DT_INT64   cc_int64;
 typedef _DT_FLOAT32 cc_float32;
 typedef _DT_FLOAT64 cc_float64;
 
+typedef cc_int64    cc_ssize;
+typedef cc_uint64   cc_usize;
+
 /*
  * 7 6 5 4 3  ~  0
  * | | | | |_____|
@@ -80,7 +83,7 @@ typedef _DT_FLOAT64 cc_float64;
 
 #define cc_dtype_check(dt1, dt2) (!(dt1 - dt2))
 
-int cc_dtype_size(cc_dtype dt);
+cc_ssize cc_dtype_size(cc_dtype dt);
 
 const char *cc_dtype_to_string(cc_dtype dt);
 

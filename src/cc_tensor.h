@@ -26,18 +26,18 @@ typedef struct {
 	const char     *name;
 	unsigned char  *data;
 	const cc_dtype *dtype;
-	const cc_int32 *shape;
+	const cc_ssize *shape;
 } cc_tensor_t;
 
 cc_tensor_t *cc_create(
-	const cc_int32 *shape, cc_dtype dtype, const char *name);
+	const cc_ssize *shape, cc_dtype dtype, const char *name);
 
 cc_tensor_t *cc_copy(const cc_tensor_t *tensor, const char *name);
 
 cc_tensor_t *cc_load(const char *filename);
 
 cc_tensor_t *cc_load_bin(const char *filename,
-	const cc_int32 *shape, cc_dtype dtype, const char *name);
+	const cc_ssize *shape, cc_dtype dtype, const char *name);
 
 void cc_save(const cc_tensor_t *tensor, const char *filename);
 

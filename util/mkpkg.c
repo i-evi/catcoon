@@ -135,7 +135,7 @@ cc_dtype resolve_dtype(const char *s)
 	return dtype;
 }
 
-static void resolve_shape(const char *s, cc_int32 *shape)
+static void resolve_shape(const char *s, cc_ssize *shape)
 {
 	do {
 		if (*s == ',')
@@ -148,7 +148,7 @@ static void resolve_shape(const char *s, cc_int32 *shape)
 static void load_parameter(const char *path, cJSON *item)
 {
 	cc_dtype dtype;
-	cc_int32 shape[32] = {0};
+	cc_ssize shape[32] = {0};
 	char pathname[256];
 	sprintf(pathname, "%s/%s", path, item->string);
 	dtype = resolve_dtype(item->child->valuestring);
@@ -220,7 +220,7 @@ static void para_compose_norm(const char *name)
 	int i, len;
 	/* cc_tensor_t *w, *b, *m, *v; */
 	cc_tensor_t *tsr[CC_NORM_PARAMETERS];
-	cc_int32 shape[] = {-1, 1, 1, 0};
+	cc_ssize shape[] = {-1, 1, 1, 0};
 	len = strlen(name);
 	memcpy(buf, name, len);
 	buf[len] = '\0';

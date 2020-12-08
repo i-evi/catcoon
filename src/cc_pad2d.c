@@ -13,14 +13,14 @@
 	dtsize);
 
 cc_tensor_t *cc_pad2d(const cc_tensor_t *inp,
-	cc_int32 p, cc_int32 offset, const char *name)
+	cc_ssize p, cc_ssize offset, const char *name)
 {
 	cc_tensor_t *pad = NULL;
-	cc_int32 shape[CC_CNN2D_SHAPE] = {0};
-	cc_int32 soffset = offset ? 1 : 0;
-	cc_int32 poffset = offset > 0 ? 1 : 0;
-	cc_int32 i, j, c, dtsize = cc_dtype_size(*inp->dtype);
-	cc_int32 i_ch_size, i_ch_mem_size, i_row_mem_size,
+	cc_ssize shape[CC_CNN2D_SHAPE] = {0};
+	cc_ssize soffset = offset ? 1 : 0;
+	cc_ssize poffset = offset > 0 ? 1 : 0;
+	cc_ssize i, j, c, dtsize = cc_dtype_size(*inp->dtype);
+	cc_ssize i_ch_size, i_ch_mem_size, i_row_mem_size,
 		p_ch_size, p_ch_mem_size, p_row_mem_size;
 	i_ch_size = inp->shape[CC_CNN2D_SHAPE_W] *
 			inp->shape[CC_CNN2D_SHAPE_H];

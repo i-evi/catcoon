@@ -8,7 +8,7 @@
 #include "cc_tensor.h"
 
 cc_tensor_t *cc_pad2d(const cc_tensor_t *inp,
-	cc_int32 p, cc_int32 offset, const char *name);
+	cc_ssize p, cc_ssize offset, const char *name);
 
 #ifdef __cplusplus
 	}

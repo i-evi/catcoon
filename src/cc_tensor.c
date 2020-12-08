@@ -6,11 +6,11 @@
 #include "cc_tensor.h"
 #include "cc_tsrmgr.h"
 
-cc_tensor_t *cc_create(const cc_int32 *shape,
+cc_tensor_t *cc_create(const cc_ssize *shape,
 			cc_dtype dtype, const char *name)
 {
-	const cc_int32 *sptr = shape;
-	cc_int32 memsize, elems = *shape;
+	const cc_ssize *sptr = shape;
+	cc_ssize memsize, elems = *shape;
 	cc_tensor_t *tensor;
 	while (*++sptr)
 		elems *= *sptr;
@@ -28,9 +28,9 @@ cc_tensor_t *cc_create(const cc_int32 *shape,
 	memset(tensor->data, 0, memsize);
 	cc_assert_ptr(
 		list_set_data(tensor->container, CC_TENSOR_SHAPE,
-			shape, (sptr - shape + 1) * sizeof(cc_int32)));
+			shape, (sptr - shape + 1) * sizeof(cc_ssize)));
 	cc_assert_ptr(
-		tensor->shape = (cc_int32*)
+		tensor->shape = (cc_ssize*)
 			list_index(tensor->container, CC_TENSOR_SHAPE));
 	cc_assert_ptr(
 		list_set_data(tensor->container,
@@ -59,7 +59,7 @@ cc_tensor_t *cc_copy(const cc_tensor_t *tensor, const char *name)
 		copied->data = (unsigned char*)
 			list_index(copied->container, CC_TENSOR_DATA));
 	cc_assert_ptr(
-		copied->shape = (cc_int32*)
+		copied->shape = (cc_ssize*)
 			list_index(copied->container, CC_TENSOR_SHAPE));
 	cc_assert_ptr(
 		copied->dtype = (cc_dtype*)
@@ -87,7 +87,7 @@ cc_tensor_t *cc_load(const char *filename)
 		tensor->data = (unsigned char*)
 			list_index(tensor->container, CC_TENSOR_DATA));
 	cc_assert_ptr(
-		tensor->shape = (cc_int32*)
+		tensor->shape = (cc_ssize*)
 			list_index(tensor->container, CC_TENSOR_SHAPE));
 	cc_assert_ptr(
 		tensor->dtype = (cc_dtype*)
@@ -101,10 +101,10 @@ cc_tensor_t *cc_load(const char *filename)
 }
 
 cc_tensor_t *cc_load_bin(const char *filename,
-	const cc_int32 *shape, cc_dtype dtype, const char *name)
+	const cc_ssize *shape, cc_dtype dtype, const char *name)
 {
 	FILE *fp;
-	cc_int32 memsize;
+	cc_ssize memsize;
 	cc_tensor_t *tensor;
 	cc_assert_ptr(tensor = cc_create(shape, dtype, name));
 	cc_assert_ptr(fp = fopen(filename, "rb"));
@@ -133,14 +133,14 @@ void cc_property(const cc_tensor_t *tensor)
 {
 	char buf[BUFLEN];
 	char *bptr = buf;
-	const cc_int32 *sptr;
+	const cc_ssize *sptr;
 	if (!tensor) {
 		utlog_format(UTLOG_WARN, "invalid tensor\n");
 		return;
 	}
 	sptr = tensor->shape;
 	while (*sptr) {
-		bptr += sprintf(bptr, "%d, ", *sptr++);
+		bptr += sprintf(bptr, "%lld, ", *sptr++);
 		if ((bptr - buf) > BUFLIM) {
 			sprintf(bptr, "..., ");
 			break;

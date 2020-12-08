@@ -10,8 +10,8 @@
 cc_tensor_t *cc_image2tensor(const UTIM_IMG *img, const char *name)
 {
 	cc_uint8 *ptr;
-	cc_int32 i, j, ch_size;
-	cc_int32 shape[4] = {0}; /* [C, H, W, \0] */
+	cc_ssize i, j, ch_size;
+	cc_ssize shape[4] = {0}; /* [C, H, W, \0] */
 	cc_tensor_t *tensor;
 	shape[CC_IT_SHAPE_C] = img->channels;
 	shape[CC_IT_SHAPE_H] = img->ysize;
@@ -33,8 +33,8 @@ UTIM_IMG *cc_tensor2image(const cc_tensor_t *tensor)
 {
 	UTIM_IMG *img;
 	cc_uint8 *pxls, *ptr;
-	cc_int32 i, j, ch_size, npxls;
-	const cc_int32 *sptr = tensor->shape;
+	cc_ssize i, j, ch_size, npxls;
+	const cc_ssize *sptr = tensor->shape;
 	if (cc_dimension(tensor) != 3) /* [C, H, W] */
 		return NULL;
 	img = utim_create(sptr[CC_IT_SHAPE_W],

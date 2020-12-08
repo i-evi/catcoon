@@ -47,7 +47,7 @@ void cc_tsrmgr_init(void)
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: already initialized\n");
 		return;
 	}
-	global_tsrmgr_table = new_rbt(getkey, compare);
+	global_tsrmgr_table = rbt_new(getkey, compare);
 	return;
 }
 
@@ -65,7 +65,7 @@ void cc_tsrmgr_clear(void)
 	if (!global_tsrmgr_table)
 		return;
 	_tsrmgr_clear(global_tsrmgr_table->root);
-	free_rbt(global_tsrmgr_table);
+	rbt_del(global_tsrmgr_table);
 	global_tsrmgr_table = NULL;
 	global_counter = 0;
 	return;
@@ -142,7 +142,7 @@ void cc_tsrmgr_del(const char *name)
 		return;
 	}
 	ptr = (struct pair*)
-		rbt_delete(global_tsrmgr_table, (void*)name);
+		rbt_erase(global_tsrmgr_table, (void*)name);
 	if (ptr) {
 		free_pair(ptr);
 		global_counter--;
@@ -159,7 +159,7 @@ cc_tensor_t *cc_tsrmgr_get(const char *name)
 		return NULL;
 	}
 	ptr = (struct pair*)
-		rbt_search(global_tsrmgr_table, (void*)name);
+		rbt_find(global_tsrmgr_table, (void*)name);
 	if (ptr)
 		return (cc_tensor_t*)ptr->dat;
 	return NULL;
@@ -171,14 +171,14 @@ static void _print_property(cc_tensor_t *tensor)
 {
 	char buf[BUFLEN];
 	char *bptr = buf;
-	const cc_int32 *sptr;
+	const cc_ssize *sptr;
 	if (!tensor) {
 		utlog_format(UTLOG_WARN, "invalid tensor\n");
 		return;
 	}
 	sptr = tensor->shape;
 	while (*sptr) {
-		bptr += sprintf(bptr, "%d, ", *sptr++);
+		bptr += sprintf(bptr, "%lld, ", *sptr++);
 		if ((bptr - buf) > BUFLIM) {
 			sprintf(bptr, "..., ");
 			break;
@@ -221,15 +221,15 @@ struct tsrmgr_pack_state {
 	struct list *pack;
 	cc_tensor_t *csr;
 	cc_uint8 *dptr;
-	cc_int32 len, off;
-	cc_uint32 idc;
+	cc_ssize len, off;
+	cc_usize idc;
 };
 
 static struct tsrmgr_pack_state _ps;
 
 static void _tsrmgr_pack(struct rbt_node *n)
 {
-	cc_uint32 i;
+	cc_usize i;
 	if (n != rbt_nil()) {
 		_tsrmgr_pack(n->left);
 		_ps.csr = (cc_tensor_t*)
@@ -271,8 +271,8 @@ void cc_tsrmgr_unpack(struct list *tls)
 	cc_tensor_t *t;
 	struct list *container;
 	cc_uint8 *dptr, *rptr;
-	cc_int32 j, off, len;
-	cc_uint32 i;
+	cc_ssize j, off, len;
+	cc_usize i;
 	if (!cc_tsrmgr_status())
 		cc_tsrmgr_init();
 	for (i = 0; i < tls->counter; ++i) {
@@ -301,7 +301,7 @@ void cc_tsrmgr_unpack(struct list *tls)
 			t->dtype = (cc_dtype*)
 				list_index(container, CC_TENSOR_DTYPE));
 		cc_assert_ptr(
-			t->shape = (cc_int32*)
+			t->shape = (cc_ssize*)
 				list_index(container, CC_TENSOR_SHAPE));
 		cc_tsrmgr_reg(t);
 	}

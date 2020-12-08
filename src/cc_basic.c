@@ -11,28 +11,28 @@
 #include "util_log.h"
 #include "cc_basic.h"
 
-static cc_int32 _calc_elems(const cc_int32 *shape)
+static cc_ssize _calc_elems(const cc_ssize *shape)
 {
-	cc_int32 elems;
+	cc_ssize elems;
 	elems = *shape;
 	while (*++shape)
 		elems *= *shape;
 	return elems;
 }
 
-cc_int32 cc_elements(const cc_tensor_t *tensor)
+cc_ssize cc_elements(const cc_tensor_t *tensor)
 {
-	cc_int32 elems;
+	cc_ssize elems;
 	if (!tensor)
 		return 0;
 	elems = _calc_elems(tensor->shape);
 	return elems;
 }
 
-void cc_shape_fix(cc_int32 *shape, cc_int32 elems)
+void cc_shape_fix(cc_ssize *shape, cc_ssize elems)
 {
-	cc_int32 v, i = 0, f = 0, s = 1;
-	const cc_int32 *sptr = shape;
+	cc_ssize v, i = 0, f = 0, s = 1;
+	const cc_ssize *sptr = shape;
 	while ((v = *sptr)) {
 		if (v == -1) {
 #ifdef ENABLE_CC_ASSERT
@@ -49,10 +49,10 @@ void cc_shape_fix(cc_int32 *shape, cc_int32 elems)
 	}
 }
 
-cc_int32 cc_dimension(const cc_tensor_t *tensor)
+cc_ssize cc_dimension(const cc_tensor_t *tensor)
 {
-	cc_int32 dim = 0;
-	const cc_int32 *sptr;
+	cc_ssize dim = 0;
+	const cc_ssize *sptr;
 	if (!tensor)
 		return 0;
 	sptr = tensor->shape;
@@ -61,10 +61,10 @@ cc_int32 cc_dimension(const cc_tensor_t *tensor)
 	return dim;
 }
 
-cc_tensor_t *cc_reshape(cc_tensor_t *tensor, cc_int32 *shape)
+cc_tensor_t *cc_reshape(cc_tensor_t *tensor, cc_ssize *shape)
 {
-	cc_int32 elems;
-	const cc_int32 *sptr;
+	cc_ssize elems;
+	const cc_ssize *sptr;
 	cc_shape_fix(shape, _calc_elems(tensor->shape));
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(_calc_elems(tensor->shape) - _calc_elems(shape));
@@ -77,9 +77,9 @@ cc_tensor_t *cc_reshape(cc_tensor_t *tensor, cc_int32 *shape)
 		list_erase(tensor->container, CC_TENSOR_SHAPE));
 	cc_assert_ptr(
 		list_set_data(tensor->container, CC_TENSOR_SHAPE,
-			shape, (sptr - shape + 1) * sizeof(cc_int32)));
+			shape, (sptr - shape + 1) * sizeof(cc_ssize)));
 	cc_assert_ptr(
-		tensor->shape = (cc_int32*)
+		tensor->shape = (cc_ssize*)
 			list_index(tensor->container, CC_TENSOR_SHAPE));
 	return tensor;
 }
@@ -87,9 +87,9 @@ cc_tensor_t *cc_reshape(cc_tensor_t *tensor, cc_int32 *shape)
 int cc_compare_by_shape(const cc_tensor_t *a, const cc_tensor_t *b)
 {
 	int ret = 0;
-	const cc_int32 *ptra = a->shape;
-	const cc_int32 *ptrb = b->shape;
-	while(!(ret = *(cc_int32*)ptra - *(cc_int32*)ptrb) && *ptra) {
+	const cc_ssize *ptra = a->shape;
+	const cc_ssize *ptrb = b->shape;
+	while(!(ret = *(cc_ssize*)ptra - *(cc_ssize*)ptrb) && *ptra) {
 		ptra++;
 		ptrb++;
 	}
@@ -101,22 +101,22 @@ int cc_compare_by_shape(const cc_tensor_t *a, const cc_tensor_t *b)
 }
 
 cc_tensor_t *cc_stack(cc_tensor_t **tsr,
-	cc_int32 ntsr, cc_int32 axis, const char *name)
+	cc_ssize ntsr, cc_ssize axis, const char *name)
 {
 	cc_tensor_t *yield;
-	cc_int32 *shape;
-	cc_int32 i, dim, size, umem, ymem;
-	cc_int32 ncp = 0, nstp = 0;
-	cc_int32 off = 0, unit = 1;
+	cc_ssize *shape;
+	cc_ssize i, dim, size, umem, ymem;
+	cc_ssize ncp = 0, nstp = 0;
+	cc_ssize off = 0, unit = 1;
 	dim = cc_dimension(tsr[0]);
 	cc_assert_ptr(shape =
-		(cc_int32*)calloc(dim + 2, sizeof(cc_int32)));
+		(cc_ssize*)calloc(dim + 2, sizeof(cc_ssize)));
 	if (dim == axis) { /* axis <= dim */
 		off = 1;
 		shape[0] = 1;
 	}
 	memcpy(shape + off,
-		tsr[0]->shape, dim * sizeof(cc_int32));
+		tsr[0]->shape, dim * sizeof(cc_ssize));
 	shape[dim + off - 1 - axis] *= ntsr;
 	cc_assert_ptr(yield =
 		cc_create(shape, *tsr[0]->dtype, name));
@@ -141,16 +141,16 @@ cc_tensor_t *cc_stack(cc_tensor_t **tsr,
 }
 
 cc_tensor_t *cc_concat(cc_tensor_t **tsr,
-	cc_int32 ntsr, cc_int32 axis, const char *name)
+	cc_ssize ntsr, cc_ssize axis, const char *name)
 {
 	cc_tensor_t *yield;
-	cc_int32 *shape;
-	cc_int32 i, j, dim, raxis, umem, cmem;
-	cc_int32 ncp = 0, nseg = 1, unit = 1;
+	cc_ssize *shape;
+	cc_ssize i, j, dim, raxis, umem, cmem;
+	cc_ssize ncp = 0, nseg = 1, unit = 1;
 	dim = cc_dimension(tsr[0]);
 	cc_assert_ptr(shape =
-		(cc_int32*)calloc(dim + 1, sizeof(cc_int32)));
-	memcpy(shape, tsr[0]->shape, dim * sizeof(cc_int32));
+		(cc_ssize*)calloc(dim + 1, sizeof(cc_ssize)));
+	memcpy(shape, tsr[0]->shape, dim * sizeof(cc_ssize));
 	raxis = dim - 1 - axis;
 	shape[raxis] = 0;
 	for (i = 0; i < ntsr; ++i) {
@@ -247,19 +247,19 @@ static void _cc_print_indent(int n)
 
 void cc_print(const cc_tensor_t *tensor)
 {
-	cc_int32 *sops, *sbak;
+	cc_ssize *sops, *sbak;
 	int fidt, cidt;
-	cc_int32 i, j, dim, lelem, lsize, esize, ssize, npt = 0;
+	cc_ssize i, j, dim, lelem, lsize, esize, ssize, npt = 0;
 	FILE *ostream = (FILE*)utlog_get_ostream();
 	dim   = cc_dimension(tensor);
 	esize = cc_dtype_size(*tensor->dtype);
 	lelem = tensor->shape[dim - 1];
 	lsize = lelem * esize;
-	ssize = (dim + 1) * sizeof(cc_int32);
+	ssize = (dim + 1) * sizeof(cc_ssize);
 	cc_assert_ptr(sops =
-		(cc_int32*)calloc(dim + 1, sizeof(cc_int32)));
+		(cc_ssize*)calloc(dim + 1, sizeof(cc_ssize)));
 	cc_assert_ptr(sbak =
-		(cc_int32*)calloc(dim + 1, sizeof(cc_int32)));
+		(cc_ssize*)calloc(dim + 1, sizeof(cc_ssize)));
 	memcpy(sops, tensor->shape, ssize);
 	memcpy(sbak, tensor->shape, ssize);
 	sops[dim - 1] = 0;
@@ -280,8 +280,8 @@ cc_tensor_t *cc_clip_by_value(cc_tensor_t *tensor,
 	const void *min, const void *max, const char *name)
 {
 	cc_tensor_t *yield;
-	cc_int32 elems = *tensor->shape;
-	const cc_int32 *sptr = tensor->shape;
+	cc_ssize elems = *tensor->shape;
+	const cc_ssize *sptr = tensor->shape;
 	while (*++sptr)
 		elems *= *sptr;
 	if (!name || !strcmp(name, tensor->name))
@@ -297,8 +297,8 @@ cc_tensor_t *cc_cast(cc_tensor_t *tensor,
 		cc_dtype dtype, const char *name)
 {
 	cc_tensor_t *cast;
-	const cc_int32 *sptr = tensor->shape;
-	cc_int32 memsize, elems = *tensor->shape;
+	const cc_ssize *sptr = tensor->shape;
+	cc_ssize memsize, elems = *tensor->shape;
 	while (*++sptr)
 		elems *= *sptr;
 	memsize = cc_dtype_size(dtype) * elems;
@@ -373,8 +373,8 @@ cc_tensor_t *cc_scalar(cc_tensor_t *tensor,
 	char op, const void *data, const char *name)
 {
 	cc_tensor_t *yield;
-	cc_int32 elems = *tensor->shape;
-	const cc_int32 *sptr = tensor->shape;
+	cc_ssize elems = *tensor->shape;
+	const cc_ssize *sptr = tensor->shape;
 	while (*++sptr)
 		elems *= *sptr;
 	if (!name || !strcmp(name, tensor->name))
@@ -417,8 +417,8 @@ cc_tensor_t *cc_elemwise(cc_tensor_t *a,
 	cc_tensor_t *b, char op, const char *name)
 {
 	cc_tensor_t *yield;
-	cc_int32 elems = *a->shape;
-	const cc_int32 *sptr = a->shape;
+	cc_ssize elems = *a->shape;
+	const cc_ssize *sptr = a->shape;
 	while (*++sptr)
 		elems *= *sptr;
 #ifdef ENABLE_CC_ASSERT
@@ -460,9 +460,9 @@ cc_tensor_t *cc_elemwise(cc_tensor_t *a,
 }
 
 cc_tensor_t *cc_from_array(void *arr,
-	const cc_int32 *shape, cc_dtype dtype, const char *name)
+	const cc_ssize *shape, cc_dtype dtype, const char *name)
 {
-	cc_int32 memsize;
+	cc_ssize memsize;
 	cc_tensor_t *tensor;
 	cc_assert_ptr(tensor = cc_create(shape, dtype, name));
 	memsize = list_getlen(tensor->container, CC_TENSOR_DATA);

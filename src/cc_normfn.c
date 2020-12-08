@@ -13,10 +13,10 @@ static cc_float32 cc_norm_eps_dfl_fp32 = CC_NORM_EPSILON_DFL_FP32;
 
 cc_tensor_t *cc_load_bin_norm_para(const char *w_path, const char *b_path,
 		const char *m_path, const char *v_path, const char *e_path,
-	cc_int32 nchl, cc_dtype dtype, const char *name)
+	cc_ssize nchl, cc_dtype dtype, const char *name)
 {
-	cc_int32 shape[] = {0, 1, 1, 0};
-	cc_int32 i;
+	cc_ssize shape[] = {0, 1, 1, 0};
+	cc_ssize i;
 	cc_tensor_t *para;
 	cc_tensor_t *tsr[CC_NORM_PARAMETERS];
 	shape[0] = nchl;
@@ -51,7 +51,7 @@ cc_tensor_t *cc_batch_norm2d(cc_tensor_t *inp,
 	const cc_tensor_t *para, const char *name)
 {
 	cc_tensor_t *oup;
-	cc_int32 i, dt_size, ch_size, ch_mem_size;
+	cc_ssize i, dt_size, ch_size, ch_mem_size;
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(*inp->dtype - *para->dtype);

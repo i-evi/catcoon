@@ -24,7 +24,7 @@ struct rbt_node *rbt_nil(void)
 	return &node_nil;
 }
 
-struct rbtree *new_rbt(void*(*get_key)(struct rbt_node *), 
+struct rbtree *rbt_new(void*(*get_key)(struct rbt_node *), 
 		int (*compare)(const void*, const void*))
 {
 	struct rbtree *t = (struct rbtree*)malloc(sizeof(struct rbtree));
@@ -154,7 +154,7 @@ void *rbt_insert(struct rbtree *t, void *d)
 	return NULL;
 }
 
-static struct rbt_node *__search_rbt_node(struct rbtree *t, void *key)
+static struct rbt_node *__find_rbt_node(struct rbtree *t, void *key)
 {
 	struct rbt_node *z = t->root;
 	while (z != &node_nil) {
@@ -168,9 +168,9 @@ static struct rbt_node *__search_rbt_node(struct rbtree *t, void *key)
 	return NULL;
 }
 
-void *rbt_search(struct rbtree *t, void *key)
+void *rbt_find(struct rbtree *t, void *key)
 {
-	struct rbt_node *z = __search_rbt_node(t, key);
+	struct rbt_node *z = __find_rbt_node(t, key);
 	if (z)
 		return z->data;
 	return NULL;
@@ -188,7 +188,7 @@ static void __free_rbt(struct rbt_node *root)
 	__free_rbt(r);
 }
 
-void free_rbt(struct rbtree *t)
+void rbt_del(struct rbtree *t)
 {
 	__free_rbt(t->root);
 	free(t);
@@ -271,12 +271,12 @@ static void __rb_tree_delete_fixup(struct rbtree *t, struct rbt_node *x)
 	x->color = RBT_COLOR_BLACK;
 }
 
-void *rbt_delete(struct rbtree *t, void *key)
+void *rbt_erase(struct rbtree *t, void *key)
 {
 	struct rbt_node *y, *z, *x, *hold_node_to_delete;
 	unsigned char y_original_color;
 	void *node_to_return;
-	hold_node_to_delete = y = z = __search_rbt_node(t, key);
+	hold_node_to_delete = y = z = __find_rbt_node(t, key);
 	if (y == NULL) /* Node not exist */
 		return NULL;
 	node_to_return = y->data;

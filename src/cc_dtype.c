@@ -14,7 +14,7 @@ void __________cc_datatype_check__________()
 	COMPILER_ASSERT(CC_8B_LEN - sizeof(cc_float64));
 }
 
-int cc_dtype_size(cc_dtype dt)
+cc_ssize cc_dtype_size(cc_dtype dt)
 {
 	switch (dt) {
 	case CC_INT8:

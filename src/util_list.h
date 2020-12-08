@@ -1,5 +1,5 @@
-#ifndef _LIST_H_
-#define _LIST_H_
+#ifndef _UTIL_LIST_H_
+#define _UTIL_LIST_H_
 
 #ifdef __cplusplus
 	extern "C" {
@@ -16,13 +16,18 @@
 	#define byte unsigned char
 #endif
 #ifndef uint
+#ifdef _MSC_VER
 	#define LS_TYPE_UINT
-	#define uint unsigned int
+	#define uint unsigned __int64
+#else  /* 64bit integer for gcc, clang... */
+	#define LS_TYPE_UINT
+	#define uint unsigned long long
+#endif
 #endif
 
 typedef unsigned char lsw_t;
 
-enum LSS_STATUS_ {
+enum {
 	LSS_SUCCESS = 0,
 	LSS_BAD_ID,
 	LSS_MALLOC_ERR,
@@ -69,8 +74,10 @@ struct list {
 	uint counter;   /* record counter */
 	uint blen;      /* length of a record */
 	uint scale;     /* scale */
+union {
 	byte flag;      /* list's mode flag */
-	byte placeholder[3];
+	uint _placeholder;
+};
 };
 
 #define LIST_INFO_LEN (sizeof(struct list) - sizeof(void*) * 3) 
@@ -213,15 +220,17 @@ lsw_t list_hash_table_del(struct list *ls, const void *key);
 
 void list_print_properties(struct list *ls, void *stream);
 
-#ifdef LS_TYPE_BYTE
-	#undef byte
-#endif
-#ifdef LS_TYPE_UINT
-	#undef uint
+#ifndef _UTIL_LIST_C_
+	#ifdef LS_TYPE_BYTE
+		#undef byte
+	#endif
+	#ifdef LS_TYPE_UINT
+		#undef uint
+	#endif
 #endif
 
 #ifdef __cplusplus
 	}
 #endif
 
-#endif /* _LIST_H_ */
+#endif /* _UTIL_LIST_H_ */

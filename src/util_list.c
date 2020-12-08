@@ -1,3 +1,4 @@
+#define _UTIL_LIST_C_
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,15 +10,6 @@
 	#include "sshm.h"
 #endif
 
-#ifndef byte
-	#define LS_TYPE_BYTE
-	#define byte unsigned char
-#endif
-#ifndef uint
-	#define LS_TYPE_UINT
-	#define uint unsigned int
-#endif
-
 #define LS_ALLOC(type) ((type*)calloc(1, sizeof(type)))
 
 #define ASSERT_ON_BUILD(condition)\
@@ -26,7 +18,8 @@
 void __________compile_time_test___________()
 {
 #ifdef ENABLE_FOPS
-	ASSERT_ON_BUILD(24 - LIST_INFO_LEN);
+	ASSERT_ON_BUILD(
+		(24 - LIST_INFO_LEN) & (48 - LIST_INFO_LEN));
 #endif
 }
 
@@ -924,9 +917,7 @@ struct list *list_new_shared(uint scale, uint blen, uint key)
 struct list *list_link_shared(uint len, uint key)
 {
 	byte *shm;
-	struct list *ls = 
-		(struct list*)
-			malloc(sizeof(struct list));
+	struct list *ls = (struct list*)malloc(sizeof(struct list));
 	if (!ls)
 		return NULL;
 	shm = (byte*)create_shm(len +
@@ -1175,10 +1166,10 @@ void list_print_properties(struct list *ls, void *stream)
 		fprintf(fp, "[MODE]         = STATIC\n");
 	else
 		fprintf(fp, "[MODE]         = DYNAMIC\n");
-	fprintf(fp, "[length]       = %d\n", ls->length);
-	fprintf(fp, "[scale]        = %d\n", ls->scale);
-	fprintf(fp, "[record]       = %d\n", ls->counter);
-	fprintf(fp, "[block length] = %d\n", ls->blen);
+	fprintf(fp, "[length]       = %lld\n", ls->length);
+	fprintf(fp, "[scale]        = %lld\n", ls->scale);
+	fprintf(fp, "[record]       = %lld\n", ls->counter);
+	fprintf(fp, "[block length] = %lld\n", ls->blen);
 }
 
 #ifdef LS_TYPE_BYTE
@@ -1187,3 +1178,4 @@ void list_print_properties(struct list *ls, void *stream)
 #ifdef LS_TYPE_UINT
 	#undef uint
 #endif
+#undef _UTIL_LIST_C_

@@ -86,7 +86,7 @@ void arg_parser(int argc, char* const argv[])
 
 void vgg16(cc_tensor_t *in, cc_tensor_t **out)
 {
-	static int __shape0[] = {-1, 1, 1, 0};
+	static cc_ssize __shape0[] = {-1, 1, 1, 0};
 	static const char *p_namels[] = {
 		"000.w", "000.b", "001.w", "001.b", "002.w", "002.b", "003.w",
 		"003.b", "004.w", "004.b", "005.w", "005.b", "006.w", "006.b",

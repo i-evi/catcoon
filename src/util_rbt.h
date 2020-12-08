@@ -1,5 +1,5 @@
-#ifndef _RBT_H_
-#define _RBT_H_
+#ifndef _UTIL_RBT_H_
+#define _UTIL_RBT_H_
 
 #ifdef __cplusplus
 	extern "C" {
@@ -22,21 +22,20 @@ struct rbtree {
 	int (*compare)(const void*, const void*);
 };
 
-struct rbtree *new_rbt(void*(*get_key)(struct rbt_node *), 
+struct rbtree *rbt_new(void*(*get_key)(struct rbt_node *), 
 		int (*compare)(const void*, const void*));
 
-void free_rbt(struct rbtree *t);
+void rbt_del(struct rbtree *t);
 
 struct rbt_node *rbt_nil(void);
 
 void *rbt_insert(struct rbtree *t, void *d);
+void *rbt_find(struct rbtree *t, void *key);
+void *rbt_erase(struct rbtree *t, void *key);
 
-void *rbt_delete(struct rbtree *t, void *key);
-
-void *rbt_search(struct rbtree *t, void *key);
 
 #ifdef __cplusplus
 	}
 #endif
 
-#endif /* _RBT_H_ */
+#endif /* _UTIL_RBT_H_ */
