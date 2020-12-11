@@ -12,12 +12,11 @@ void cc_tsrmgr_clear(void);
 
 void cc_tsrmgr_reg(cc_tensor_t *tensor);
 void cc_tsrmgr_del(const char *name);
-void cc_tsrmgr_update(cc_tensor_t *tensor);
 void cc_tsrmgr_replace(cc_tensor_t *tensor);
 
-int cc_tsrmgr_status(void);
-
 cc_tensor_t *cc_tsrmgr_get(const char *name);
+
+int cc_tsrmgr_status(void);
 
 void cc_tsrmgr_list(void);
 

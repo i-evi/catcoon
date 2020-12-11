@@ -6,6 +6,7 @@
 #endif
 
 #include "util_list.h"
+#include "cc_macro.h"
 #include "cc_dtype.h"
 
 enum cc_tensor_items {	
@@ -21,12 +22,14 @@ enum cc_tensor_items {
  *     |_____ name
  */
 
-typedef struct {
+typedef struct cc_tensor_struct {
 	struct list *container;
 	const char     *name;
 	unsigned char  *data;
 	const cc_dtype *dtype;
 	const cc_ssize *shape;
+	cc_uint32       flag;
+	struct cc_tensor_struct **owner;
 } cc_tensor_t;
 
 cc_tensor_t *cc_create(
@@ -44,6 +47,24 @@ void cc_save(const cc_tensor_t *tensor, const char *filename);
 void cc_free(cc_tensor_t *tensor);
 
 void cc_property(const cc_tensor_t *tensor);
+
+#define CC_FL_FREE    1
+#define CC_FL_CACHED  2
+
+CC_INLINE
+cc_uint32 cc_getflag(cc_tensor_t *tensor)
+{
+	return tensor->flag;
+}
+
+CC_INLINE
+void cc_setflag(cc_tensor_t *tensor, cc_uint32 flag)
+{
+	tensor->flag = flag;
+}
+
+void cc_ptr_bind(cc_tensor_t *tensor, cc_tensor_t **owner);
+void cc_ptr_unbind(cc_tensor_t *tensor);
 
 #ifdef __cplusplus
 	}

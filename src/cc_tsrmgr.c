@@ -4,6 +4,7 @@
 
 #include "util_rbt.h"
 #include "util_log.h"
+#include "cc_macro.h"
 #include "cc_assert.h"
 #include "cc_tsrmgr.h"
 
@@ -291,8 +292,7 @@ void cc_tsrmgr_unpack(struct list *tls)
 			off += (len + sizeof(rlen_t));
 		}
 		cc_tsrmgr_del(name);
-		cc_assert_alloc(
-			t = (cc_tensor_t*)malloc(sizeof(cc_tensor_t)));
+		cc_assert_alloc(t = CC_ALLOC(cc_tensor_t));
 		t->container = container;
 		t->name = container->name;
 		t->data = (cc_uint8*)

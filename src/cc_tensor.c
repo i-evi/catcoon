@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cc_macro.h"
 #include "cc_assert.h"
 #include "cc_tensor.h"
 #include "cc_tsrmgr.h"
@@ -17,8 +18,7 @@ cc_tensor_t *cc_create(const cc_ssize *shape,
 	memsize = cc_dtype_size(dtype) * elems;
 	if (!memsize)
 		return NULL;
-	cc_assert_alloc(
-		tensor = (cc_tensor_t*)malloc(sizeof(cc_tensor_t)));
+	cc_assert_alloc(tensor = CC_ALLOC(cc_tensor_t));
 	cc_assert_ptr(
 		tensor->container = list_new(CC_TENSOR_ITEMS, 0));
 	cc_assert_alloc(
@@ -51,8 +51,7 @@ cc_tensor_t *cc_create(const cc_ssize *shape,
 cc_tensor_t *cc_copy(const cc_tensor_t *tensor, const char *name)
 {
 	cc_tensor_t *copied;
-	cc_assert_alloc(
-		copied = (cc_tensor_t*)malloc(sizeof(cc_tensor_t)));
+	cc_assert_alloc(copied = CC_ALLOC(cc_tensor_t));
 	cc_assert_ptr(
 		copied->container = list_clone(tensor->container));
 	cc_assert_ptr(
@@ -77,8 +76,7 @@ cc_tensor_t *cc_copy(const cc_tensor_t *tensor, const char *name)
 cc_tensor_t *cc_load(const char *filename)
 {
 	cc_tensor_t *tensor;
-	cc_assert_alloc(
-		tensor = (cc_tensor_t*)malloc(sizeof(cc_tensor_t)));
+	cc_assert_alloc(tensor = CC_ALLOC(cc_tensor_t));
 	if (!(tensor->container = list_import(filename))) {
 		free(tensor);
 		return NULL;
@@ -122,6 +120,8 @@ void cc_save(const cc_tensor_t *tensor, const char *filename)
 void cc_free(cc_tensor_t *tensor)
 {
 	if (tensor) {
+		if (tensor->owner)
+			*tensor->owner = NULL;
 		list_del(tensor->container);
 		free(tensor);
 	}
@@ -150,4 +150,18 @@ void cc_property(const cc_tensor_t *tensor)
 	utlog_format(UTLOG_INFO,
 		"tensor: \"%s\", dtype: \"%s\", shape: [%s]\n",
 		tensor->name, cc_dtype_to_string(*tensor->dtype), buf);
+}
+
+void cc_ptr_bind(cc_tensor_t *tensor, cc_tensor_t **owner)
+{
+	/* cc_assert_zero(tensor->owner) */
+	if (tensor->owner) {
+		return;
+	}
+	tensor->owner = owner;
+}
+
+void cc_ptr_unbind(cc_tensor_t *tensor)
+{
+	tensor->owner = NULL;
 }
