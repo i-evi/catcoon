@@ -69,18 +69,20 @@ struct list {
 	char *name;     /* name of LIST */
 	byte *mem;      /* memory pool */
 	byte **index;   /* index table */
+	void *_;
 	uint length;    /* length of memory pool */
 	uint key;       /* key of shared mem */
 	uint counter;   /* record counter */
 	uint blen;      /* length of a record */
 	uint scale;     /* scale */
-union {
+  union {
 	byte flag;      /* list's mode flag */
 	uint _placeholder;
-};
+  };
 };
 
-#define LIST_INFO_LEN (sizeof(struct list) - sizeof(void*) * 3) 
+#define LIST_INFO_LEN (sizeof(struct list) - \
+	sizeof(struct { void *_[4]; })) 
 #define LIST_INFO_OFFSET (sizeof(struct list) - LIST_INFO_LEN)
 
 #define LIST_FLAG_DEFAULT           0x00
