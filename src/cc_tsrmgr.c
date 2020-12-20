@@ -8,8 +8,10 @@
 #include "cc_assert.h"
 #include "cc_tsrmgr.h"
 
-static int global_counter;
-static struct rbtree *global_tsrmgr_table;
+static struct cc_tsrmgr_struct {
+	int          counter;
+	struct rbtree *table;
+} *g_tsrmgr; /* global_tsrmgr_table */
 
 struct pair {
 	char *key;
@@ -44,11 +46,12 @@ static struct pair *mkpair(cc_tensor_t *tensor)
 
 void cc_tsrmgr_init(void)
 {
-	if (global_tsrmgr_table) {
+	if (g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: already initialized\n");
 		return;
 	}
-	global_tsrmgr_table = rbt_new(getkey, compare);
+	g_tsrmgr = CC_ALLOC(struct cc_tsrmgr_struct);
+	g_tsrmgr->table = rbt_new(getkey, compare);
 	return;
 }
 
@@ -63,18 +66,18 @@ static void _tsrmgr_clear(struct rbt_node *n)
 
 void cc_tsrmgr_clear(void)
 {
-	if (!global_tsrmgr_table)
+	if (!g_tsrmgr)
 		return;
-	_tsrmgr_clear(global_tsrmgr_table->root);
-	rbt_del(global_tsrmgr_table);
-	global_tsrmgr_table = NULL;
-	global_counter = 0;
+	_tsrmgr_clear(g_tsrmgr->table->root);
+	rbt_del(g_tsrmgr->table);
+	free(g_tsrmgr);
+	g_tsrmgr = NULL;
 	return;
 }
 
 int cc_tsrmgr_status(void)
 {
-	return global_tsrmgr_table ? 1 : 0;
+	return g_tsrmgr ? 1 : 0;
 }
 
 void cc_tsrmgr_reg(cc_tensor_t *tensor)
@@ -83,7 +86,7 @@ void cc_tsrmgr_reg(cc_tensor_t *tensor)
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_ptr(tensor->name);
 #endif
-	if (!global_tsrmgr_table) {
+	if (!g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return;
 	}
@@ -92,7 +95,7 @@ void cc_tsrmgr_reg(cc_tensor_t *tensor)
 		return;
 	}
 	ptr = (struct pair*)
-		rbt_insert(global_tsrmgr_table, mkpair(tensor));
+		rbt_insert(g_tsrmgr->table, mkpair(tensor));
 	if (ptr) {
 		utlog_format(UTLOG_ERR,
 			"cc_tsrmgr: tensor \"%s\" is exist\n",
@@ -102,7 +105,7 @@ void cc_tsrmgr_reg(cc_tensor_t *tensor)
 		else
 			free_pair(ptr);
 	} else {
-		global_counter++;
+		g_tsrmgr->counter++;
 	}
 }
 
@@ -112,7 +115,7 @@ void cc_tsrmgr_replace(cc_tensor_t *tensor)
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_ptr(tensor->name);
 #endif
-	if (!global_tsrmgr_table) {
+	if (!g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return;
 	}
@@ -121,14 +124,14 @@ void cc_tsrmgr_replace(cc_tensor_t *tensor)
 		return;
 	}
 	ptr = (struct pair*)
-		rbt_insert(global_tsrmgr_table, mkpair(tensor));
+		rbt_insert(g_tsrmgr->table, mkpair(tensor));
 	if (ptr) {
 		if (tensor == ptr->dat)
 			free(ptr);
 		else
 			free_pair(ptr);
 	} else {
-		global_counter++;
+		g_tsrmgr->counter++;
 	}
 }
 
@@ -138,15 +141,15 @@ void cc_tsrmgr_del(const char *name)
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_ptr(name);
 #endif
-	if (!global_tsrmgr_table) {
+	if (!g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return;
 	}
 	ptr = (struct pair*)
-		rbt_erase(global_tsrmgr_table, (void*)name);
+		rbt_erase(g_tsrmgr->table, (void*)name);
 	if (ptr) {
 		free_pair(ptr);
-		global_counter--;
+		g_tsrmgr->counter--;
 	}
 }
 
@@ -155,12 +158,12 @@ cc_tensor_t *cc_tsrmgr_get(const char *name)
 	struct pair *ptr;
 	if (!name)
 		return NULL;
-	if (!global_tsrmgr_table) {
+	if (!g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return NULL;
 	}
 	ptr = (struct pair*)
-		rbt_find(global_tsrmgr_table, (void*)name);
+		rbt_find(g_tsrmgr->table, (void*)name);
 	if (ptr)
 		return (cc_tensor_t*)ptr->dat;
 	return NULL;
@@ -209,13 +212,13 @@ static void _cc_tsrmgr_list(struct rbt_node *n)
 
 void cc_tsrmgr_list(void)
 {
-	if (!global_tsrmgr_table) {
+	if (!g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return;
 	}
 	utlog_format(UTLOG_INFO,
-		"cc_tsrmgr: handling %d tensor(s)\n", global_counter);
-	_cc_tsrmgr_list(global_tsrmgr_table->root);
+		"cc_tsrmgr: handling %d tensor(s)\n", g_tsrmgr->counter);
+	_cc_tsrmgr_list(g_tsrmgr->table->root);
 }
 
 struct tsrmgr_pack_state {
@@ -256,13 +259,13 @@ static void _tsrmgr_pack(struct rbt_node *n)
 
 struct list *cc_tsrmgr_pack()
 {
-	if (!global_tsrmgr_table) {
+	if (!g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return NULL;
 	}
 	memset(&_ps, 0, sizeof(struct tsrmgr_pack_state));
-	cc_assert_ptr(_ps.pack = list_new(global_counter, 0));
-	_tsrmgr_pack(global_tsrmgr_table->root);
+	cc_assert_ptr(_ps.pack = list_new(g_tsrmgr->counter, 0));
+	_tsrmgr_pack(g_tsrmgr->table->root);
 	return _ps.pack;
 }
 
@@ -321,4 +324,15 @@ void cc_tsrmgr_import(const char *filename)
 	cc_assert_ptr(pack = list_import(filename));
 	cc_tsrmgr_unpack(pack);
 	list_del(pack);
+}
+
+void cc_tsrmgr_gc(enum cc_tsrmgr_ctrl ctrl)
+{
+	switch (ctrl) {
+	case CC_GC_CLEAN:
+		break;
+	default:
+		/* Do nothing */
+		break;
+	}
 }

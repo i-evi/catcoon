@@ -28,7 +28,7 @@ typedef struct cc_tensor_struct {
 	unsigned char  *data;
 	const cc_dtype *dtype;
 	const cc_ssize *shape;
-	cc_uint32       flag;
+	cc_ftype        flag;
 	struct cc_tensor_struct **owner;
 } cc_tensor_t;
 
@@ -48,20 +48,12 @@ void cc_free(cc_tensor_t *tensor);
 
 void cc_property(const cc_tensor_t *tensor);
 
-#define CC_FL_FREE    1
-#define CC_FL_CACHED  2
+#define CC_FL_FREE  1
+#define CC_FL_CACHE 2
+#define CC_FL_SWAP  3
 
-CC_INLINE
-cc_uint32 cc_getflag(cc_tensor_t *tensor)
-{
-	return tensor->flag;
-}
-
-CC_INLINE
-void cc_setflag(cc_tensor_t *tensor, cc_uint32 flag)
-{
-	tensor->flag = flag;
-}
+cc_ftype cc_getflag(cc_tensor_t *tensor);
+void cc_setflag(cc_tensor_t *tensor, cc_ftype flag);
 
 void cc_ptr_bind(cc_tensor_t *tensor, cc_tensor_t **owner);
 void cc_ptr_unbind(cc_tensor_t *tensor);

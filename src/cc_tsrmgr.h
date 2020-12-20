@@ -36,6 +36,12 @@ void cc_tsrmgr_import(const char *filename);
 		cc_tsrmgr_init();  \
 	cc_tsrmgr_reg(tensor);
 
+enum cc_tsrmgr_ctrl {
+	CC_GC_CLEAN
+};
+
+void cc_tsrmgr_gc(enum cc_tsrmgr_ctrl ctrl);
+
 #ifdef __cplusplus
 	}
 #endif

@@ -6,6 +6,7 @@ BCTRL =
 DIALECT = # -std=c89
 
 INC   += -I ./src/
+LINK  += $(LDFLAGS)
 LINK  += -lm
 
 # Debug flags, cc_assert

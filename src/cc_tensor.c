@@ -152,6 +152,16 @@ void cc_property(const cc_tensor_t *tensor)
 		tensor->name, cc_dtype_to_string(*tensor->dtype), buf);
 }
 
+cc_ftype cc_getflag(cc_tensor_t *tensor)
+{
+	return tensor->flag;
+}
+
+void cc_setflag(cc_tensor_t *tensor, cc_ftype flag)
+{
+	tensor->flag = flag;
+}
+
 void cc_ptr_bind(cc_tensor_t *tensor, cc_tensor_t **owner)
 {
 	/* cc_assert_zero(tensor->owner) */

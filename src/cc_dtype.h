@@ -37,6 +37,8 @@ typedef _DT_FLOAT64 cc_float64;
 
 typedef cc_int64    cc_ssize;
 typedef cc_uint64   cc_usize;
+/* Flag type */
+typedef cc_uint32   cc_ftype;
 
 /*
  * 7 6 5 4 3  ~  0
