@@ -7751,12 +7751,12 @@ static void _print_item(lua_State *L,int i){
 switch(lua_type(L,i)){
 case 0:printf("nil");break;
 case 1:printf("%s",lua_toboolean(L,i)?"true":"false");break;
-case 2:printf("lightuserdata: %p",index2adr(L,i));break;
+case 2:printf("lightuserdata: %p",(void*)index2adr(L,i));break;
 case 3:case 4:printf("%s",lua_tostring(L,i));break;
-case 5:printf("table: %p",index2adr(L,i));break;
-case 6:printf("function: %p",index2adr(L,i));break;
-case 7:printf("userdata: %p",index2adr(L,i));break;
-case 8:printf("thread: %p",index2adr(L,i));break;
+case 5:printf("table: %p",(void*)index2adr(L,i));break;
+case 6:printf("function: %p",(void*)index2adr(L,i));break;
+case 7:printf("userdata: %p",(void*)index2adr(L,i));break;
+case 8:printf("thread: %p",(void*)index2adr(L,i));break;
 default:printf("unknown: %d", lua_type(L,i));}
 }
 

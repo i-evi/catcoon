@@ -81,8 +81,7 @@ struct list {
   };
 };
 
-#define LIST_INFO_LEN (sizeof(struct list) - \
-	sizeof(struct { void *_[4]; })) 
+#define LIST_INFO_LEN (sizeof(struct list) - sizeof(void *[4]))
 #define LIST_INFO_OFFSET (sizeof(struct list) - LIST_INFO_LEN)
 
 #define LIST_FLAG_DEFAULT           0x00
