@@ -11,24 +11,24 @@
 #include "ecpufn.h"
 
 #define NAIVE_CONV2D_IMPLEMENTATION(dtype) \
-void naive_conv2d_ ## dtype (const dtype *in,     \
-    dtype *out, i32 ix, i32 iy, i32 ox, i32 oy,   \
-  i32 sx, i32 sy, const dtype *k, i32 kw)         \
-{                                                 \
-  i32 i, j, u, v;                                 \
-  dtype acc;                                      \
-  for (i = 0; i <= iy - kw; i += sy) {            \
-    for (j = 0; j <= ix - kw; j += sx) {          \
-      acc = 0;                                    \
-      for (u = 0; u < kw; ++u) {                  \
-        for (v = 0; v < kw; ++v) {                \
-          acc += *(in + (i + u) * ix + (j + v)) * \
-                 *(k + u * kw + v);               \
-        }                                         \
-      }                                           \
-      *out++ = acc;                               \
-    }                                             \
-  }                                               \
+void naive_conv2d_ ## dtype (const dtype *in,    \
+    dtype *out, i32 x, i32 y, i32 sx, i32 sy,    \
+    const dtype *k, i32 kw)                      \
+{                                                \
+  i32 i, j, u, v;                                \
+  dtype acc;                                     \
+  for (i = 0; i <= y - kw; i += sy) {            \
+    for (j = 0; j <= x - kw; j += sx) {          \
+      acc = 0;                                   \
+      for (u = 0; u < kw; ++u) {                 \
+        for (v = 0; v < kw; ++v) {               \
+          acc += *(in + (i + u) * x + (j + v)) * \
+                 *(k + u * kw + v);              \
+        }                                        \
+      }                                          \
+      *out++ = acc;                              \
+    }                                            \
+  }                                              \
 }
 
 NAIVE_CONV2D_IMPLEMENTATION  (i8)
@@ -43,10 +43,10 @@ NAIVE_CONV2D_IMPLEMENTATION  (f32)
 NAIVE_CONV2D_IMPLEMENTATION  (f64)
 
 #define DFL_CONV2D_IMPLEMENTATION(dtype) \
-void ecpu_conv2d_ ## dtype (const dtype *in, dtype *out, i32 ix, i32 iy, \
-	i32 ox, i32 oy, i32 sx, i32 sy, const dtype *k, i32 kw)          \
-{                                                                        \
-	naive_conv2d_ ## dtype(in, out, ix, iy, ox, oy, sx, sy, k, kw);  \
+void ecpu_conv2d_ ## dtype (const dtype *in, dtype *out,      \
+	i32 x, i32 y, i32 sx, i32 sy, const dtype *k, i32 kw) \
+{                                                             \
+	naive_conv2d_ ## dtype(in, out, x, y, sx, sy, k, kw); \
 }
 
 DFL_CONV2D_IMPLEMENTATION  (i8)
@@ -60,60 +60,60 @@ DFL_CONV2D_IMPLEMENTATION  (u64)
 /* DFL_CONV2D_IMPLEMENTATION  (f32) */
 DFL_CONV2D_IMPLEMENTATION  (f64)
 
-void ecpu_conv2d_f32(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
+void ecpu_conv2d_f32(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	switch (kw) {
 #ifdef ALT_CONV2D_F32_K1S1
 	case 1:
 		if (sx == sy && sx == 1)
 			ALT_CONV2D_F32_K1S1(
-				in, out, ix, iy, ox, oy, sx, sy, k, kw);
+				in, out, x, y, sx, sy, k, kw);
 		else
 			naive_conv2d_f32(
-				in, out, ix, iy, ox, oy, sx, sy, k, kw);
+				in, out, x, y, sx, sy, k, kw);
 		break;
 #endif
 #ifdef ALT_CONV2D_F32_K2SX
 	case 2:
-		ALT_CONV2D_F32_K2SX(in, out, ix, iy, ox, oy, sx, sy, k, kw);
+		ALT_CONV2D_F32_K2SX(in, out, x, y, sx, sy, k, kw);
 		break;
 #endif
 #ifdef ALT_CONV2D_F32_K3SX
 	case 3:
 		if (sx == sy && sx == 1)
 			ALT_CONV2D_F32_K3S1(
-				in, out, ix, iy, ox, oy, sx, sy, k, kw);
+				in, out, x, y, sx, sy, k, kw);
 		else
 			ALT_CONV2D_F32_K3SX(
-				in, out, ix, iy, ox, oy, sx, sy, k, kw);
+				in, out, x, y, sx, sy, k, kw);
 		break;
 #ifdef ALT_CONV2D_F32_K4SX
 	case 4:
-		ALT_CONV2D_F32_K4SX(in, out, ix, iy, ox, oy, sx, sy, k, kw);
+		ALT_CONV2D_F32_K4SX(in, out, x, y, sx, sy, k, kw);
 		break;
 #endif
 #ifdef ALT_CONV2D_F32_K5SX
 	case 5:
-		ALT_CONV2D_F32_K5SX(in, out, ix, iy, ox, oy, sx, sy, k, kw);
+		ALT_CONV2D_F32_K5SX(in, out, x, y, sx, sy, k, kw);
 		break;
 #endif
 #endif
 	default:
-		naive_conv2d_f32(in, out, ix, iy, ox, oy, sx, sy, k, kw);
+		naive_conv2d_f32(in, out, x, y, sx, sy, k, kw);
 		break;
 	}
 }
 
 #if defined(__x86_64) && defined(__SSE__) || \
     defined(__ARM_NEON) /* Supported via `sse2neon` */
-void sse_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
+void sse_conv2d_f32_k1s1(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, size, nblk;
 	__m128 lvk, blk;
 	lvk = _mm_set1_ps(*k);
-	size = ix * iy;
+	size = x * y;
 	nblk = size >> 2;
 	for (i = 0; i < nblk; ++i) {
 		blk = _mm_loadu_ps(in);
@@ -128,19 +128,19 @@ void sse_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
 	}
 }
 
-void sse_conv2d_f32_k2sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
+void sse_conv2d_f32_k2sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, j, off;
 	__m128 lvk, blk;
 	f32 *res = (f32*)&(blk);
 	lvk = _mm_set_ps(k[3], k[2], k[1], k[0]);
-	for (i = 0; i <= iy - kw; i += sy) {
-		for (j = 0; j <= ix - kw; j += sx) {
-			off = i * ix + j;
+	for (i = 0; i <= y - kw; i += sy) {
+		for (j = 0; j <= x - kw; j += sx) {
+			off = i * x + j;
 			blk = _mm_shuffle_ps(
 				_mm_loadu_ps(in + off),
-				_mm_loadu_ps(in + off + ix - 2),
+				_mm_loadu_ps(in + off + x - 2),
 				_MM_SHUFFLE(3, 2, 1, 0));
 			blk = blk * lvk;
 			*res += res[1] + res[2] + res[3];
@@ -149,8 +149,8 @@ void sse_conv2d_f32_k2sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 	}
 }
 
-void sse_conv2d_f32_k3s1(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
+void sse_conv2d_f32_k3s1(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, j, u, off;
 	__m128 vkl[3];
@@ -162,48 +162,48 @@ void sse_conv2d_f32_k3s1(const f32 *in, f32 *out, i32 ix, i32 iy,
 		memcpy(((f32*)&(vkl[u])) + 0, k + u * kw, sizeof(f32) * kw);
 		memcpy(((f32*)&(vkh[u])) + 1, k + u * kw, sizeof(f32) * kw);
 	}
-	for (i = 0; i <= iy - kw - sy; i += sy) {
-		for (j = 0; j < ix - kw; j += 2) {
+	for (i = 0; i <= y - kw - sy; i += sy) {
+		for (j = 0; j < x - kw; j += 2) {
 			accl = _mm_setzero_ps();
 			acch = _mm_setzero_ps();
-			off = i * ix + j;
+			off = i * x + j;
 			for (u = 0; u < kw; ++u) {
 				blk = _mm_loadu_ps(in + off);
 				accl += blk * vkl[u];
 				acch += blk * vkh[u];
-				off += ix;
+				off += x;
 			}
 			*out++ = (resl[0] + resl[1] + resl[2]);
 			*out++ = (resh[1] + resh[2] + resh[3]);
 		}
-		if (j == ix - kw) {
+		if (j == x - kw) {
 			accl = _mm_setzero_ps();
-			off = i * ix + j;
+			off = i * x + j;
 			for (u = 0; u < kw; ++u) {
 				blk = _mm_loadu_ps(in + off);
 				accl += blk * vkl[u];
-				off  += ix;
+				off  += x;
 			}
 			*out++ = (resl[0] + resl[1] + resl[2]);
 		}
 	}
-	if (iy - kw >= i) {
-		off = i * ix;
-		for (j = -1; j <= ix - kw - 1; ++j) {
+	if (y - kw >= i) {
+		off = i * x;
+		for (j = -1; j <= x - kw - 1; ++j) {
 			acch = _mm_setzero_ps();
-			off = i * ix + j;
+			off = i * x + j;
 			for (u = 0; u < kw; ++u) {
 				blk = _mm_loadu_ps(in + off);
 				acch += blk * vkh[u];
-				off  += ix;
+				off  += x;
 			}
 			*out++ = (resh[1] + resh[2] + resh[3]);
 		}
 	}
 }
 
-void sse_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
+void sse_conv2d_f32_k3sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, j, u, off;
 	__m128 lvk[3];
@@ -212,39 +212,39 @@ void sse_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 	for (u = 0; u < kw; ++u) {
 		memcpy(&(lvk[u]), k + u * kw, sizeof(f32) * kw);
 	}
-	for (i = 0; i <= iy - kw - sy; i += sy) {
-		for (j = 0; j <= ix - kw; j += sx) {
+	for (i = 0; i <= y - kw - sy; i += sy) {
+		for (j = 0; j <= x - kw; j += sx) {
 			acc = _mm_setzero_ps();
-			off = i * ix + j;
+			off = i * x + j;
 			for (u = 0; u < kw; ++u) {
 				blk = _mm_loadu_ps(in + off);
 				acc += blk * lvk[u];
-				off += ix;
+				off += x;
 			}
 			*out++ = (res[0] + res[1] + res[2]);
 		}
 	}
-	if (iy - kw >= i) {
-		off = i * ix;
+	if (y - kw >= i) {
+		off = i * x;
 		for (u = 0; u < kw; ++u) {
 			memcpy(((f32*)&(lvk[u])) + 1,
 				k + u * kw, sizeof(f32) * kw);
 		}
-		for (j = -1; j <= ix - kw - 1; j += sx) {
+		for (j = -1; j <= x - kw - 1; j += sx) {
 			acc = _mm_setzero_ps();
-			off = i * ix + j;
+			off = i * x + j;
 			for (u = 0; u < kw; ++u) {
 				blk = _mm_loadu_ps(in + off);
 				acc += blk * lvk[u];
-				off += ix;
+				off += x;
 			}
 			*out++ = (res[1] + res[2] + res[3]);
 		}
 	}
 }
 
-void sse_conv2d_f32_k4sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
+void sse_conv2d_f32_k4sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, j, u, off;
 	__m128 lvk[4];
@@ -253,22 +253,22 @@ void sse_conv2d_f32_k4sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 	for (u = 0; u < kw; ++u) {
 		memcpy(&(lvk[u]), k + u * kw, sizeof(f32) * kw);
 	}
-	for (i = 0; i <= iy - kw; i += sy) {
-		for (j = 0; j <= ix - kw; j += sx) {
+	for (i = 0; i <= y - kw; i += sy) {
+		for (j = 0; j <= x - kw; j += sx) {
 			acc = _mm_setzero_ps();
-			off = i * ix + j;
+			off = i * x + j;
 			for (u = 0; u < kw; ++u) {
 				blk = _mm_loadu_ps(in + off);
 				acc += blk * lvk[u];
-				off += ix;
+				off += x;
 			}
 			*out++ = res[0] + res[1] + res[2] + res[3];
 		}
 	}
 }
 
-void sse_conv2d_f32_k5sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw)
+void sse_conv2d_f32_k5sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw)
 {
 	i32 i, j, u, off;
 	__m128 vk4[5];
@@ -279,17 +279,17 @@ void sse_conv2d_f32_k5sx(const f32 *in, f32 *out, i32 ix, i32 iy,
 		memcpy(&(vk4[u]), k + u * kw, sizeof(f32) * 4);
 		sk5[u] = *(k + u * kw + 4);
 	}
-	for (i = 0; i <= iy - kw; i += sy) {
-		for (j = 0; j <= ix - kw; j += sx) {
+	for (i = 0; i <= y - kw; i += sy) {
+		for (j = 0; j <= x - kw; j += sx) {
 			accv = _mm_setzero_ps();
 			accs = 0;
-			off = i * ix + j;
+			off = i * x + j;
 			for (u = 0; u < kw; ++u) {
 				blkv = _mm_loadu_ps(in + off);
 				accv += blkv * vk4[u];
 				blks = *(in + off + 4);
 				accs += blks * sk5[u];
-				off += ix;
+				off += x;
 			}
 			*out++ = res[0] + res[1] + res[2] + res[3] + accs;
 		}
@@ -390,26 +390,23 @@ void avx_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw)
 #endif
 
 #define NAIVE_MAXPOOL2D_IMPLEMENTATION(dtype) \
-void naive_max_pool2d_ ## dtype (const dtype *in,  \
-        dtype *out, i32 x, i32 y, i32 s)           \
-{                                                  \
-  i32 ox = x / s;                                  \
-  i32 oy = y / s;                                  \
-  i32 i, j, k, l;                                  \
-  const dtype *curr;                               \
-  dtype max;                                       \
-  for (i = 0; i < oy; ++i) {                       \
-    for (j = 0; j < ox; ++j) {                     \
-      max = *(in + s * i * x + s * j);             \
-      for (k = 0; k < s; ++k) {                    \
-        for (l = 0; l < s; ++l) {                  \
-          curr = in + (s * i + k) * x + j * s + l; \
-          max = *curr > max ? *curr : max;         \
-        }                                          \
-      }                                            \
-      *out++ = max;                                \
-    }                                              \
-  }                                                \
+void naive_max_pool2d_ ## dtype (const dtype *in,       \
+    dtype *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)   \
+{                                                       \
+  i32 i, j, u, v;                                       \
+  dtype max;                                            \
+  for (i = 0; i <= y - kw; i += sy) {                   \
+    for (j = 0; j <= x - kw; j += sx) {                 \
+      max = *(in + i * x + j);                          \
+        for (u = 0; u < kw; ++u) {                      \
+          for (v = 0; v < kw; ++v) {                    \
+            max = max < *(in + (i + u) * x + (j + v)) ? \
+                   *(in + (i + u) * x + (j + v)) : max; \
+          }                                             \
+        }                                               \
+        *out++ = max;                                   \
+    }                                                   \
+  }                                                     \
 }
 
 NAIVE_MAXPOOL2D_IMPLEMENTATION  (i8)
@@ -424,10 +421,10 @@ NAIVE_MAXPOOL2D_IMPLEMENTATION  (f32)
 NAIVE_MAXPOOL2D_IMPLEMENTATION  (f64)
 
 #define DFL_MAXPOOL2D_IMPLEMENTATION(dtype) \
-void ecpu_max_pool2d_ ## dtype (                          \
-	const dtype *in, dtype *out, i32 x, i32 y, i32 s) \
-{                                                         \
-	naive_max_pool2d_ ## dtype(in, out, x, y, s);     \
+void ecpu_max_pool2d_ ## dtype (const dtype *in,               \
+	dtype *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)      \
+{                                                              \
+	naive_max_pool2d_ ## dtype(in, out, x, y, sx, sy, kw); \
 }
 
 DFL_MAXPOOL2D_IMPLEMENTATION  (i8)
@@ -441,33 +438,44 @@ DFL_MAXPOOL2D_IMPLEMENTATION  (u64)
 /* DFL_MAXPOOL2D_IMPLEMENTATION  (f32) */
 DFL_MAXPOOL2D_IMPLEMENTATION  (f64)
 
-void ecpu_max_pool2d_f32(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void ecpu_max_pool2d_f32(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
-	switch (s) {
-#ifdef ALT_MAXPOOL2D_F32_S2
+	switch (kw) {
+#ifdef ALT_MAXPOOL2D_F32_K2S2
 	case 2:
-		ALT_MAXPOOL2D_F32_S2(in, out, x, y, s);
+		if (sx == sy && sx == 2)
+			ALT_MAXPOOL2D_F32_K2S2(in, out, x, y, sx, sy, kw);
+		else
+			naive_max_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 #endif
-#ifdef ALT_MAXPOOL2D_F32_S3
+#ifdef ALT_MAXPOOL2D_F32_K3S3
 	case 3:
-		ALT_MAXPOOL2D_F32_S3(in, out, x, y, s);
+		if (sx == sy && sx == 3)
+			ALT_MAXPOOL2D_F32_K3S3(in, out, x, y, sx, sy, kw);
+		else
+			naive_max_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 #endif
-#ifdef ALT_MAXPOOL2D_F32_S4
+#ifdef ALT_MAXPOOL2D_F32_K4S4
 	case 4:
-		ALT_MAXPOOL2D_F32_S4(in, out, x, y, s);
+		if (sx == sy && sx == 4)
+			ALT_MAXPOOL2D_F32_K4S4(in, out, x, y, sx, sy, kw);
+		else
+			naive_max_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 #endif
 	default:
-		naive_max_pool2d_f32(in, out, x, y, s);
+		naive_max_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 	}
 }
 
 #if defined(__x86_64) && defined(__SSE__) || \
     defined(__ARM_NEON) /* Supported via `sse2neon` */
-void sse_max_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void sse_max_pool2d_f32_k2s2(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
 	i32 i, j;
 	__m128 blka;
@@ -494,7 +502,8 @@ void sse_max_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 	}
 }
 
-void sse_max_pool2d_f32_s3(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void sse_max_pool2d_f32_k3s3(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
 	i32 i, j;
 	__m128 blka, blkb, blkc;
@@ -522,7 +531,8 @@ void sse_max_pool2d_f32_s3(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 	}
 }
 
-void sse_max_pool2d_f32_s4(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void sse_max_pool2d_f32_k4s4(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
 	i32 i, j;
 	__m128 blka, blkb, blkc, blkd;
@@ -546,27 +556,22 @@ void sse_max_pool2d_f32_s4(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 #endif
 
 #define NAIVE_AVGPOOL2D_IMPLEMENTATION(dtype) \
-void naive_avg_pool2d_ ## dtype (const dtype *in,  \
-        dtype *out, i32 x, i32 y, i32 s)           \
-{                                                  \
-  i32 ox = x / s;                                  \
-  i32 oy = y / s;                                  \
-  i32 i, j, k, l, nelem;                           \
-  const dtype *curr;                               \
-  dtype sum;                                       \
-  nelem = s * s;                                   \
-  for (i = 0; i < oy; ++i) {                       \
-    for (j = 0; j < ox; ++j) {                     \
-      sum = 0;                                     \
-      for (k = 0; k < s; ++k) {                    \
-        for (l = 0; l < s; ++l) {                  \
-          curr = in + (s * i + k) * x + j * s + l; \
-          sum += *curr;                            \
-        }                                          \
-      }                                            \
-      *out++ = sum / nelem;                        \
-    }                                              \
-  }                                                \
+void naive_avg_pool2d_ ## dtype (const dtype *in,     \
+    dtype *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw) \
+{                                                     \
+  i32 i, j, u, v, n = kw * kw;                        \
+  dtype avg;                                          \
+  for (i = 0; i <= y - kw; i += sy) {                 \
+    for (j = 0; j <= x - kw; j += sx) {               \
+      avg = 0;                                        \
+      for (u = 0; u < kw; ++u) {                      \
+        for (v = 0; v < kw; ++v) {                    \
+          avg += *(in + (i + u) * x + (j + v));       \
+        }                                             \
+      }                                               \
+      *out++ = avg / n;                               \
+    }                                                 \
+  }                                                   \
 }
 
 NAIVE_AVGPOOL2D_IMPLEMENTATION  (i8)
@@ -581,10 +586,10 @@ NAIVE_AVGPOOL2D_IMPLEMENTATION  (f32)
 NAIVE_AVGPOOL2D_IMPLEMENTATION  (f64)
 
 #define DFL_AVGPOOL2D_IMPLEMENTATION(dtype) \
-void ecpu_avg_pool2d_ ## dtype (                          \
-	const dtype *in, dtype *out, i32 x, i32 y, i32 s) \
-{                                                         \
-	naive_avg_pool2d_ ## dtype(in, out, x, y, s);     \
+void ecpu_avg_pool2d_ ## dtype (const dtype *in,               \
+	dtype *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)      \
+{                                                              \
+	naive_avg_pool2d_ ## dtype(in, out, x, y, sx, sy, kw); \
 }
 
 DFL_AVGPOOL2D_IMPLEMENTATION  (i8)
@@ -598,33 +603,44 @@ DFL_AVGPOOL2D_IMPLEMENTATION  (u64)
 /* DFL_AVGPOOL2D_IMPLEMENTATION  (f32) */
 DFL_AVGPOOL2D_IMPLEMENTATION  (f64)
 
-void ecpu_avg_pool2d_f32(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void ecpu_avg_pool2d_f32(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
-	switch (s) {
-#ifdef ALT_AVGPOOL2D_F32_S2
+	switch (kw) {
+#ifdef ALT_AVGPOOL2D_F32_K2S2
 	case 2:
-		ALT_AVGPOOL2D_F32_S2(in, out, x, y, s);
+		if (sx == sy && sx == 2)
+			ALT_AVGPOOL2D_F32_K2S2(in, out, x, y, sx, sy, kw);
+		else
+			naive_avg_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 #endif
-#ifdef ALT_AVGPOOL2D_F32_S3
+#ifdef ALT_AVGPOOL2D_F32_K3S3
 	case 3:
-		ALT_AVGPOOL2D_F32_S3(in, out, x, y, s);
+		if (sx == sy && sx == 3)
+			ALT_AVGPOOL2D_F32_K3S3(in, out, x, y, sx, sy, kw);
+		else
+			naive_avg_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 #endif
-#ifdef ALT_AVGPOOL2D_F32_S4
+#ifdef ALT_AVGPOOL2D_F32_K4S4
 	case 4:
-		ALT_AVGPOOL2D_F32_S4(in, out, x, y, s);
+		if (sx == sy && sx == 4)
+			ALT_AVGPOOL2D_F32_K4S4(in, out, x, y, sx, sy, kw);
+		else
+			naive_avg_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 #endif
 	default:
-		naive_avg_pool2d_f32(in, out, x, y, s);
+		naive_avg_pool2d_f32(in, out, x, y, sx, sy, kw);
 		break;
 	}
 }
 
 #if defined(__x86_64) && defined(__SSE__) || \
     defined(__ARM_NEON) /* Supported via `sse2neon` */
-void sse_avg_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void sse_avg_pool2d_f32_k2s2(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
 	i32 i, j;
 	__m128 blka, blkb;
@@ -648,7 +664,8 @@ void sse_avg_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 	}
 }
 
-void sse_avg_pool2d_f32_s3(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void sse_avg_pool2d_f32_k3s3(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
 	i32 i, j;
 	__m128 blka, blkb, blkc;
@@ -671,7 +688,8 @@ void sse_avg_pool2d_f32_s3(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
 	}
 }
 
-void sse_avg_pool2d_f32_s4(const f32 *in, f32 *out, i32 x, i32 y, i32 s)
+void sse_avg_pool2d_f32_k4s4(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw)
 {
 	i32 i, j;
 	__m128 blka, blkb, blkc, blkd;

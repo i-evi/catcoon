@@ -141,13 +141,13 @@ int main(int argc, const char *argv[])
 
 	l1 = cc_relu(l1, NULL);
 
-	l1_pool = cc_max_pool2d(l1, 2, "l1_pool");
+	l1_pool = cc_max_pool2d(l1, 2, 2, 0, 0, "l1_pool");
 
 	l2 = cc_conv2d(l1_pool, conv2_w, conv2_b, 1, 2, 0, "l2_conv");
 
 	l2 = cc_relu(l2, NULL);
 
-	l2_pool = cc_max_pool2d(l2, 2, "l2_pool");
+	l2_pool = cc_max_pool2d(l2, 2, 2, 0, 0, "l2_pool");
 
 	/* l2_flat = cc_fmap2d_flat(l2_pool, "l2_flat"); */
 	l2_flat = cc_reshape(l2_pool, shape_flat);

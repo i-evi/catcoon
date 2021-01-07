@@ -66,16 +66,12 @@ typedef void (*fn_activation_relu6)(
 typedef void (*fn_activation_softmax)(
 	void *inp, cc_int32 elems, cc_dtype dt);
 
-typedef void (*fn_max_pool2d)(const void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
-
-typedef void (*fn_avg_pool2d)(const void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
+typedef void (*fn_pool2d)(const void *inp, void *oup, cc_int32 x,
+	cc_int32 y, cc_int32 sx, cc_int32 sy, cc_int32 kw, cc_dtype dt);
 
 typedef void (*fn_conv2d)(const void *inp, void *oup,
-	cc_int32 x,cc_int32 y, cc_int32 oup_x, cc_int32 oup_y,
-	cc_int32 sx, cc_int32 sy, const void *filter,
-	cc_int32 fw, cc_dtype dt);
+	cc_int32 x,cc_int32 y, cc_int32 sx, cc_int32 sy,
+	const void *filter, cc_int32 fw, cc_dtype dt);
 
 typedef void (*fn_batch_norm)(void *inp,
 	cc_int32 len, const void *bnpara, cc_dtype dt);

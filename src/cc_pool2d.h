@@ -6,12 +6,21 @@
 #endif
 
 #include "cc_tensor.h"
+#include "global_fn_cfg.h"
 
-cc_tensor_t *cc_max_pool2d(
-	const cc_tensor_t *inp, cc_ssize s, const char *name);
+#define CC_POOL2D_PAD_NAME_SURFFIX "_pad"
 
-cc_tensor_t *cc_avg_pool2d(
-	const cc_tensor_t *inp, cc_ssize s, const char *name);
+cc_ssize cc_pool2d_shape_calc(
+	cc_ssize i, cc_ssize k, cc_ssize s, cc_ssize p);
+
+cc_tensor_t *cc_pool2d(const cc_tensor_t *inp, cc_ssize k, cc_ssize s,
+	cc_ssize p, cc_ssize off, fn_pool2d pool2d, const char *name);
+
+cc_tensor_t *cc_max_pool2d(const cc_tensor_t *inp, cc_ssize k,
+	cc_ssize s, cc_ssize p, cc_ssize off, const char *name);
+
+cc_tensor_t *cc_avg_pool2d(const cc_tensor_t *inp, cc_ssize k,
+	cc_ssize s, cc_ssize p, cc_ssize off, const char *name);
 
 #ifdef __cplusplus
 	}

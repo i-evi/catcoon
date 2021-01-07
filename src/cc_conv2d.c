@@ -35,7 +35,7 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 	cc_ssize o_ch_size, p_ch_mem_size, o_ch_mem_size,
 		k_ch_mem_size, k_mem_size, num_omp_threads, i, j;
 	cc_ssize shape[CC_CNN2D_SHAPE] = {0};
-	char pad_name[CC_CONV2D_PAD_NAME_LEN];
+	char pad_name[CC_TSR_NAME_LEN];
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(cc_dimension(kernel) - CC_CONV2D_KERNEL_DIM);
@@ -94,9 +94,7 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 			omp_out_buf + omp_get_thread_num() * o_ch_mem_size,
 				inp_pad->shape[CC_CNN2D_SHAPE_W],
 				inp_pad->shape[CC_CNN2D_SHAPE_H],
-				oup->shape[CC_CNN2D_SHAPE_W],
-				oup->shape[CC_CNN2D_SHAPE_H], s, s, 
-				(kernel->data + (k_mem_size * i) + 
+				s, s, (kernel->data + (k_mem_size * i) + 
 				k_ch_mem_size * j),
 				kernel->shape[CC_CONV2D_KERNEL_W],
 			*kernel->dtype);
@@ -108,9 +106,7 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 		_conv2d((inp_pad->data + p_ch_mem_size * j),
 			omp_out_buf, inp_pad->shape[CC_CNN2D_SHAPE_W],
 				inp_pad->shape[CC_CNN2D_SHAPE_H],
-				oup->shape[CC_CNN2D_SHAPE_W],
-				oup->shape[CC_CNN2D_SHAPE_H], s, s,
-				(kernel->data + (k_mem_size * i) +
+				s, s, (kernel->data + (k_mem_size * i) +
 				k_ch_mem_size * j),
 				kernel->shape[CC_CONV2D_KERNEL_W],
 			*kernel->dtype);
@@ -144,7 +140,7 @@ cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
 	cc_tensor_t *inp_pad, *oup = NULL;
 	cc_ssize o_ch_size, p_ch_mem_size, o_ch_mem_size, k_ch_mem_size, i;
 	cc_ssize shape[CC_CNN2D_SHAPE] = {0};
-	char pad_name[CC_CONV2D_PAD_NAME_LEN];
+	char pad_name[CC_TSR_NAME_LEN];
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_dimension(inp) - CC_CNN2D_DIM);
 	cc_assert_zero(cc_dimension(kernel) - CC_CONV2D_KERNEL_DIM);
@@ -193,9 +189,7 @@ cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
 			oup->data + i * o_ch_mem_size,
 				inp_pad->shape[CC_CNN2D_SHAPE_W],
 				inp_pad->shape[CC_CNN2D_SHAPE_H],
-				oup->shape[CC_CNN2D_SHAPE_W],
-				oup->shape[CC_CNN2D_SHAPE_H], s, s, 
-				kernel->data + (k_ch_mem_size * i),
+				s, s, kernel->data + (k_ch_mem_size * i),
 				kernel->shape[CC_CONV2D_KERNEL_W],
 			*kernel->dtype);
 	}

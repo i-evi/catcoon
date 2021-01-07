@@ -20,7 +20,7 @@ for i = 1, 2 do
   features:append(fn.relu      , { name = "#NULL"})
   features:append(fn.conv2d    , { input = nil, stride = 1, padding = 1 })
   features:append(fn.relu      , { name = "#NULL"})
-  features:append(fn.max_pool2d, {              stride = 2 })
+  features:append(fn.max_pool2d, { kernel = 2, stride = 2 })
 end
 
 for i = 1, 3 do
@@ -31,7 +31,7 @@ for i = 1, 3 do
   features:append(fn.relu      , { name = "#NULL"})
   features:append(fn.conv2d    , { stride = 1, padding = 1 })
   features:append(fn.relu      , { name = "#NULL"})
-  features:append(fn.max_pool2d, { stride = 2 })
+  features:append(fn.max_pool2d, { kernel = 2, stride = 2 })
 end
 
 classifier:append(fn.reshape, { shape = { -1, 1, 1 } }) -- C * H * W

@@ -5,7 +5,6 @@
 	extern "C" {
 #endif
 
-#define CC_CONV2D_PAD_NAME_LEN     128
 #define CC_CONV2D_PAD_NAME_SURFFIX "_pad"
 
 enum cc_conv2d_kernel {

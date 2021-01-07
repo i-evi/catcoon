@@ -13,14 +13,14 @@ void cc_cpu_activation_relu6(void *inp, cc_int32 elems, cc_dtype dt);
 
 void cc_cpu_activation_softmax(void *inp, cc_int32 elems, cc_dtype dt);
 
-void cc_cpu_max_pool2d(const void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
+void cc_cpu_max_pool2d(const void *inp, void *oup, cc_int32 x,
+	cc_int32 y, cc_int32 sx, cc_int32 sy, cc_int32 kw, cc_dtype dt);
 
-void cc_cpu_avg_pool2d(const void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt);
+void cc_cpu_avg_pool2d(const void *inp, void *oup, cc_int32 x,
+	cc_int32 y, cc_int32 sx, cc_int32 sy, cc_int32 kw, cc_dtype dt);
 
-void cc_cpu_conv2d(const void *inp, void *oup, cc_int32 x, cc_int32 y,
-		cc_int32 oup_x, cc_int32 oup_y, cc_int32 sx, cc_int32 sy,
+void cc_cpu_conv2d(const void *inp, void *oup,
+	cc_int32 x, cc_int32 y, cc_int32 sx, cc_int32 sy,
 	const void *filter, cc_int32 fw, cc_dtype dt);
 
 void cc_cpu_batch_norm(void *inp,

@@ -221,115 +221,137 @@ void cc_cpu_activation_softmax(void *inp, cc_int32 elems, cc_dtype dt)
 	}
 }
 
-#define CC_CPU_MAX_POOL2D_CASE(DT, dtype) \
-case DT:                                                             \
-for (i = 0; i < o_y; ++i) {                                          \
-	for (j = 0; j < o_x; ++j) {                                  \
-		*(dtype*)v_max = *((dtype*)inp + s * i * x + s * j); \
-		for (k = 0; k < s; ++k) {                            \
-			for (l = 0; l < s; ++l) {                    \
-				curr = (dtype*)inp +                 \
-					(s * i + k) * x + j * s + l; \
-				*(dtype*)v_max = *((dtype*)curr) >   \
-					*(dtype*)v_max ?             \
-				*((dtype*)curr) : *(dtype*)v_max;    \
-			}                                            \
-		}                                                    \
-		*((dtype*)oup + i * o_x + j) = *(dtype*)v_max;       \
-	}                                                            \
-}                                                                    \
-break;
-
-void cc_cpu_max_pool2d(const void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt)
-{
-	cc_int32 o_x = x / s;
-	cc_int32 o_y = y / s;
-	cc_int32 i, j, k, l;
-	void *curr, *v_max;
-	cc_assert_alloc(v_max = malloc(cc_dtype_size(dt)));
-	switch (dt) {
-		CC_CPU_MAX_POOL2D_CASE(CC_UINT8,   cc_uint8);
-		CC_CPU_MAX_POOL2D_CASE(CC_UINT16,  cc_uint16);
-		CC_CPU_MAX_POOL2D_CASE(CC_UINT32,  cc_uint32);
-		CC_CPU_MAX_POOL2D_CASE(CC_UINT64,  cc_uint64);
-		CC_CPU_MAX_POOL2D_CASE(CC_INT8,    cc_int8);
-		CC_CPU_MAX_POOL2D_CASE(CC_INT16,   cc_int16);
-		CC_CPU_MAX_POOL2D_CASE(CC_INT32,   cc_int32);
-		CC_CPU_MAX_POOL2D_CASE(CC_INT64,   cc_int64);
-		CC_CPU_MAX_POOL2D_CASE(CC_FLOAT32, cc_float32);
-		CC_CPU_MAX_POOL2D_CASE(CC_FLOAT64, cc_float64);
-	default:
-		UNSUPPORTED_DTYPE_LOG(dt);
-		break;
-	}
-	free(v_max);
+#define CC_CPU_MAX_POO2D_IMPLEMENTATION(dt) \
+static void cc_cpu_max_pool2d_ ## dt (const cc_ ## dt *in, \
+  cc_ ## dt *out, cc_int32 x, cc_int32 y, cc_int32 sx,     \
+ cc_int32 sy, cc_int32 kw)                                 \
+{                                                          \
+  cc_int32 i, j, u, v;                                     \
+  cc_ ## dt max;                                           \
+  for (i = 0; i <= y - kw; i += sy) {                      \
+    for (j = 0; j <= x - kw; j += sx) {                    \
+      max = *(in + i * x + j);                             \
+        for (u = 0; u < kw; ++u) {                         \
+          for (v = 0; v < kw; ++v) {                       \
+            max = max < *(in + (i + u) * x + (j + v)) ?    \
+                   *(in + (i + u) * x + (j + v)) : max;    \
+          }                                                \
+        }                                                  \
+        *out++ = max;                                      \
+    }                                                      \
+  }                                                        \
 }
 
-#define CC_CPU_AVG_POOL2D_CASE(DT, dtype) \
-case DT:                                                             \
-for (i = 0; i < o_y; ++i) {                                          \
-	for (j = 0; j < o_x; ++j) {                                  \
-		memset(v_avg, 0, cc_dtype_size(dt));                 \
-		for (k = 0; k < s; ++k) {                            \
-			for (l = 0; l < s; ++l) {                    \
-				curr = (dtype*)inp +                 \
-					(s * i + k) * x + j * s + l; \
-				*(dtype*)v_avg += *((dtype*)curr);   \
-			}                                            \
-		}                                                    \
-		*((dtype*)oup + i * o_x + j) =                       \
-			(*(dtype*)v_avg) / (s * s);                  \
-	}                                                            \
-}                                                                    \
-break;
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (uint8)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (uint16)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (uint32)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (uint64)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (int8)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (int16)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (int32)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (int64)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (float32)
+CC_CPU_MAX_POO2D_IMPLEMENTATION  (float64)
 
-void cc_cpu_avg_pool2d(const void *inp, void *oup,
-	cc_int32 x, cc_int32 y, cc_int32 s, cc_dtype dt)
+#define CC_CPU_MAX_POOL2D_CASE(DT, dtype) \
+case DT:                                                      \
+	cc_cpu_max_pool2d_ ## dtype((const cc_ ## dtype*)inp, \
+		(cc_ ## dtype*)oup, x, y, sx, sy, kw);        \
+	break;
+void cc_cpu_max_pool2d(const void *inp, void *oup, cc_int32 x,
+	cc_int32 y, cc_int32 sx, cc_int32 sy, cc_int32 kw, cc_dtype dt)
 {
-	cc_int32 o_x = x / s;
-	cc_int32 o_y = y / s;
-	cc_int32 i, j, k, l;
-	void *curr, *v_avg;
-	cc_assert_alloc(v_avg = malloc(cc_dtype_size(dt)));
 	switch (dt) {
-		CC_CPU_AVG_POOL2D_CASE(CC_UINT8,   cc_uint8);
-		CC_CPU_AVG_POOL2D_CASE(CC_UINT16,  cc_uint16);
-		CC_CPU_AVG_POOL2D_CASE(CC_UINT32,  cc_uint32);
-		CC_CPU_AVG_POOL2D_CASE(CC_UINT64,  cc_uint64);
-		CC_CPU_AVG_POOL2D_CASE(CC_INT8,    cc_int8);
-		CC_CPU_AVG_POOL2D_CASE(CC_INT16,   cc_int16);
-		CC_CPU_AVG_POOL2D_CASE(CC_INT32,   cc_int32);
-		CC_CPU_AVG_POOL2D_CASE(CC_INT64,   cc_int64);
-		CC_CPU_AVG_POOL2D_CASE(CC_FLOAT32, cc_float32);
-		CC_CPU_AVG_POOL2D_CASE(CC_FLOAT64, cc_float64);
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT8,   uint8)
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT16,  uint16)
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT32,  uint32)
+		CC_CPU_MAX_POOL2D_CASE(CC_UINT64,  uint64)
+		CC_CPU_MAX_POOL2D_CASE(CC_INT8,    int8)
+		CC_CPU_MAX_POOL2D_CASE(CC_INT16,   int16)
+		CC_CPU_MAX_POOL2D_CASE(CC_INT32,   int32)
+		CC_CPU_MAX_POOL2D_CASE(CC_INT64,   int64)
+		CC_CPU_MAX_POOL2D_CASE(CC_FLOAT32, float32)
+		CC_CPU_MAX_POOL2D_CASE(CC_FLOAT64, float64)
 	default:
 		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
 	}
-	free(v_avg);
+}
+
+#define CC_CPU_AVG_POO2D_IMPLEMENTATION(dt) \
+static void cc_cpu_avg_pool2d_ ## dt (const cc_ ## dt *in, \
+  cc_ ## dt *out, cc_int32 ix, cc_int32 iy, cc_int32 sx,   \
+ cc_int32 sy, cc_int32 kw)                                 \
+{                                                          \
+  cc_int32 i, j, u, v, n = kw * kw;                        \
+  cc_ ## dt avg;                                           \
+  for (i = 0; i <= iy - kw; i += sy) {                     \
+    for (j = 0; j <= ix - kw; j += sx) {                   \
+      avg = 0;                                             \
+      for (u = 0; u < kw; ++u) {                           \
+        for (v = 0; v < kw; ++v) {                         \
+          avg += *(in + (i + u) * ix + (j + v));           \
+        }                                                  \
+      }                                                    \
+      *out++ = avg / n;                                    \
+    }                                                      \
+  }                                                        \
+}
+
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (uint8)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (uint16)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (uint32)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (uint64)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (int8)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (int16)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (int32)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (int64)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (float32)
+CC_CPU_AVG_POO2D_IMPLEMENTATION  (float64)
+
+#define CC_CPU_AVG_POOL2D_CASE(DT, dtype) \
+case DT:                                                      \
+	cc_cpu_avg_pool2d_ ## dtype((const cc_ ## dtype*)inp, \
+		(cc_ ## dtype*)oup, x, y, sx, sy, kw);        \
+	break;
+void cc_cpu_avg_pool2d(const void *inp, void *oup, cc_int32 x,
+	cc_int32 y, cc_int32 sx, cc_int32 sy, cc_int32 kw, cc_dtype dt)
+{
+	switch (dt) {
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT8,   uint8)
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT16,  uint16)
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT32,  uint32)
+		CC_CPU_AVG_POOL2D_CASE(CC_UINT64,  uint64)
+		CC_CPU_AVG_POOL2D_CASE(CC_INT8,    int8)
+		CC_CPU_AVG_POOL2D_CASE(CC_INT16,   int16)
+		CC_CPU_AVG_POOL2D_CASE(CC_INT32,   int32)
+		CC_CPU_AVG_POOL2D_CASE(CC_INT64,   int64)
+		CC_CPU_AVG_POOL2D_CASE(CC_FLOAT32, float32)
+		CC_CPU_AVG_POOL2D_CASE(CC_FLOAT64, float64)
+	default:
+		UNSUPPORTED_DTYPE_LOG(dt);
+		break;
+	}
 }
 
 #define CC_CPU_CONV2D_IMPLEMENTATION(dt) \
-static void cc_cpu_conv2d_ ## dt (cc_ ## dt *inp, cc_ ## dt *oup, \
-	cc_int32 x, cc_int32 y, cc_int32 oup_x, cc_int32 oup_y,   \
-	cc_int32 sx, cc_int32 sy, cc_ ## dt *filter, cc_int32 fw) \
-{                                                                 \
-  cc_int32 i, j, k, l;                                            \
-  cc_int32 half_fl = fw >> 1;                                     \
-  cc_ ## dt sum;                                                  \
-  for (i = half_fl; i < y - half_fl; i += sy) {                   \
-    for (j = half_fl; j < x - half_fl; j += sx) {                 \
-      sum = 0;                                                    \
-      for (k = -half_fl; k <= half_fl; ++k) {                     \
-        for (l = -half_fl; l <= half_fl; ++l) {                   \
-          sum += *(inp + (i + k) * x + (j + l)) *                 \
-              *(filter + (k + half_fl) * fw + (l + half_fl));     \
-        }                                                         \
-      }                                                           \
-      *oup++ = sum;                                               \
-    }                                                             \
-  }                                                               \
+static void cc_cpu_conv2d_ ## dt (const cc_ ## dt *in, \
+  cc_ ## dt *out, cc_int32 x, cc_int32 y, cc_int32 sx, \
+  cc_int32 sy, const cc_ ## dt *k, cc_int32 kw) {      \
+  cc_int32 i, j, u, v;                                 \
+  cc_ ## dt acc;                                       \
+  for (i = 0; i <= y - kw; i += sy) {                  \
+    for (j = 0; j <= x - kw; j += sx) {                \
+      acc = 0;                                         \
+      for (u = 0; u < kw; ++u) {                       \
+        for (v = 0; v < kw; ++v) {                     \
+          acc += *(in + (i + u) * x + (j + v)) *       \
+                 *(k + u * kw + v);                    \
+        }                                              \
+      }                                                \
+      *out++ = acc;                                    \
+    }                                                  \
+  }                                                    \
 }
 
 CC_CPU_CONV2D_IMPLEMENTATION  (uint8)
@@ -343,61 +365,26 @@ CC_CPU_CONV2D_IMPLEMENTATION  (int64)
 CC_CPU_CONV2D_IMPLEMENTATION  (float32)
 CC_CPU_CONV2D_IMPLEMENTATION  (float64)
 
-void cc_cpu_conv2d(const void *inp, void *oup, cc_int32 x, cc_int32 y,
-		cc_int32 oup_x, cc_int32 oup_y, cc_int32 sx, cc_int32 sy,
+#define CC_CPU_CONV2D_CASE(DT, dtype) \
+case DT:                                                              \
+	cc_cpu_conv2d_ ## dtype((const cc_ ## dtype*)inp,             \
+	(cc_ ## dtype*)oup, x, y, sx, sy, (cc_ ## dtype*)filter, fw); \
+	break;
+void cc_cpu_conv2d(const void *inp, void *oup,
+	cc_int32 x, cc_int32 y, cc_int32 sx, cc_int32 sy,
 	const void *filter, cc_int32 fw, cc_dtype dt)
 {
 	switch (dt) {
-	case CC_UINT8:
-		cc_cpu_conv2d_uint8((cc_uint8*)inp,
-			(cc_uint8*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_uint8*)filter, fw);
-		break;
-	case CC_UINT16:
-		cc_cpu_conv2d_uint16((cc_uint16*)inp,
-			(cc_uint16*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_uint16*)filter, fw);
-		break;
-	case CC_UINT32:
-		cc_cpu_conv2d_uint32((cc_uint32*)inp,
-			(cc_uint32*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_uint32*)filter, fw);
-		break;
-	case CC_UINT64:
-		cc_cpu_conv2d_uint64((cc_uint64*)inp,
-			(cc_uint64*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_uint64*)filter, fw);
-		break;
-	case CC_INT8:
-		cc_cpu_conv2d_int8((cc_int8*)inp,
-			(cc_int8*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_int8*)filter, fw);
-		break;
-	case CC_INT16:
-		cc_cpu_conv2d_int16((cc_int16*)inp,
-			(cc_int16*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_int16*)filter, fw);
-		break;
-	case CC_INT32:
-		cc_cpu_conv2d_int32((cc_int32*)inp,
-			(cc_int32*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_int32*)filter, fw);
-		break;
-	case CC_INT64:
-		cc_cpu_conv2d_int64((cc_int64*)inp,
-			(cc_int64*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_int64*)filter, fw);
-		break;
-	case CC_FLOAT32:
-		cc_cpu_conv2d_float32((cc_float32*)inp,
-			(cc_float32*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_float32*)filter, fw);
-		break;
-	case CC_FLOAT64:
-		cc_cpu_conv2d_float64((cc_float64*)inp,
-			(cc_float64*)oup, x, y, oup_x, oup_y,
-			sx, sy, (cc_float64*)filter, fw);
-		break;
+		CC_CPU_CONV2D_CASE(CC_UINT8,   uint8)
+		CC_CPU_CONV2D_CASE(CC_UINT16,  uint16)
+		CC_CPU_CONV2D_CASE(CC_UINT32,  uint32)
+		CC_CPU_CONV2D_CASE(CC_UINT64,  uint64)
+		CC_CPU_CONV2D_CASE(CC_INT8,    int8)
+		CC_CPU_CONV2D_CASE(CC_INT16,   int16)
+		CC_CPU_CONV2D_CASE(CC_INT32,   int32)
+		CC_CPU_CONV2D_CASE(CC_INT64,   int64)
+		CC_CPU_CONV2D_CASE(CC_FLOAT32, float32)
+		CC_CPU_CONV2D_CASE(CC_FLOAT64, float64)
 	default:
 		UNSUPPORTED_DTYPE_LOG(dt);
 		break;
@@ -446,50 +433,25 @@ CC_CPU_BATCH_NORM_IMPLEMENTATION  (int64)
 CC_CPU_BATCH_NORM_IMPLEMENTATION  (float32)
 CC_CPU_BATCH_NORM_IMPLEMENTATION  (float64)
 
+#define CC_CPU_BATCH_NORM_CASE(DT, dtype) \
+case DT:                                                 \
+	cc_cpu_batch_norm_ ## dtype(                     \
+	(cc_ ## dtype*)inp, len, (cc_ ## dtype*)bnpara); \
+		break;
 void cc_cpu_batch_norm(void *inp,
 	cc_int32 len, const void *bnpara, cc_dtype dt)
 {
 	switch (dt) {
-	case CC_UINT8:
-		cc_cpu_batch_norm_uint8(
-			(cc_uint8*)inp, len, (cc_uint8*)bnpara);
-		break;
-	case CC_UINT16:
-		cc_cpu_batch_norm_uint16(
-			(cc_uint16*)inp, len, (cc_uint16*)bnpara);
-		break;
-	case CC_UINT32:
-		cc_cpu_batch_norm_uint32(
-			(cc_uint32*)inp, len, (cc_uint32*)bnpara);
-		break;
-	case CC_UINT64:
-		cc_cpu_batch_norm_uint64(
-			(cc_uint64*)inp, len, (cc_uint64*)bnpara);
-		break;
-	case CC_INT8:
-		cc_cpu_batch_norm_int8(
-			(cc_int8*)inp, len, (cc_int8*)bnpara);
-		break;
-	case CC_INT16:
-		cc_cpu_batch_norm_int16(
-			(cc_int16*)inp, len, (cc_int16*)bnpara);
-		break;
-	case CC_INT32:
-		cc_cpu_batch_norm_int32(
-			(cc_int32*)inp, len, (cc_int32*)bnpara);
-		break;
-	case CC_INT64:
-		cc_cpu_batch_norm_int64(
-			(cc_int64*)inp, len, (cc_int64*)bnpara);
-		break;
-	case CC_FLOAT32:
-		cc_cpu_batch_norm_float32(
-			(cc_float32*)inp, len, (cc_float32*)bnpara);
-		break;
-	case CC_FLOAT64:
-		cc_cpu_batch_norm_float64(
-			(cc_float64*)inp, len, (cc_float64*)bnpara);
-		break;
+		CC_CPU_BATCH_NORM_CASE(CC_UINT8,   uint8)
+		CC_CPU_BATCH_NORM_CASE(CC_UINT16,  uint16)
+		CC_CPU_BATCH_NORM_CASE(CC_UINT32,  uint32)
+		CC_CPU_BATCH_NORM_CASE(CC_UINT64,  uint64)
+		CC_CPU_BATCH_NORM_CASE(CC_INT8,    int8)
+		CC_CPU_BATCH_NORM_CASE(CC_INT16,   int16)
+		CC_CPU_BATCH_NORM_CASE(CC_INT32,   int32)
+		CC_CPU_BATCH_NORM_CASE(CC_INT64,   int64)
+		CC_CPU_BATCH_NORM_CASE(CC_FLOAT32, float32)
+		CC_CPU_BATCH_NORM_CASE(CC_FLOAT64, float64)
 	default:
 		UNSUPPORTED_DTYPE_LOG(dt);
 		break;

@@ -21,13 +21,13 @@ typedef      unsigned long long      u64;
 typedef               float          f32;
 typedef               double         f64;
 
-/* void ecpu_conv2d_xxx(xxx *in, xxx *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, xxx *k, i32 kw) */
+/* void ecpu_conv2d_xxx(xxx *in, xxx *out,
+	i32 x, i32 y, i32 sx, i32 sy, xxx *k, i32 kw) */
 #define ECPU_CONV2D_DECLARATION(dtype) \
-void  ecpu_conv2d_ ## dtype (const dtype *in, dtype *out, i32 ix, i32 iy, \
-	i32 ox, i32 oy, i32 sx, i32 sy, const dtype *k, i32 kw);          \
-void naive_conv2d_ ## dtype (const dtype *in, dtype *out, i32 ix, i32 iy, \
-	i32 ox, i32 oy, i32 sx, i32 sy, const dtype *k, i32 kw);
+void  ecpu_conv2d_ ## dtype (const dtype *in, dtype *out,      \
+	i32 x, i32 y, i32 sx, i32 sy, const dtype *k, i32 kw); \
+void naive_conv2d_ ## dtype (const dtype *in, dtype *out,      \
+	i32 x, i32 y, i32 sx, i32 sy, const dtype *k, i32 kw);
 
 ECPU_CONV2D_DECLARATION  (i8)
 ECPU_CONV2D_DECLARATION  (u8)
@@ -50,18 +50,18 @@ ECPU_CONV2D_DECLARATION  (f64)
   #define ALT_CONV2D_F32_K5SX  sse_conv2d_f32_k5sx
 #endif
 
-void sse_conv2d_f32_k1s1(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
-void sse_conv2d_f32_k2sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
-void sse_conv2d_f32_k3s1(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
-void sse_conv2d_f32_k3sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
-void sse_conv2d_f32_k4sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
-void sse_conv2d_f32_k5sx(const f32 *in, f32 *out, i32 ix, i32 iy,
-	i32 ox, i32 oy, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k1s1(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k2sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k3s1(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k3sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k4sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw);
+void sse_conv2d_f32_k5sx(const f32 *in, f32 *out,
+	i32 x, i32 y, i32 sx, i32 sy, const f32 *k, i32 kw);
 
 /* void ecpu_dot_prod_xxx(xxx *in, xxx *out, xxx *w, i32 iw); */
 #define ECPU_DOTPROD_DECLARATION(dtype) \
@@ -95,14 +95,14 @@ void sse_dot_prod_f32(const f32 *in, f32 *out, const f32 *w, i32 iw);
 /* void ecpu_max_pool2d_xxx(xxx *in, xxx *out, i32 x, i32 y, i32 s); */
 /* void ecpu_avg_pool2d_xxx(xxx *in, xxx *out, i32 x, i32 y, i32 s); */
 #define ECPU_POOL2D_DECLARATION(dtype) \
-void  ecpu_max_pool2d_ ## dtype (                          \
-	const dtype *in, dtype *out, i32 x, i32 y, i32 s); \
-void naive_max_pool2d_ ## dtype (                          \
-	const dtype *in, dtype *out, i32 x, i32 y, i32 s); \
-void  ecpu_avg_pool2d_ ## dtype (                          \
-	const dtype *in, dtype *out, i32 x, i32 y, i32 s); \
-void naive_avg_pool2d_ ## dtype (                          \
-	const dtype *in, dtype *out, i32 x, i32 y, i32 s);
+void  ecpu_max_pool2d_ ## dtype (const dtype *in, dtype *out, \
+	i32 x, i32 y, i32 sx, i32 sy, i32 kw); \
+void naive_max_pool2d_ ## dtype (const dtype *in, dtype *out, \
+	i32 x, i32 y, i32 sx, i32 sy, i32 kw); \
+void  ecpu_avg_pool2d_ ## dtype (const dtype *in, dtype *out, \
+	i32 x, i32 y, i32 sx, i32 sy, i32 kw); \
+void naive_avg_pool2d_ ## dtype (const dtype *in, dtype *out, \
+	i32 x, i32 y, i32 sx, i32 sy, i32 kw); \
 
 ECPU_POOL2D_DECLARATION  (i8)
 ECPU_POOL2D_DECLARATION  (u8)
@@ -116,23 +116,29 @@ ECPU_POOL2D_DECLARATION  (f32)
 ECPU_POOL2D_DECLARATION  (f64)
 
 #if defined(__x86_64) && defined(__SSE__)
-  #define ALT_MAXPOOL2D_F32_S2  sse_max_pool2d_f32_s2
-  #define ALT_MAXPOOL2D_F32_S3  sse_max_pool2d_f32_s3
-  #define ALT_MAXPOOL2D_F32_S4  sse_max_pool2d_f32_s4
-  #define ALT_AVGPOOL2D_F32_S2  sse_avg_pool2d_f32_s2
-  #define ALT_AVGPOOL2D_F32_S3  sse_avg_pool2d_f32_s3
-  #define ALT_AVGPOOL2D_F32_S4  sse_avg_pool2d_f32_s4
+  #define ALT_MAXPOOL2D_F32_K2S2  sse_max_pool2d_f32_k2s2
+  #define ALT_MAXPOOL2D_F32_K3S3  sse_max_pool2d_f32_k3s3
+  #define ALT_MAXPOOL2D_F32_K4S4  sse_max_pool2d_f32_k4s4
+  #define ALT_AVGPOOL2D_F32_K2S2  sse_avg_pool2d_f32_k2s2
+  #define ALT_AVGPOOL2D_F32_K3S3  sse_avg_pool2d_f32_k3s3
+  #define ALT_AVGPOOL2D_F32_K4S4  sse_avg_pool2d_f32_k4s4
 #endif
 
-void sse_max_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s);
-void sse_avg_pool2d_f32_s2(const f32 *in, f32 *out, i32 x, i32 y, i32 s);
+void sse_max_pool2d_f32_k2s2(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw);
+void sse_avg_pool2d_f32_k2s2(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw);
 
 /* ((s > x) && (s >= y))*/
-void sse_max_pool2d_f32_s3(const f32 *in, f32 *out, i32 x, i32 y, i32 s);
-void sse_avg_pool2d_f32_s3(const f32 *in, f32 *out, i32 x, i32 y, i32 s);
+void sse_max_pool2d_f32_k3s3(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw);
+void sse_avg_pool2d_f32_k3s3(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw);
 
-void sse_max_pool2d_f32_s4(const f32 *in, f32 *out, i32 x, i32 y, i32 s);
-void sse_avg_pool2d_f32_s4(const f32 *in, f32 *out, i32 x, i32 y, i32 s);
+void sse_max_pool2d_f32_k4s4(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw);
+void sse_avg_pool2d_f32_k4s4(const f32 *in,
+	f32 *out, i32 x, i32 y, i32 sx, i32 sy, i32 kw);
 
 #ifdef __cplusplus
 	}

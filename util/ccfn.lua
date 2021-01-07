@@ -17,7 +17,7 @@ fn = {
   },
   max_pool2d = {
     parameter = false,
-    template  = "$output = cc_max_pool2d($input, $stride, $name);"
+    template  = "$output = cc_max_pool2d($input, $kernel, $stride, $name);"
   },
   relu = {
     parameter = false,

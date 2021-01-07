@@ -9,6 +9,8 @@
 #include "cc_macro.h"
 #include "cc_dtype.h"
 
+#define CC_TSR_NAME_LEN 128
+
 enum cc_tensor_items {	
 	CC_TENSOR_DATA,  /* 0 */
 	CC_TENSOR_SHAPE, /* 1 */
