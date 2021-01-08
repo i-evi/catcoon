@@ -353,9 +353,11 @@ cc_tensor_t *cc_cast(cc_tensor_t *tensor,
 		cc_free(cast);
 		return NULL;
 	}
+	if (!name)
+		return cast;
 	list_rename(cast->container, name);
 	cast->name = cast->container->name;
-	if (!name || !strcmp(name, tensor->name)) {
+	if (!strcmp(name, tensor->name)) {
 #ifdef AUTO_TSRMGR
 		cc_tsrmgr_replace(cast);
 #else

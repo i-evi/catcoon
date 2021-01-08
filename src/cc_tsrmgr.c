@@ -112,9 +112,8 @@ void cc_tsrmgr_reg(cc_tensor_t *tensor)
 void cc_tsrmgr_replace(cc_tensor_t *tensor)
 {
 	struct pair *ptr;
-#ifdef ENABLE_CC_ASSERT
-	cc_assert_ptr(tensor->name);
-#endif
+	if (!tensor->name)
+		return;    /* Nothing happen */
 	if (!g_tsrmgr) {
 		utlog_format(UTLOG_WARN, "cc_tsrmgr: not initialized\n");
 		return;

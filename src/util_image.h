@@ -81,7 +81,7 @@ int utim_write_ctrl(const char *filename,
 	UTIM_IMG *img, int comp, int quality);
 
 UTIM_IMG *utim_clone(UTIM_IMG *img);
-UTIM_IMG *utim_create(int x, int y, int nch, int c);
+UTIM_IMG *utim_create(int x, int y, int nch, int init);
 
 void utim_free_image(UTIM_IMG *img);
 

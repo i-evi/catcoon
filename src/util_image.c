@@ -419,15 +419,19 @@ UTIM_IMG *utim_resize(UTIM_IMG *img, int x, int y, int mode)
 			return NULL;
 		}
 		break;
-#ifdef USE3RD_STB_IMAGE
 	case UTIM_RESIZE_LINEAR:
+#ifdef USE3RD_STB_IMAGE
 		resize->pixels = _image_resize_linear(img, x, y);
+#else
+fprintf(stderr,
+  "WARNING: Interpolation mode LINEAR not impl yet, using NEAREST\n");
+		resize->pixels = _image_resize_nearest(img, x, y);
+#endif
 		if (!resize->pixels) {
 			free(resize);
 			return NULL;
 		}
 		break;
-#endif
 	default:
 		return NULL;
 	}
@@ -748,7 +752,7 @@ UTIM_IMG *utim_rgb_by_gray(UTIM_IMG *gray)
 	return rgb;
 }
 
-UTIM_IMG *utim_create(int x, int y, int nch, int c)
+UTIM_IMG *utim_create(int x, int y, int nch, int init)
 {
 	UTIM_IMG *img;
 	int size = x * y * nch;
@@ -762,7 +766,7 @@ UTIM_IMG *utim_create(int x, int y, int nch, int c)
 		free(img);
 		return NULL;
 	}
-	memset(img->pixels, c, size);
+	memset(img->pixels, init, size);
 	img->xsize = x;
 	img->ysize = y;
 	img->channels = nch;

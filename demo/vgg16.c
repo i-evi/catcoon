@@ -16,20 +16,15 @@ void vgg16(cc_tensor_t *in, cc_tensor_t **out);
 
 int main(int argc, const char *argv[])
 {
-	UTIM_IMG *img, *img_read;
-	cc_tensor_t *input, *output;
-	cc_float32 v;
 	cc_int32 i, j;
+	cc_float32 v;
+	cc_tensor_t *input, *output;
 	arg_parser(argc, (char**)argv);
 	cc_tsrmgr_import(parameters_path);
-	img_read = utim_read(image_path);
-	img = utim_resize(img_read, INPUT_H, INPUT_W, 0);
-	input = cc_image2tensor(img, "input");
-	utim_free_image(img);
-	utim_free_image(img_read);
-	input = cc_cast(input, CC_FLOAT32, "input");
-	v = 255.;
-	input = cc_scalar(input, '/', &v, "input");
+	input = cc_imread(image_path,
+		INPUT_H, INPUT_W, CC_RESIZE_LINEAR, CC_RGB, "input");
+	cc_image_norm(input, CC_IM_NORM_MINMAX_RGB);
+	cc_image_norm(input, CC_IM_NORM_ZSCORE_RGB);
 	vgg16(input, &output);
 	cc_tsrmgr_list();
 	v = 0.;
