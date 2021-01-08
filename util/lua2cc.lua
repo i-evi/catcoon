@@ -234,7 +234,7 @@ local context_dfl = {
     print_line("{")
     -- make shapes
     if #self.shape_list >= 1 then
-      local shape = "static int "
+      local shape = "static cc_ssize "
       for k, v in pairs(self.shape_list) do
         shape = shape..string.format(self.shapefmt.."[] = {", k - 1)
         for _, v in pairs(v) do
