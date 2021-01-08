@@ -1,5 +1,3 @@
-tags
 /apps/*
 /libs/*
 /objs/*
-*.bin
