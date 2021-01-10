@@ -117,19 +117,12 @@ cc_tensor_t *cc_conv2d(const cc_tensor_t *inp,
 		}
 	}
 	free(omp_out_buf);
-	if (!bias){
-#ifndef AUTO_TSRMGR
-		if (p)
-			cc_free_tensor(inp_pad);
-#endif
-		return oup;
-	} else {
-		oup = cc_fmap2d_bias(oup, bias, oup->name);
-	}
 #ifndef AUTO_TSRMGR
 	if (p)
-		cc_free_tensor(inp_pad);
+		cc_free((cc_tensor_t*)inp_pad);
 #endif
+	if (bias)
+		oup = cc_fmap2d_bias(oup, bias, oup->name);
 	return oup;
 }
 
@@ -196,7 +189,7 @@ cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
 	if (!bias){
 #ifndef AUTO_TSRMGR
 		if (p)
-			cc_free_tensor(inp_pad);
+			cc_free(inp_pad);
 #endif
 		return oup;
 	} else {
@@ -204,7 +197,7 @@ cc_tensor_t *cc_dw_conv2d(cc_tensor_t *inp,
 	}
 #ifndef AUTO_TSRMGR
 	if (p)
-		cc_free_tensor(inp_pad);
+		cc_free(inp_pad);
 #endif
 	return oup;
 }

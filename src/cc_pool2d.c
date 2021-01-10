@@ -57,6 +57,10 @@ cc_tensor_t *cc_pool2d(const cc_tensor_t *inp, cc_ssize k,
 				inp_pad->shape[CC_CNN2D_SHAPE_H],
 				s, s, k, *inp->dtype);
 	}
+#ifndef AUTO_TSRMGR
+	if (p)
+		cc_free((cc_tensor_t*)inp_pad);
+#endif
 	return pool;
 }
 

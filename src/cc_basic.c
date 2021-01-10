@@ -426,26 +426,31 @@ cc_tensor_t *cc_elemwise(cc_tensor_t *a,
 #ifdef ENABLE_CC_ASSERT
 	cc_assert_zero(cc_compare_by_shape(a, b));
 #endif
-	if (!name || !strcmp(name, a->name))
+	if (!name || !strcmp(name, a->name)) {
 		yield = a;
-	else
-		yield = cc_copy(a, name);
+	} else {
+#ifdef AUTO_TSRMGR
+		yield = cc_tsrmgr_get(name);
+		if (!yield)
+			yield = cc_create(a->shape, *a->dtype, name);
+#endif
+	}
 	switch (op) {
 	case '+':
 		cc_array_add_ew(yield->data, elems,
-			yield->data, b->data, *yield->dtype);
+			a->data, b->data, *yield->dtype);
 		break;
 	case '-':
 		cc_array_sub_ew(yield->data, elems,
-			yield->data, b->data, *yield->dtype);
+			a->data, b->data, *yield->dtype);
 		break;
 	case '*':
 		cc_array_mul_ew(yield->data, elems,
-			yield->data, b->data, *yield->dtype);
+			a->data, b->data, *yield->dtype);
 		break;
 	case '/':
 		cc_array_div_ew(yield->data, elems,
-			yield->data, b->data, *yield->dtype);
+			a->data, b->data, *yield->dtype);
 		break;
 	default:
 		utlog_format(UTLOG_ERR,

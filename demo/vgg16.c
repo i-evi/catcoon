@@ -74,7 +74,7 @@ void arg_parser(int argc, char* const argv[])
 	}
 	if (!strlen(image_path) || !strlen(parameters_path)) {
 		printf("error: incomplete argument\n");
-		printf("run 'lenet -h' for help.\n");
+		printf("run 'vgg16 -h' for help.\n");
 		exit(EXIT_FAILURE);
 	}
 }
