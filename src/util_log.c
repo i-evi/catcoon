@@ -5,10 +5,35 @@
 #include <time.h>
 
 #include "util_log.h"
+#ifdef UTLOG_LINUX_API_TIME
+#include <sys/time.h>
+#endif
 
-static int   highlight_flag    = UTLOG_HIGHLIGHT_ON;
+static utlog_time_t start_time;
 static FILE *user_log_ostream  = NULL;
+static int   time_mode_flag_m  = UTLOG_USE_SYS_TIME;
+static int   time_mode_flag_o  = UTLOG_USE_RUN_TIME;
+static int   highlight_flag    = UTLOG_HIGHLIGHT_ON;
 static int   error_action_flag = UTLOG_ERR_ACT_ABORT;
+
+#if   defined (__GNUC__)
+	void utlog_set_start_time(void) __attribute__((constructor));
+#elif defined (_MSC_VER)
+	#pragma data_seg(".CRT$XIU")
+	void utlog_set_start_time(void);
+	void (*$)(void) = utlog_set_start_time;
+	#pragma data_seg
+#else
+	#define UTLOG_START_TIME_NOT_SET
+	#warning "Unknown compiler, start_time may not be initialized"
+#endif
+
+#ifndef UTLOG_START_TIME_NOT_SET
+void utlog_set_start_time(void)
+{
+	start_time = utlog_gettime();
+}
+#endif
 
 void utlog_highlight_on(void)
 {
@@ -86,16 +111,62 @@ if (logtype == UTLOG_ERR) {                   \
 }                                             \
 return;
 
+void utlog_use_clk_time(void)
+{
+	time_mode_flag_m = UTLOG_USE_CLK_TIME;
+}
+
+void utlog_use_sys_time(void)
+{
+	time_mode_flag_m = UTLOG_USE_SYS_TIME;
+}
+
+void utlog_use_abs_time(void)
+{
+	time_mode_flag_o = UTLOG_USE_ABS_TIME;
+}
+
+void utlog_use_run_time(void)
+{
+	time_mode_flag_o = UTLOG_USE_RUN_TIME;
+}
+
+utlog_time_t utlog_gettime(void)
+{
+	utlog_time_t timestamp;
+#ifdef UTLOG_LINUX_API_TIME
+	struct timeval t;
+#endif
+	if (time_mode_flag_m == UTLOG_USE_SYS_TIME) {
+#ifdef UTLOG_LINUX_API_TIME
+		gettimeofday(&t, NULL);
+		timestamp = t.tv_usec;
+		timestamp = (timestamp / 1e6) + t.tv_sec;
+#else
+		timestamp = time(NULL);
+#endif
+	} else {
+		timestamp = clock();
+		timestamp /= UTLOG_CLK_FRAC;
+	}
+	return timestamp;
+}
+
 void utlog_format(int logtype, const char *fmt, ...)
 {
 	int n;
 	char *p, *f, *pf;
-	/* time_t t;
-	 * time(&t);
-	 */
 	FILE *log_ostream;
-	clock_t clk = clock();
 	va_list ap;
+	utlog_time_t timestamp;
+	if (time_mode_flag_o == UTLOG_USE_ABS_TIME) {
+		timestamp = utlog_gettime();
+	} else {
+		if (time_mode_flag_m == UTLOG_USE_SYS_TIME)
+			timestamp = utlog_gettime() - start_time;
+		else
+			timestamp = utlog_gettime();
+	}
 	if (user_log_ostream)
 		log_ostream = user_log_ostream;
 	else
@@ -105,12 +176,10 @@ void utlog_format(int logtype, const char *fmt, ...)
 	/* fprintf(log_ostream, "[%ld:%ld] : ", t, clk); */
 	if (getenv("TERM") &&
 		highlight_flag == UTLOG_HIGHLIGHT_ON) {
-		fprintf(log_ostream, "[%s%08ld\033[0m]: ",
-				_log_clock_style_str(logtype),
-			clk / UTLOG_CLK_FRAC);
+		fprintf(log_ostream, "[%s%08lf\033[0m]: ",
+			_log_clock_style_str(logtype), timestamp);
 	} else {
-		fprintf(log_ostream, "[%08ld]: ",
-			clk / UTLOG_CLK_FRAC);
+		fprintf(log_ostream, "[%08lf]: ", timestamp);
 	}
 	va_start(ap, fmt);
 	n = _account_symbol(f, '%');
