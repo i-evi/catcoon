@@ -232,7 +232,7 @@ static void _cc_print_indent(int n)
             if (--sops[--i]) {                    \
               for (j = ++i; j < (dim - 1); ++j)   \
                 sops[j] = sbak[j];                \
-                break;                            \
+              break;                              \
             } else {                              \
               fputc(']', ostream);                \
               cidt--;                             \
