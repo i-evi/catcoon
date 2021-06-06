@@ -25,6 +25,8 @@
 #endif
 #endif
 
+#include <stddef.h>
+
 typedef unsigned char lsw_t;
 
 enum {
@@ -74,7 +76,7 @@ struct list {
 	uint key;       /* key of shared mem */
 	uint counter;   /* record counter */
 	uint blen;      /* length of a record */
-	uint scale;     /* scale */
+	uint nmemb;     /* nmemb */
   union {
 	byte flag;      /* list's mode flag */
 	uint _placeholder;
@@ -96,13 +98,17 @@ struct list {
 #define LIST_NOT_SHARED             0x70
 #define LIST_SHARED_MEM             0x71
 
-struct list *list_new(uint scale, uint blen);
+#define LIST_ALIGNMENT_DFL 4 /* 32bits */
+
+size_t list_set_alignment(size_t alignment);
+
+struct list *list_new(uint nmemb, uint blen);
 
 struct list *list_clone(struct list *ls);
 
 void list_del(struct list *ls);
 
-lsw_t list_resize(struct list *ls, uint scale);
+lsw_t list_resize(struct list *ls, uint nmemb);
 
 lsw_t list_rename(struct list *ls, const char *name);
 
@@ -163,7 +169,7 @@ struct list *list_import(const char *path);
 
 /* struct list | name | mem */
 
-struct list *list_new_shared(uint scale, uint blen, uint key);
+struct list *list_new_shared(uint nmemb, uint blen, uint key);
 
 struct list *list_link_shared(uint len, uint key);
 
@@ -206,7 +212,7 @@ int list_hash_table_test_id(struct list *ls, uint id);
 
 ccnt_t list_get_record_counter(struct list *ls, uint id);
 
-struct list *list_new_hash_table(uint scale, uint blen);
+struct list *list_new_hash_table(uint nmemb, uint blen);
 
 lsw_t list_hash_id_calc(struct list *ls,
 	const void *data, uint *hi, uint *id);

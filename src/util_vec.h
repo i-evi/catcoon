@@ -2,11 +2,12 @@
 #define _UTIL_VECTOR_H_
 
 #ifdef CONFIG_STD_C89
-	#define size_t  unsigned int
 	#define uint8_t unsigned char
 #else
 	#include <stdint.h>
 #endif
+
+#include <stddef.h>
 
 #define VECTOR_ALLOC(type) ((type*)calloc(1, sizeof(type)))
 #define VECTOR_GROWTH_RATE 2.0
@@ -41,7 +42,6 @@ void vector_erase(struct vector *vec, size_t index);
 void vector_insert(struct vector *vec, int index, void *elem);
 
 #ifdef CONFIG_STD_C89
-	#undef size_t
 	#undef uint8_t
 #endif
 

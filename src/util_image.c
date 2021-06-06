@@ -13,6 +13,7 @@
 #include "util_image.h"
 
 #ifndef byte
+	#define UTIM_TYPE_BYTE
 	#define byte unsigned char
 #endif
 
@@ -54,10 +55,8 @@ void ____utim_datatype_test____()
 	}
 #endif
 
-#ifndef CONFIG_STD_C89
-	inline
-#endif
-static utim_int32_t _index_calc(int xsize, int ysize, int x, int y)
+static UTIM_INLINE
+utim_int32_t _index_calc(int xsize, int ysize, int x, int y)
 {
 	utim_int32_t index;
 	if (x >= xsize || y >= ysize || x < 0 || y < 0)
@@ -296,7 +295,7 @@ int utim_write_ctrl(const char *filename,
 			img->ysize, comp, img->pixels);
 		if (state != 1)
 			return state;
-		return 0;
+		return UTIM_SUCCESS;
 	case UTIM_PNG:
 		if (!comp)
 			comp = img->channels;
@@ -307,7 +306,7 @@ int utim_write_ctrl(const char *filename,
 			img->xsize * img->channels);
 		if (state != 1)
 			return state;
-		return 0;
+		return UTIM_SUCCESS;
 	case UTIM_JPG:
 		if (!comp)
 			comp = img->channels;
@@ -316,7 +315,7 @@ int utim_write_ctrl(const char *filename,
 			img->ysize, comp, img->pixels, quality);
 		if (state != 1)
 			return state;
-		return 0;
+		return UTIM_SUCCESS;
 	case UTIM_TGA:
 		if (!comp)
 			comp = img->channels;
@@ -324,20 +323,20 @@ int utim_write_ctrl(const char *filename,
 			img->ysize, comp, img->pixels);
 		if (state != 1)
 			return state;
-		return 0;
+		return UTIM_SUCCESS;
 	default:
-		return -1; /* Not supported file format */
+		return UTIM_ERR_FILE_OPS; /* Not supported file format */
 	}
 #else /* Support 8, 24, 32 bit bmp image only */
 	if (strcmp(tbuf, "bmp"))
-		return -1;  /* Not supported file format */
+		return UTIM_ERR_FILE_OPS;  /* Not supported file format */
 	switch (img->channels) {
 	case 1:
 	case 3:
 	case 4:
 		break;
 	default:
-		return -1;
+		return UTIM_ERR_FILE_OPS;
 	}
 	return _bmp_write(filename,
 		img->pixels, img->xsize, img->ysize, img->channels);
@@ -463,7 +462,7 @@ int utim_img2rgb(UTIM_IMG *img)
 	case 1:
 		return utim_gray2rgb(img);
 	case 3:
-		return 0;
+		return UTIM_SUCCESS;
 	case 4:
 		return utim_rgba2rgb(img);
 	default:
@@ -475,7 +474,7 @@ int utim_img2gray(UTIM_IMG *img)
 {
 	switch (img->channels) {
 	case 1:
-		return 0;
+		return UTIM_SUCCESS;
 	case 3:
 		return utim_rgb2gray(img);
 	case 4:
@@ -488,14 +487,14 @@ int utim_img2gray(UTIM_IMG *img)
 int utim_img2rgba(UTIM_IMG *img)
 {
 	switch (img->channels) {
-	case 1:
-		return utim_gray2rgba(img);
-	case 3:
-		return utim_rgb2rgba(img);
-	case 4:
-		return 0;
-	default:
-		return UTIM_ERR_BAD_ARG;
+		case 1:
+			return utim_gray2rgba(img);
+		case 3:
+			return utim_rgb2rgba(img);
+		case 4:
+			return UTIM_SUCCESS;
+		default:
+			return UTIM_ERR_BAD_ARG;
 	}
 }
 
@@ -517,7 +516,7 @@ int utim_rgba2rgb(UTIM_IMG *rgba)
 	free(rgba->pixels);
 	rgba->pixels = new_pixels;
 	rgba->channels = 3;
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 UTIM_IMG *utim_rgb_by_rgba(UTIM_IMG *rgba)
@@ -563,7 +562,7 @@ int utim_rgb2bgr(UTIM_IMG *rgb)
 		p1 += 3;
 		p2 += 3;
 	}
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 UTIM_IMG *utim_bgr_by_rgb(UTIM_IMG *rgb)
@@ -599,7 +598,7 @@ int utim_rgb2gray(UTIM_IMG *rgb)
 	free(rgb->pixels);
 	rgb->pixels = new_pixels;
 	rgb->channels = 1;
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 int utim_rgba2gray(UTIM_IMG *rgba)
@@ -623,7 +622,7 @@ int utim_rgba2gray(UTIM_IMG *rgba)
 	free(rgba->pixels);
 	rgba->pixels = new_pixels;
 	rgba->channels = 1;
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 UTIM_IMG *utim_gray_by_rgb(UTIM_IMG *rgb)
@@ -675,7 +674,7 @@ int utim_gray2rgb(UTIM_IMG *gray)
 	free(gray->pixels);
 	gray->pixels = new_pixels;
 	gray->channels = 3;
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 int utim_gray2rgba(UTIM_IMG *gray)
@@ -698,7 +697,7 @@ int utim_gray2rgba(UTIM_IMG *gray)
 	free(gray->pixels);
 	gray->pixels = new_pixels;
 	gray->channels = 4;
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 int utim_rgb2rgba(UTIM_IMG *rgb)
@@ -722,7 +721,7 @@ int utim_rgb2rgba(UTIM_IMG *rgb)
 	free(rgb->pixels);
 	rgb->pixels = new_pixels;
 	rgb->channels = 4;
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 UTIM_IMG *utim_rgb_by_gray(UTIM_IMG *gray)
@@ -752,7 +751,7 @@ UTIM_IMG *utim_rgb_by_gray(UTIM_IMG *gray)
 	return rgb;
 }
 
-UTIM_IMG *utim_create(int x, int y, int nch, int init)
+UTIM_IMG *utim_create(int x, int y, int nch, int c)
 {
 	UTIM_IMG *img;
 	int size = x * y * nch;
@@ -766,7 +765,8 @@ UTIM_IMG *utim_create(int x, int y, int nch, int init)
 		free(img);
 		return NULL;
 	}
-	memset(img->pixels, init, size);
+	if (c >= 0)
+		memset(img->pixels, c, size);
 	img->xsize = x;
 	img->ysize = y;
 	img->channels = nch;
@@ -859,19 +859,19 @@ int utim_set_opacity(UTIM_IMG *img, int opacity)
 	return 0;
 }
 
-UTIM_IMG *utim_set_chl(UTIM_IMG *img, int ich, int color)
+int utim_set_chl(UTIM_IMG *img, int ich, int color)
 {
 	byte *c;
 	int i, ch_size;
 	if (ich >= img->channels)
-		return NULL;
+		return UTIM_ERR_BAD_ARG;
 	ch_size = img->xsize * img->ysize;
 	c = img->pixels;
 	for (i = 0; i < ch_size; ++i) {
 		*(c + ich) = color;
 		c += img->channels;
 	}
-	return img;
+	return UTIM_SUCCESS;
 }
 
 void utim_negative_color(UTIM_IMG *img)
@@ -885,11 +885,48 @@ void utim_negative_color(UTIM_IMG *img)
 	}
 }
 
+UTIM_IMG *utim_crop(UTIM_IMG *img, UTIM_POINT a, UTIM_POINT b)
+{
+	int i, x, y;
+	UTIM_POINT u, v;
+	UTIM_IMG *cropped;
+	if (a[UTIM_POINT_X] < b[UTIM_POINT_X]) {
+		u[UTIM_POINT_X] = a[UTIM_POINT_X];
+		v[UTIM_POINT_X] = b[UTIM_POINT_X];
+	} else {
+		u[UTIM_POINT_X] = b[UTIM_POINT_X];
+		v[UTIM_POINT_X] = a[UTIM_POINT_X];
+	}
+	if (a[UTIM_POINT_Y] < b[UTIM_POINT_Y]) {
+		u[UTIM_POINT_Y] = a[UTIM_POINT_Y];
+		v[UTIM_POINT_Y] = b[UTIM_POINT_Y];
+	} else {
+		u[UTIM_POINT_Y] = b[UTIM_POINT_Y];
+		v[UTIM_POINT_Y] = a[UTIM_POINT_Y];
+	}
+	u[UTIM_POINT_X] = u[UTIM_POINT_X] < 0 ? 0 : u[UTIM_POINT_X];
+	u[UTIM_POINT_Y] = u[UTIM_POINT_Y] < 0 ? 0 : u[UTIM_POINT_Y];
+	v[UTIM_POINT_X] =
+		v[UTIM_POINT_X] > img->xsize ? img->xsize : v[UTIM_POINT_X];
+	v[UTIM_POINT_Y] =
+		v[UTIM_POINT_Y] > img->ysize ? img->ysize : v[UTIM_POINT_Y];
+	x = v[UTIM_POINT_X] - u[UTIM_POINT_X];
+	y = v[UTIM_POINT_Y] - u[UTIM_POINT_Y];
+	cropped = utim_create(x, y, img->channels, -1);
+	if (!cropped)
+		return NULL;
+	for (i = u[UTIM_POINT_Y]; i < v[UTIM_POINT_Y]; ++i) {
+		memcpy(cropped->pixels + x * (i - u[UTIM_POINT_Y]) *
+			img->channels, img->pixels + (_index_calc(img->xsize,
+			img->ysize, u[UTIM_POINT_X],i)) *
+			img->channels, x * img->channels);
+	}
+	return cropped;
+}
+
 /* _compose_pixel: used for implementing utim_superpose only */
-#ifndef CONFIG_STD_C89
-	inline
-#endif
-static void _compose_pixel(UTIM_IMG *bg,
+static UTIM_INLINE
+void _compose_pixel(UTIM_IMG *bg,
 	UTIM_IMG *im, int i, int j, UTIM_POINT p)
 {
 	UTIM_COLOR c_bg, c_im;
@@ -932,12 +969,12 @@ int utim_superpose(UTIM_IMG *bg,
 	int i, j;
 	if (p[UTIM_POINT_X] >= bg->xsize ||
 		p[UTIM_POINT_Y] >= bg->ysize)
-		return 0;
+		return UTIM_SUCCESS;
 	for (j = p[UTIM_POINT_Y]; j < bg->ysize; ++j) {
 		for (i = p[UTIM_POINT_X]; i < bg->xsize; ++i)
 			_compose_pixel(bg, img, i, j, p);
 	}
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 /*
@@ -952,10 +989,10 @@ int utim_set_pixel(UTIM_IMG *img, UTIM_POINT p, UTIM_COLOR c)
 	int i, index = _index_calc(img->xsize,
 			img->ysize, p[UTIM_POINT_X], p[UTIM_POINT_Y]);
 	if (index < 0)
-		return -1;
+		return UTIM_ERR_BAD_ARG;
 	for (i = 0; i < img->channels; ++i)
 		img->pixels[index * img->channels + i] = c[i];
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 int utim_draw_point(UTIM_IMG *img, UTIM_POINT p, UTIM_COLOR c)
@@ -972,7 +1009,7 @@ int utim_draw_point(UTIM_IMG *img, UTIM_POINT p, UTIM_COLOR c)
 	int k, index = _index_calc(img->xsize,
 			img->ysize, p[UTIM_POINT_X], p[UTIM_POINT_Y]);
 	if (index < 0)
-		return -1;
+		return UTIM_ERR_BAD_ARG;
 	if (img->channels == 4) { /* RGBA */
 		for (k = 0; k < img->channels; ++k)
 			c_img[k] = img->pixels[index * img->channels + k];
@@ -986,14 +1023,13 @@ int utim_draw_point(UTIM_IMG *img, UTIM_POINT p, UTIM_COLOR c)
 		for (k = 0; k < img->channels; ++k)
 			img->pixels[index + k] = c[k];
 	}
-	return 0;
+	return UTIM_SUCCESS;
 }
 
 void utim_set_draw_point_fn(int (*fn)
 	(UTIM_IMG*, UTIM_POINT, UTIM_COLOR))
 {
 	utim_draw_point_fn = fn;
-	return;
 }
 
 static void _image_draw_rect_w1(UTIM_IMG *img,
@@ -1021,7 +1057,6 @@ static void _image_draw_rect_w1(UTIM_IMG *img,
 		utim_draw_point_fn(img, p, c);
 		p[UTIM_POINT_Y]--;
 	}
-	return;
 }
 
 void utim_draw_rect(UTIM_IMG *img,
@@ -1041,7 +1076,6 @@ void utim_draw_rect(UTIM_IMG *img,
 		p[UTIM_POINT_X]--;
 		p[UTIM_POINT_Y]--;
 	}
-	return;
 }
 
 void utim_draw_line(UTIM_IMG *img,
@@ -1094,10 +1128,8 @@ void utim_draw_line(UTIM_IMG *img,
 	}
 }
 
-#ifndef CONFIG_STD_C89
-	inline
-#endif
-static void _draw_circle_point(UTIM_IMG *img, UTIM_POINT p,
+static UTIM_INLINE
+void _draw_circle_point(UTIM_IMG *img, UTIM_POINT p,
 	UTIM_POINT center, int x, int y, UTIM_COLOR color, int width)
 {
 	p[UTIM_POINT_X] += x;
@@ -1109,6 +1141,7 @@ static void _draw_circle_point(UTIM_IMG *img, UTIM_POINT p,
 	p[UTIM_POINT_X] = center[UTIM_POINT_X];
 	p[UTIM_POINT_Y] = center[UTIM_POINT_Y];
 }
+
 void utim_draw_circle(UTIM_IMG *img,
 	UTIM_POINT center, int radius, UTIM_COLOR color, int width)
 {
@@ -1403,3 +1436,7 @@ UTIM_IMG *utim_text(UTIM_FONT *font, char *text, UTIM_COLOR color)
 	}
 	return img;
 }
+
+#ifdef UTIM_TYPE_BYTE
+	#undef byte
+#endif
