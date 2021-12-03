@@ -53,7 +53,13 @@ void utlog_use_run_time(void);
 
 utlog_time_t utlog_gettime(void);
 
+void utlog_tag(int logtype);
+
 void utlog_format(int logtype, const char *fmt, ...);
+
+#define utlog_format_verbose(logtype, fmt, ...) \
+	utlog_format(logtype, "[l_%d@<%s>] " fmt, \
+	__LINE__, __FILE__, __VA_ARGS__);
 
 #ifdef __cplusplus
 	}

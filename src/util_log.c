@@ -77,25 +77,6 @@ const char *_log_clock_style_str(int logtype)
 	}
 }
 
-static int _account_symbol(char *s, char ch)
-{
-	int c = 0;
-	while(*s)
-		if(*s++ == ch)
-			c++;
-	return c;
-}
-
-static char *_find_symbol(char *s, char ch)
-{
-	if(*s == ch)
-		return s;
-	while(*s)
-		if(*++s == ch)
- 			return s;
-	return NULL;
-}
-
 #define UTLOG_FORMAT_RET \
 if (logtype == UTLOG_ERR) {                   \
 	switch (error_action_flag) {          \
@@ -152,12 +133,9 @@ utlog_time_t utlog_gettime(void)
 	return timestamp;
 }
 
-void utlog_format(int logtype, const char *fmt, ...)
+void utlog_tag(int logtype)
 {
-	int n;
-	char *p, *f, *pf;
 	FILE *log_ostream;
-	va_list ap;
 	utlog_time_t timestamp;
 	if (time_mode_flag_o == UTLOG_USE_ABS_TIME) {
 		timestamp = utlog_gettime();
@@ -171,8 +149,6 @@ void utlog_format(int logtype, const char *fmt, ...)
 		log_ostream = user_log_ostream;
 	else
 		log_ostream = UTLOG_DEFAULT_OSTREAM;
-	f = pf = (char*)malloc(strlen(fmt) + 1);
-	strcpy(f, fmt);
 	/* fprintf(log_ostream, "[%ld:%ld] : ", t, clk); */
 	if (getenv("TERM") &&
 		highlight_flag == UTLOG_HIGHLIGHT_ON) {
@@ -181,31 +157,14 @@ void utlog_format(int logtype, const char *fmt, ...)
 	} else {
 		fprintf(log_ostream, "[%08lf]: ", timestamp);
 	}
+}
+
+void utlog_format(int logtype, const char *fmt, ...)
+{
+	va_list ap;
+	utlog_tag(logtype);
 	va_start(ap, fmt);
-	n = _account_symbol(f, '%');
-	p = _find_symbol(f, '%');
-	if(p == NULL){
-		fprintf(log_ostream, "%s", f);
-		free(pf);
-		UTLOG_FORMAT_RET;
-	}
-	*p = '\0';
-	fprintf(log_ostream, "%s", f);
-	f = p;
-	*f = '%';
-	while(n-- > 1){
-		p = _find_symbol(f + 1, '%');
-		if(p == NULL){
-			free(pf);
-			UTLOG_FORMAT_RET;
-		}
-		*p = '\0';
-		fprintf(log_ostream, f, va_arg(ap, void*));
-		f = p;
-		*f = '%';
-	}
-	fprintf(log_ostream, f, va_arg(ap, void*));
-	free(pf);
+	vfprintf((FILE*)utlog_get_ostream(), fmt, ap);
 	va_end(ap);
 	UTLOG_FORMAT_RET;
 }
