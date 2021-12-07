@@ -275,6 +275,7 @@ void cc_tsrmgr_unpack(struct list *tls)
 	struct list *container;
 	cc_uint8 *dptr, *rptr;
 	cc_ssize j, off, len;
+	rlen_t rlen;
 	cc_usize i;
 	if (!cc_tsrmgr_status())
 		cc_tsrmgr_init();
@@ -287,7 +288,8 @@ void cc_tsrmgr_unpack(struct list *tls)
 		off = strlen(name) + 1;
 		for (j = 0; j < CC_TENSOR_ITEMS; ++j) {
 			/* Ref: util_list.h */
-			len = *(rlen_t*)(rptr + off);
+			memcpy(&rlen, rptr + off, sizeof(rlen));
+			len = rlen;
 			dptr = rptr + off + sizeof(rlen_t);
 			cc_assert_ptr(
 				list_set_data(container, j, dptr, len));
