@@ -17,7 +17,7 @@ DEBUG += # -g -fsanitize=address -fno-omit-frame-pointer
 CFLAGS += -Wall # -Wpedantic
 
 # Optimization
-OPTIM += -Ofast -flto
+OPTIM += -Ofast # -flto
 # Enable OpenMP
 OPTIM += -DENABLE_OPENMP -fopenmp
 

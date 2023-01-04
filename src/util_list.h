@@ -11,23 +11,17 @@
 	#define LS_INLINE inline
 #endif
 
-#ifndef byte
-	#define LS_TYPE_BYTE
-	#define byte unsigned char
-#endif
-#ifndef uint
 #ifdef _MSC_VER
-	#define LS_TYPE_UINT
-	#define uint unsigned __int64
+	#define LS_INT64 __int64
 #else  /* 64bit integer for gcc, clang... */
-	#define LS_TYPE_UINT
-	#define uint unsigned long long
-#endif
+	#define LS_INT64 long long
 #endif
 
 #include <stddef.h>
 
 typedef unsigned char lsw_t;
+typedef unsigned char lsu8_t;
+typedef unsigned LS_INT64 lsiz_t;
 
 enum {
 	LSS_SUCCESS = 0,
@@ -53,8 +47,8 @@ enum {
 #define TEST_FLAG(flag, bft) \
 	!(((bft & 0x0F) << (bft >> 4)) ^ (flag & (1 << (bft >> 4))))
 
-#define CONFLICT_COUNTER    byte
-#define REC_LENGTH_TYPE     uint
+#define CONFLICT_COUNTER    lsu8_t
+#define REC_LENGTH_TYPE     lsiz_t
 
 typedef CONFLICT_COUNTER    ccnt_t;
 typedef REC_LENGTH_TYPE     rlen_t;
@@ -68,18 +62,18 @@ typedef REC_LENGTH_TYPE     rlen_t;
 #endif
 
 struct list {
-	char *name;     /* name of LIST */
-	byte *mem;      /* memory pool */
-	byte **index;   /* index table */
+	char   *name;     /* name of LIST */
+	lsu8_t *mem;      /* memory pool */
+	lsu8_t **index;   /* index table */
 	void *_;
-	uint length;    /* length of memory pool */
-	uint key;       /* key of shared mem */
-	uint counter;   /* record counter */
-	uint blen;      /* length of a record */
-	uint nmemb;     /* nmemb */
+	lsiz_t length;    /* length of memory pool */
+	lsiz_t key;       /* key of shared mem */
+	lsiz_t counter;   /* record counter */
+	lsiz_t blen;      /* length of a record */
+	lsiz_t nmemb;     /* nmemb */
   union {
-	byte flag;      /* list's mode flag */
-	uint _placeholder;
+	lsu8_t flag;      /* list's mode flag */
+	lsiz_t _placeholder;
   };
 };
 
@@ -102,31 +96,31 @@ struct list {
 
 size_t list_set_alignment(size_t alignment);
 
-struct list *list_new(uint nmemb, uint blen);
+struct list *list_new(lsiz_t nmemb, lsiz_t blen);
 
 struct list *list_clone(struct list *ls);
 
 void list_del(struct list *ls);
 
-lsw_t list_resize(struct list *ls, uint nmemb);
+lsw_t list_resize(struct list *ls, lsiz_t nmemb);
 
 lsw_t list_rename(struct list *ls, const char *name);
 
-void *list_set_data(struct list *ls, uint id,
-	const void *data, uint len);
+void *list_set_data(struct list *ls, lsiz_t id,
+	const void *data, lsiz_t len);
 
-void *list_alloc(struct list *ls, uint id, uint nbyte);
+void *list_alloc(struct list *ls, lsiz_t id, lsiz_t nbyte);
 
-void *list_index(struct list *ls, uint id);
+void *list_index(struct list *ls, lsiz_t id);
 
-uint list_getlen(struct list *ls, uint id);
+lsiz_t list_getlen(struct list *ls, lsiz_t id);
 
 #define list_calc_dynlen(r) \
 	(*((rlen_t*)((unsigned char*)r - sizeof(rlen_t))))
 
-lsw_t list_erase(struct list *ls, uint id);
+lsw_t list_erase(struct list *ls, lsiz_t id);
 
-lsw_t list_swap(struct list *ls, uint id1, uint id2);
+lsw_t list_swap(struct list *ls, lsiz_t id1, lsiz_t id2);
 
 typedef void *(lsio_open) (const char *pathname, const char *mode);
 typedef int   (lsio_close)(void *fp);
@@ -169,9 +163,9 @@ struct list *list_import(const char *path);
 
 /* struct list | name | mem */
 
-struct list *list_new_shared(uint nmemb, uint blen, uint key);
+struct list *list_new_shared(lsiz_t nmemb, lsiz_t blen, lsiz_t key);
 
-struct list *list_link_shared(uint len, uint key);
+struct list *list_link_shared(lsiz_t len, lsiz_t key);
 
 #define list_shared_shm_len(list) \
 	(sizeof(LIST) + LIST_NAME_LEN + list->length)
@@ -179,7 +173,7 @@ struct list *list_link_shared(uint len, uint key);
 lsw_t list_del_shared(struct list *ls);
 
 #define list_export_shared list_export_static
-struct list *list_import_shared(const char *path, uint key);
+struct list *list_import_shared(const char *path, lsiz_t key);
 
 #define list_set_unresizable(list) \
 	SET_FLAG(list->flag, LIST_UNRESIZABLE)
@@ -202,39 +196,30 @@ struct list *list_import_shared(const char *path, uint key);
 #define CCNT_MAX 0x7F
 #define CCNT_VAL(cnt) (cnt >> 1)
 
-typedef uint (*__hashFx)(const void*, uint);
+typedef lsiz_t (*__hashFx)(const void*, lsiz_t);
 typedef int  (*__compFx)(const void*, const void*);
 
 void list_set_hash_fn(__hashFx hfx);
-void list_set_hash_seed(uint seed);
+void list_set_hash_seed(lsiz_t seed);
 
-int list_hash_table_test_id(struct list *ls, uint id);
+int list_hash_table_test_id(struct list *ls, lsiz_t id);
 
-ccnt_t list_get_record_counter(struct list *ls, uint id);
+ccnt_t list_get_record_counter(struct list *ls, lsiz_t id);
 
-struct list *list_new_hash_table(uint nmemb, uint blen);
+struct list *list_new_hash_table(lsiz_t nmemb, lsiz_t blen);
 
 lsw_t list_hash_id_calc(struct list *ls,
-	const void *data, uint *hi, uint *id);
+	const void *data, lsiz_t *hi, lsiz_t *id);
 
 lsw_t list_hash_table_insert(struct list *ls,
-	const void *record, uint len);
+	const void *record, lsiz_t len);
 
 lsw_t list_hash_table_find(struct list *ls,
-			const void *key, uint *id);
+			const void *key, lsiz_t *id);
 
 lsw_t list_hash_table_del(struct list *ls, const void *key);
 
 void list_print_properties(struct list *ls, void *stream);
-
-#ifndef _UTIL_LIST_C_
-	#ifdef LS_TYPE_BYTE
-		#undef byte
-	#endif
-	#ifdef LS_TYPE_UINT
-		#undef uint
-	#endif
-#endif
 
 #ifdef __cplusplus
 	}

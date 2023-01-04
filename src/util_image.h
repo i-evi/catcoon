@@ -11,15 +11,12 @@
 	#define UTIM_INLINE inline
 #endif
 
-#ifndef byte
-	#define UTIM_TYPE_BYTE
-	#define byte unsigned char
-#endif
-
+#define UTIM_INT8  char
 #define UTIM_INT32 int
 
-typedef          UTIM_INT32 utim_int32_t;
-typedef unsigned UTIM_INT32 utim_uint32_t;
+typedef unsigned UTIM_INT8  utim_u8_t;
+typedef          UTIM_INT32 utim_i32_t;
+typedef unsigned UTIM_INT32 utim_u32_t;
 
 /*
  * Defined as little-endian
@@ -32,21 +29,20 @@ typedef unsigned UTIM_INT32 utim_uint32_t;
 #define UTIM_MAX_CHANNELS 4
 
 enum {
-	UTIM_SUCCESS = 0,
 	UTIM_ERR_ALLOC,
 	UTIM_ERR_FILE_OPS,
 	UTIM_ERR_BAD_ARG
 };
 
 typedef struct {
-	byte *pixels;
+	utim_u8_t *pixels;
 	int   xsize;
 	int   ysize;
 	int   channels;
 } UTIM_IMG; /* For 8bit color-depth images */
 
-typedef int  UTIM_POINT[2]; /* X, Y */
-typedef byte UTIM_COLOR[4]; /* R, G, B, A */
+typedef int       UTIM_POINT[2]; /* X, Y */
+typedef utim_u8_t UTIM_COLOR[4]; /* R, G, B, A */
 
 /*
  * PSF2 fonts
@@ -65,7 +61,7 @@ struct psf2_header {
 
 typedef struct {
 	struct psf2_header header;
-	byte              *glyphs;
+	utim_u8_t         *glyphs;
 	unsigned int      *utf8index;
 } UTIM_FONT;
 
@@ -88,7 +84,7 @@ int utim_write(const char *filename, UTIM_IMG *img);
 int utim_write_ctrl(const char *filename,
 	UTIM_IMG *img, int comp, int quality);
 
-UTIM_IMG *utim_clone(UTIM_IMG *img);
+UTIM_IMG *utim_copy(UTIM_IMG *img);
 UTIM_IMG *utim_create(int x, int y, int nch, int c);
 
 void utim_free_image(UTIM_IMG *img);
@@ -102,6 +98,7 @@ int utim_img2rgb (UTIM_IMG *img);
 int utim_img2gray(UTIM_IMG *img);
 int utim_img2rgba(UTIM_IMG *img);
 
+/* gray2rgb will copy gray channel 2 times */
 int utim_gray2rgb (UTIM_IMG *gray);
 int utim_gray2rgba(UTIM_IMG *gray);
 int utim_rgb2bgr  (UTIM_IMG *rgb);
@@ -110,15 +107,15 @@ int utim_rgb2rgba (UTIM_IMG *rgb);
 int utim_rgba2rgb (UTIM_IMG *rgba);
 int utim_rgba2gray(UTIM_IMG *rgba);
 
-UTIM_IMG *utim_rgb_by_rgba(UTIM_IMG *rgba);
-UTIM_IMG *utim_bgr_by_rgb (UTIM_IMG *rgb);
-UTIM_IMG *utim_gray_by_rgb(UTIM_IMG *rgb);
-UTIM_IMG *utim_rgb_by_gray(UTIM_IMG *gray);
+UTIM_IMG *utim_rgb_from_rgba(UTIM_IMG *rgba);
+UTIM_IMG *utim_bgr_from_rgb (UTIM_IMG *rgb);
+UTIM_IMG *utim_gray_from_rgb(UTIM_IMG *rgb);
+UTIM_IMG *utim_rgb_from_gray(UTIM_IMG *gray);
 
 UTIM_IMG *utim_stack   (UTIM_IMG **chx, int nch);
 UTIM_IMG *utim_pick_chl(UTIM_IMG *img, int ich);
+UTIM_IMG *utim_set_chl (UTIM_IMG *img, int ich, int color);
 
-int  utim_set_chl (UTIM_IMG *img, int ich, int color);
 void utim_negative_color(UTIM_IMG *img);
 
 #define utim_set_point(point, x, y) \
@@ -131,12 +128,6 @@ void utim_negative_color(UTIM_IMG *img);
 	color[UTIM_COLOR_B] = b;          \
 	color[UTIM_COLOR_A] = a;
 
-UTIM_IMG *utim_crop(UTIM_IMG *img, UTIM_POINT a, UTIM_POINT b);
-
-/*
- * Support Gray, RGB, RGBA images. 
- * The input image will be converted to RGBA image
- */
 int utim_set_opacity(UTIM_IMG *img, int opacity);
 
 int utim_superpose(UTIM_IMG *bg, UTIM_IMG *img, UTIM_POINT p);
@@ -171,10 +162,6 @@ UTIM_FONT *utim_load_font(const char *filename);
 void utim_free_font(UTIM_FONT *font);
 
 UTIM_IMG *utim_text(UTIM_FONT *font, char *text, UTIM_COLOR color);
-
-#ifdef UTIM_TYPE_BYTE
-	#undef byte
-#endif
 
 #ifdef __cplusplus
 	}

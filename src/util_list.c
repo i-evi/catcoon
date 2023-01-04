@@ -1,4 +1,3 @@
-#define _UTIL_LIST_C_
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -134,12 +133,12 @@ size_t list_set_alignment(size_t alignment)
 
 static lsw_t _gstate;
 
-static uint _djb_hash(const void *s, uint len, uint seed)
+static lsiz_t _djb_hash(const void *s, lsiz_t len, lsiz_t seed)
 {
-	uint hash = seed;
-	uint i;
+	lsiz_t hash = seed;
+	lsiz_t i;
 	for (i = 0; i < len; i++) {
-		hash = (hash << 5) + hash + *((byte*)s + i);
+		hash = (hash << 5) + hash + *((lsu8_t*)s + i);
 	}
 	return hash;
 }
@@ -149,19 +148,19 @@ static int _strcmp(const void *a, const void *b)
 	return strcmp((const char*)a, (const char*)b);
 }
 
-static uint _string_hash(const void *s, uint seed)
+static lsiz_t _string_hash(const void *s, lsiz_t seed)
 {
 	return _djb_hash(s, strlen((const char*)s), seed);
 }
 
-static uint _seed;
+static lsiz_t _seed;
 static __hashFx _hfx = _string_hash;
 static __compFx _cmp = _strcmp;
 
 static LS_INLINE
 int _is_little_endian(void)
 {
-	uint i = 1;
+	lsiz_t i = 1;
 	unsigned char *c = (unsigned char*)&i;
 	if (*c)
 		return 1;
@@ -195,15 +194,15 @@ void _memrev(void *i, int len)
 
 static LS_INLINE
 void _switch_byte_order(struct list *ls) {
-	_memrev(&ls->length , sizeof(uint));
-	_memrev(&ls->key    , sizeof(uint));
-	_memrev(&ls->counter, sizeof(uint));
-	_memrev(&ls->blen   , sizeof(uint));
-	_memrev(&ls->nmemb  , sizeof(uint));
+	_memrev(&ls->length , sizeof(lsiz_t));
+	_memrev(&ls->key    , sizeof(lsiz_t));
+	_memrev(&ls->counter, sizeof(lsiz_t));
+	_memrev(&ls->blen   , sizeof(lsiz_t));
+	_memrev(&ls->nmemb  , sizeof(lsiz_t));
 }
 
 static LS_INLINE
-struct list *list_new_static(uint nmemb, uint blen)
+struct list *list_new_static(lsiz_t nmemb, lsiz_t blen)
 {
 	struct list *ls;
 	if (!nmemb || !blen)
@@ -213,7 +212,7 @@ struct list *list_new_static(uint nmemb, uint blen)
 		return NULL;
 	SET_FLAG(ls->flag, LIST_STATIC_MODE);
 	ls->length = nmemb * blen;
-	ls->mem = (byte*)LS_A_CALLOC(ls->length, sizeof(byte));
+	ls->mem = (lsu8_t*)LS_A_CALLOC(ls->length, sizeof(lsu8_t));
 	if (!ls->mem) {
 		LS_FREE(ls);
 		return NULL;
@@ -225,7 +224,7 @@ struct list *list_new_static(uint nmemb, uint blen)
 }
 
 static LS_INLINE
-struct list *list_new_dynamic(uint nmemb)
+struct list *list_new_dynamic(lsiz_t nmemb)
 {
 	struct list *ls;
 	if (!nmemb)
@@ -234,7 +233,7 @@ struct list *list_new_dynamic(uint nmemb)
 	if (!ls)
 		return NULL;
 	SET_FLAG(ls->flag, LIST_DYNAMIC_MODE);
-	ls->index = (byte**)LS_CALLOC(nmemb, sizeof(byte*));
+	ls->index = (lsu8_t**)LS_CALLOC(nmemb, sizeof(lsu8_t*));
 	if (!ls->index) {
 		LS_FREE(ls);
 		return NULL;
@@ -243,7 +242,7 @@ struct list *list_new_dynamic(uint nmemb)
 	return ls;
 }
 
-struct list *list_new(uint nmemb, uint blen)
+struct list *list_new(lsiz_t nmemb, lsiz_t blen)
 {
 	if (!blen)
 		return list_new_dynamic(nmemb);
@@ -270,7 +269,7 @@ struct list *list_clone_static(struct list *ls)
 	} else {
 		clone->name = NULL;
 	}
-	clone->mem = (byte*)LS_MALLOC(ls->length);
+	clone->mem = (lsu8_t*)LS_MALLOC(ls->length);
 	if (!clone->mem) {
 		if (clone->name)
 			LS_FREE(clone->name);
@@ -294,7 +293,7 @@ if (ls->index[i]) {                            \
 static LS_INLINE
 struct list *list_clone_dynamic(struct list *ls)
 {
-	uint i;
+	lsiz_t i;
 	struct list *clone;
 	if (!ls)
 		return NULL;
@@ -312,14 +311,14 @@ struct list *list_clone_dynamic(struct list *ls)
 	} else {
 		clone->name = NULL;
 	}
-	clone->index = (byte**)LS_MALLOC(ls->nmemb * sizeof(byte*));
+	clone->index = (lsu8_t**)LS_MALLOC(ls->nmemb * sizeof(lsu8_t*));
 	if (!clone->index) {
 		if (clone->name)
 			LS_FREE(clone->name);
 		LS_FREE(clone);
 		return NULL;
 	}
-	memset(clone->index, 0, ls->nmemb * sizeof(byte*));
+	memset(clone->index, 0, ls->nmemb * sizeof(lsu8_t*));
 	clone->length  = 0;
 	clone->counter = 0;
 	for (i = 0; i < ls->nmemb; ++i) {
@@ -396,13 +395,13 @@ lsw_t list_rename(struct list *ls, const char *name)
 }
 
 static LS_INLINE
-lsw_t list_resize_static(struct list *ls, uint nmemb)
+lsw_t list_resize_static(struct list *ls, lsiz_t nmemb)
 {
-	byte *new_mem;
-	uint new_len = nmemb * ls->blen;
+	lsu8_t *new_mem;
+	lsiz_t new_len = nmemb * ls->blen;
 	if (TEST_FLAG(ls->flag, LIST_UNRESIZABLE))
 		return LSS_BAD_OBJ;
-	new_mem = (byte*)LS_A_REALLOC(ls->mem, new_len);
+	new_mem = (lsu8_t*)LS_A_REALLOC(ls->mem, new_len);
 	if (!new_mem)
 		return LSS_MALLOC_ERR;
 	if (nmemb > ls->nmemb) {
@@ -417,10 +416,10 @@ lsw_t list_resize_static(struct list *ls, uint nmemb)
 }
 
 static LS_INLINE
-lsw_t list_resize_dynamic(struct list *ls, uint nmemb)
+lsw_t list_resize_dynamic(struct list *ls, lsiz_t nmemb)
 {
-	byte **new_index;
-	uint i = 0;
+	lsu8_t **new_index;
+	lsiz_t i = 0;
 	if (TEST_FLAG(ls->flag, LIST_UNRESIZABLE))
 		return LSS_BAD_OBJ;
 	if (nmemb < ls->nmemb) {
@@ -428,19 +427,19 @@ lsw_t list_resize_dynamic(struct list *ls, uint nmemb)
 		for (; i < ls->nmemb; ++i)
 			list_erase(ls, i);
 	}
-	new_index = (byte**)LS_REALLOC(ls->index, nmemb * sizeof(byte*));
+	new_index = (lsu8_t**)LS_REALLOC(ls->index, nmemb * sizeof(lsu8_t*));
 	if (!new_index)
 		return LSS_MALLOC_ERR;
 	ls->index = new_index;
 	if (nmemb > ls->nmemb) {
-		memset((byte*)new_index + ls->nmemb * sizeof(byte*), 0,
-			(nmemb - ls->nmemb) * sizeof(byte*));
+		memset((lsu8_t*)new_index + ls->nmemb * sizeof(lsu8_t*), 0,
+			(nmemb - ls->nmemb) * sizeof(lsu8_t*));
 	}
 	ls->nmemb = nmemb;
 	return LSS_SUCCESS;
 }
 
-lsw_t list_resize(struct list *ls, uint nmemb)
+lsw_t list_resize(struct list *ls, lsiz_t nmemb)
 {
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
 		return list_resize_dynamic(ls, nmemb);
@@ -450,7 +449,7 @@ lsw_t list_resize(struct list *ls, uint nmemb)
 
 static LS_INLINE
 void *list_set_data_sta(struct list *ls,
-	       uint id, const void *data, uint len)
+	       lsiz_t id, const void *data, lsiz_t len)
 {
 	void *ptr;
 	if (id >= ls->nmemb) {
@@ -465,9 +464,9 @@ void *list_set_data_sta(struct list *ls,
 
 static LS_INLINE
 void *list_set_data_dyn(struct list *ls,
-	uint id, const void *data, uint len)
+	lsiz_t id, const void *data, lsiz_t len)
 {
-	uint mlen = 0;
+	lsiz_t mlen = 0;
 	void *ptr;
 	if (id >= ls->nmemb) {
 		_gstate = LSS_BAD_ID;
@@ -478,7 +477,7 @@ void *list_set_data_dyn(struct list *ls,
 		return NULL;
 	}
 	mlen = len + sizeof(rlen_t);
-	ls->index[id] = (byte*)LS_A_MALLOC(mlen);
+	ls->index[id] = (lsu8_t*)LS_A_MALLOC(mlen);
 	if (!ls->index[id]) {
 		_gstate = LSS_MALLOC_ERR;
 		return NULL;
@@ -491,8 +490,8 @@ void *list_set_data_dyn(struct list *ls,
 	return ptr;
 }
 
-void *list_set_data(struct list *ls, uint id,
-	const void *record, uint len)
+void *list_set_data(struct list *ls, lsiz_t id,
+	const void *record, lsiz_t len)
 {
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
 		return list_set_data_dyn(ls, id, record, len);
@@ -500,14 +499,14 @@ void *list_set_data(struct list *ls, uint id,
 		return list_set_data_sta(ls, id, record, len);
 }
 
-void *list_alloc(struct list *ls, uint id, uint nbyte)
+void *list_alloc(struct list *ls, lsiz_t id, lsiz_t nbyte)
 {
 	if (id >= ls->nmemb)
 		return NULL;
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE)) {
 		if (ls->index[id])
 			list_erase(ls, id);
-		ls->index[id] = (byte*)LS_A_MALLOC(nbyte + sizeof(rlen_t));
+		ls->index[id] = (lsu8_t*)LS_A_MALLOC(nbyte + sizeof(rlen_t));
 		if (!ls->index[id])
 			return NULL;
 		*(rlen_t*)ls->index[id] = nbyte;
@@ -523,7 +522,7 @@ void *list_alloc(struct list *ls, uint id, uint nbyte)
 }
 
 static LS_INLINE
-void *list_index_sta(struct list *ls, uint id)
+void *list_index_sta(struct list *ls, lsiz_t id)
 {
 	if (id >= ls->nmemb)
 		return NULL;
@@ -532,7 +531,7 @@ void *list_index_sta(struct list *ls, uint id)
 }
 
 static LS_INLINE
-void *list_index_dyn(struct list *ls, uint id)
+void *list_index_dyn(struct list *ls, lsiz_t id)
 {
 	if (id >= ls->nmemb)
 		return NULL;
@@ -544,7 +543,7 @@ void *list_index_dyn(struct list *ls, uint id)
 	}
 }
 
-void *list_index(struct list *ls, uint id)
+void *list_index(struct list *ls, lsiz_t id)
 {
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
 		return list_index_dyn(ls, id);
@@ -553,7 +552,7 @@ void *list_index(struct list *ls, uint id)
 }
 
 static LS_INLINE
-lsw_t list_erase_sta(struct list *ls, uint id)
+lsw_t list_erase_sta(struct list *ls, lsiz_t id)
 {
 	if (id >= ls->nmemb)
 		return LSS_BAD_ID;
@@ -561,7 +560,7 @@ lsw_t list_erase_sta(struct list *ls, uint id)
 	return LSS_SUCCESS;
 }
 
-uint list_getlen(struct list *ls, uint id)
+lsiz_t list_getlen(struct list *ls, lsiz_t id)
 {
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE)) {
 		if (ls->index[id])
@@ -574,7 +573,7 @@ uint list_getlen(struct list *ls, uint id)
 }
 
 static LS_INLINE
-lsw_t list_erase_dyn(struct list *ls, uint id)
+lsw_t list_erase_dyn(struct list *ls, lsiz_t id)
 {
 	if (id >= ls->nmemb)
 		return LSS_BAD_ID;
@@ -588,7 +587,7 @@ lsw_t list_erase_dyn(struct list *ls, uint id)
 	return LSS_SUCCESS;
 }
 
-lsw_t list_erase(struct list *ls, uint id)
+lsw_t list_erase(struct list *ls, lsiz_t id)
 {
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
 		return list_erase_dyn(ls, id);
@@ -597,7 +596,7 @@ lsw_t list_erase(struct list *ls, uint id)
 }
 
 static LS_INLINE
-lsw_t list_swap_sta(struct list *ls, uint id1, uint id2)
+lsw_t list_swap_sta(struct list *ls, lsiz_t id1, lsiz_t id2)
 {
 	if (id1 >= ls->nmemb || id2 >= ls->nmemb)
 		return LSS_BAD_ID;
@@ -607,9 +606,9 @@ lsw_t list_swap_sta(struct list *ls, uint id1, uint id2)
 }
 
 static LS_INLINE
-lsw_t list_swap_dyn(struct list *ls, uint id1, uint id2)
+lsw_t list_swap_dyn(struct list *ls, lsiz_t id1, lsiz_t id2)
 {
-	byte *p;
+	lsu8_t *p;
 	if (id1 >= ls->nmemb || id2 >= ls->nmemb)
 		return LSS_BAD_ID;
 	p = ls->index[id1];
@@ -619,7 +618,7 @@ lsw_t list_swap_dyn(struct list *ls, uint id1, uint id2)
 }
 
 lsw_t list_swap(struct list *ls,
-	uint id1, uint id2)
+	lsiz_t id1, lsiz_t id2)
 {
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
 		return list_swap_dyn(ls, id1, id2);
@@ -771,19 +770,19 @@ static lsw_t list_export_static(
 	struct list *ls, const char *path)
 {
 	void *fp;
-	uint name_len = 0;
+	lsiz_t name_len = 0;
 	fp = lsio.open(path, "wb");
 	if (!fp)
 		return LSS_FILE_ERR;
 	if (ls->name)
 		name_len = strlen(ls->name);
 	if (!_is_little_endian()) {
-		_memrev(&name_len, sizeof(uint));
+		_memrev(&name_len, sizeof(lsiz_t));
 		_switch_byte_order(ls);
 	}
-	lsio.write(&name_len, sizeof(uint), fp);
+	lsio.write(&name_len, sizeof(lsiz_t), fp);
 	lsio.write(ls->name, name_len, fp);
-	lsio.write((byte*)ls +
+	lsio.write((lsu8_t*)ls +
 		LIST_INFO_OFFSET, LIST_INFO_LEN, fp);
 	lsio.write(ls->mem, ls->length, fp);
 	if (!_is_little_endian()) {
@@ -801,11 +800,11 @@ if (ls->index[sc]) {                                    \
 		*(rlen_t*)ls->index[sc], fp);           \
 	if (!_is_little_endian()) {                     \
 		_memrev(ls->index[sc], sizeof(rlen_t)); \
-		_memrev(&sc, sizeof(uint));             \
+		_memrev(&sc, sizeof(lsiz_t));             \
 	}                                               \
-	lsio.write(&sc, sizeof(uint), fp);              \
+	lsio.write(&sc, sizeof(lsiz_t), fp);              \
 	if (!_is_little_endian())                       \
-		_memrev(&sc, sizeof(uint));             \
+		_memrev(&sc, sizeof(lsiz_t));             \
 }
 
 /*
@@ -816,20 +815,20 @@ static lsw_t list_export_dynamic(
 	struct list *ls, const char *path)
 {
 	void *fp;
-	uint name_len = 0;
-	uint sc = ls->nmemb;
+	lsiz_t name_len = 0;
+	lsiz_t sc = ls->nmemb;
 	fp = lsio.open(path, "wb");
 	if (!fp)
 		return LSS_FILE_ERR;
 	if (ls->name)
 		name_len = strlen(ls->name);
 	if (!_is_little_endian()) {
-		_memrev(&name_len, sizeof(uint));
+		_memrev(&name_len, sizeof(lsiz_t));
 		_switch_byte_order(ls);
 	}
-	lsio.write(&name_len, sizeof(uint), fp);
+	lsio.write(&name_len, sizeof(lsiz_t), fp);
 	lsio.write(ls->name, name_len, fp);
-	lsio.write((byte*)ls +
+	lsio.write((lsu8_t*)ls +
 		LIST_INFO_OFFSET, LIST_INFO_LEN, fp);
 	while (sc--) {
 		PROCESS_EXPORT_DYN;
@@ -850,33 +849,33 @@ lsw_t list_export(struct list *ls, const char *path)
 }
 
 #define PROCESS_IMPORT_DYN_RECORD \
-	ls->index = (byte**)                                    \
-		LS_MALLOC(ls->nmemb * sizeof(byte*));           \
+	ls->index = (lsu8_t**)                                    \
+		LS_MALLOC(ls->nmemb * sizeof(lsu8_t*));           \
 	if (!ls->index) {                                       \
 		LS_FREE(ls);                                    \
 		LS_FREE(name);                                  \
 		lsio.close(fp);                                 \
 		return NULL;                                    \
 	}                                                       \
-	memset(ls->index, 0, ls->nmemb * sizeof(byte*));        \
+	memset(ls->index, 0, ls->nmemb * sizeof(lsu8_t*));        \
 	while (lsio.read(&len, sizeof(rlen_t), fp)) {           \
 		if (!_is_little_endian())                       \
 			_memrev(&len, sizeof(rlen_t));          \
-		tmp = (byte*)LS_A_MALLOC(len + sizeof(rlen_t)); \
+		tmp = (lsu8_t*)LS_A_MALLOC(len + sizeof(rlen_t)); \
 		if (!tmp) {                                     \
 			lsio.close(fp);                         \
 			return ls;                              \
 		}                                               \
 		*(rlen_t*)tmp = len;                            \
 		lsio.read(tmp + sizeof(rlen_t), len, fp);       \
-		lsio.read(&id, sizeof(uint), fp);               \
+		lsio.read(&id, sizeof(lsiz_t), fp);               \
 		if (!_is_little_endian())                       \
-			_memrev(&id, sizeof(uint));             \
+			_memrev(&id, sizeof(lsiz_t));             \
 		ls->index[id] = tmp;                            \
 	}
 
 #define PROCESS_IMPORT_STATIC_RECORD \
-	ls->mem = (byte*)LS_A_MALLOC(ls->length); \
+	ls->mem = (lsu8_t*)LS_A_MALLOC(ls->length); \
 	if (!ls->mem) {                           \
 		LS_FREE(ls);                      \
 		LS_FREE(name);                    \
@@ -894,9 +893,9 @@ lsw_t list_export(struct list *ls, const char *path)
 		lsio.close(fp);                    \
 		return NULL;                       \
 	}                                          \
-	lsio.read(&name_len, sizeof(uint), fp);    \
+	lsio.read(&name_len, sizeof(lsiz_t), fp);    \
 	if (!_is_little_endian())                  \
-		_memrev(&name_len, sizeof(uint));  \
+		_memrev(&name_len, sizeof(lsiz_t));  \
 	if (name_len) {                            \
 		name_len++;                        \
 		name = (char*)LS_MALLOC(name_len); \
@@ -908,7 +907,7 @@ lsw_t list_export(struct list *ls, const char *path)
 		memset(name, 0, name_len);         \
 		lsio.read(name, name_len - 1, fp); \
 	}                                          \
-	lsio.read((byte*)ls + LIST_INFO_OFFSET,    \
+	lsio.read((lsu8_t*)ls + LIST_INFO_OFFSET,    \
 		LIST_INFO_LEN, fp);                \
 	if (!_is_little_endian())                  \
 		_switch_byte_order(ls);            \
@@ -957,8 +956,8 @@ struct list *list_import(const char *path)
 	struct lsio_struct lsio_bak;
 	void *fp;
 	char *name = NULL;
-	byte *tmp;
-	uint name_len, id;
+	lsu8_t *tmp;
+	lsiz_t name_len, id;
 	rlen_t len;
 	if (_allow_io_auto_switch) {
 		lsio_bak = lsio;
@@ -988,10 +987,10 @@ struct lsio_struct *list_get_io_ctrl_struct(void)
 #endif /* ENABLE_FOPS */
 
 #ifdef ENABLE_SSHM
-struct list *list_new_shared(uint nmemb, uint blen, uint key)
+struct list *list_new_shared(lsiz_t nmemb, lsiz_t blen, lsiz_t key)
 {
-	byte *shm;
-	uint shmlen = 0;
+	lsu8_t *shm;
+	lsiz_t shmlen = 0;
 	struct list *ls = LS_ALLOC(struct list);
 	if (!ls)
 		return NULL;
@@ -1004,7 +1003,7 @@ struct list *list_new_shared(uint nmemb, uint blen, uint key)
 	SET_FLAG(ls->flag, LIST_SHARED_OWNER);
 	ls->length = nmemb * blen;
 	shmlen += ls->length;
-	shm = (byte*)create_shm(shmlen, key);
+	shm = (lsu8_t*)create_shm(shmlen, key);
 	if (!shm) {
 		LS_FREE(ls);
 		return NULL;
@@ -1022,13 +1021,13 @@ struct list *list_new_shared(uint nmemb, uint blen, uint key)
 	return ls;
 }
 
-struct list *list_link_shared(uint len, uint key)
+struct list *list_link_shared(lsiz_t len, lsiz_t key)
 {
-	byte *shm;
+	lsu8_t *shm;
 	struct list *ls = LS_ALLOC(struct list);
 	if (!ls)
 		return NULL;
-	shm = (byte*)create_shm(len +
+	shm = (lsu8_t*)create_shm(len +
 		sizeof(struct list) + LIST_NAME_LEN, key);
 	if (!shm) {
 		LS_FREE(ls);
@@ -1045,7 +1044,7 @@ struct list *list_link_shared(uint len, uint key)
 
 lsw_t list_del_shared(struct list *ls)
 {
-	uint shmlen;
+	lsiz_t shmlen;
 	if (TEST_FLAG(ls->flag, LIST_SHARED_USER))
 		return LSS_ARG_ILL;
 	shmlen = (sizeof(struct list) +
@@ -1059,19 +1058,19 @@ lsw_t list_del_shared(struct list *ls)
 
 #if defined(ENABLE_SSHM) && defined(ENABLE_FOPS)
 #define PROCESS_IMPORT_SHARED \
-	byte *shm;                                      \
+	lsu8_t *shm;                                      \
 	char *name;                                     \
-	uint name_len = 0;                              \
-	uint shmlen   = 0;                              \
+	lsiz_t name_len = 0;                              \
+	lsiz_t shmlen   = 0;                              \
 	fp = lsio.open(path, "rb");                     \
 	if (!fp)                                        \
 		return NULL;                            \
 	ls = LS_ALLOC(struct list);                     \
 	if (!ls)                                        \
 		return NULL;                            \
-	lsio.read(&name_len, sizeof(uint), fp);         \
+	lsio.read(&name_len, sizeof(lsiz_t), fp);         \
 	if (!_is_little_endian())                       \
-		_memrev(&name_len, sizeof(uint));       \
+		_memrev(&name_len, sizeof(lsiz_t));       \
 	name_len++;                                     \
 	name = (char*)LS_MALLOC(name_len);              \
 	if (!name) {                                    \
@@ -1085,7 +1084,7 @@ lsw_t list_del_shared(struct list *ls)
 		_switch_byte_order(ls);                 \
 	shmlen = sizeof(struct list) + LIST_NAME_LEN;   \
 	shmlen += ls->length;                           \
-	shm = (byte*)create_shm(shmlen, key);           \
+	shm = (lsu8_t*)create_shm(shmlen, key);           \
 	if (!shm) {                                     \
 		LS_FREE(ls);                            \
 		LS_FREE(name);                          \
@@ -1101,7 +1100,7 @@ lsw_t list_del_shared(struct list *ls)
 	ls->mem  = shm + sizeof(struct list) + LIST_NAME_LEN;
 
 struct list *
-list_import_shared(const char *path, uint key)
+list_import_shared(const char *path, lsiz_t key)
 {
 	struct list *ls;
 	void *fp;
@@ -1111,7 +1110,7 @@ list_import_shared(const char *path, uint key)
 }
 #endif /* ENABLE_SSHM && ENABLE_FOPS */
 
-ccnt_t list_get_record_counter(struct list *ls, uint id)
+ccnt_t list_get_record_counter(struct list *ls, lsiz_t id)
 {
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE)) {
 		if (ls->index[id])
@@ -1125,12 +1124,12 @@ ccnt_t list_get_record_counter(struct list *ls, uint id)
 	return 1;
 }
 
-int list_hash_table_test_id(struct list *ls, uint id)
+int list_hash_table_test_id(struct list *ls, lsiz_t id)
 {
 	return (*(ccnt_t*)(ls->mem + id * ls->blen)) & 1;
 }
 
-struct list *list_new_hash_table(uint nmemb, uint blen)
+struct list *list_new_hash_table(lsiz_t nmemb, lsiz_t blen)
 {
 	struct list *ls;
         if (!blen) /* support LIST_STATIC_MODE only */
@@ -1144,9 +1143,9 @@ struct list *list_new_hash_table(uint nmemb, uint blen)
 }
 
 lsw_t list_hash_id_calc(struct list *ls,
-	const void *data, uint *hi, uint *id)
+	const void *data, lsiz_t *hi, lsiz_t *id)
 {
-	uint nhash, cid;
+	lsiz_t nhash, cid;
 	nhash = _hfx(data, _seed) % ls->nmemb;
 	*hi = nhash;
 	cid = nhash;
@@ -1162,9 +1161,9 @@ lsw_t list_hash_id_calc(struct list *ls,
 }
 
 lsw_t list_hash_table_insert(struct list *ls,
-	const void *record, uint len)
+	const void *record, lsiz_t len)
 {
-	uint hi, id, dlen;
+	lsiz_t hi, id, dlen;
 	ccnt_t *hrec, *rrec;
 	lsw_t stat;
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
@@ -1183,10 +1182,10 @@ lsw_t list_hash_table_insert(struct list *ls,
 }
 
 lsw_t list_hash_table_find(struct list *ls,
-		const void *key, uint *id)
+		const void *key, lsiz_t *id)
 {
-	uint nhash, cid;
-	byte *rec;
+	lsiz_t nhash, cid;
+	lsu8_t *rec;
 	ccnt_t nrec;
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
 		return LSS_BAD_OBJ;
@@ -1219,8 +1218,8 @@ lsw_t list_hash_table_find(struct list *ls,
 
 lsw_t list_hash_table_del(struct list *ls, const void *key)
 {
-	uint nhash, id;
-	byte *rec, *csr;
+	lsiz_t nhash, id;
+	lsu8_t *rec, *csr;
 	ccnt_t nrec;
 	if (TEST_FLAG(ls->flag, LIST_DYNAMIC_MODE))
 		return LSS_BAD_OBJ;
@@ -1278,11 +1277,3 @@ void list_print_properties(struct list *ls, void *stream)
 	fprintf(fp, "[record]       = %lld\n", ls->counter);
 	fprintf(fp, "[block length] = %lld\n", ls->blen);
 }
-
-#ifdef LS_TYPE_BYTE
-	#undef byte
-#endif
-#ifdef LS_TYPE_UINT
-	#undef uint
-#endif
-#undef _UTIL_LIST_C_
